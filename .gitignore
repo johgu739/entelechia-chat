@@ -4,6 +4,17 @@ OntologyReport.md
 ProjectTopology.json
 **/Folder.topology.json
 
+# Build and cache directories
+.build/
+.swiftpm/
+.swift-module-cache/
+DerivedData/
+xcuserdata/
+xcshareddata/
+tmp/
+node_modules/
+Pods/
+
 # Local caches for sandboxed runs
 .swift_module_cache/
 .tmp_home/
