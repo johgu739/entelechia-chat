@@ -69,30 +69,56 @@ struct HeaderParser {
     // MARK: - Parse Folder Header
     
     /// Parse folder header from Folder.ent content
+    /// Handles both new format (@EntelechiaFolderStart) and old format (@EntelechiaFolderHeaderStart)
     static func parseFolderHeader(from content: String) -> [String: String]? {
-        guard let startRange = content.range(of: folderHeaderStartMarker),
-              let endRange = content.range(of: folderHeaderEndMarker, range: startRange.upperBound..<content.endIndex) else {
-            return nil
+        // Try new format first
+        if let startRange = content.range(of: folderHeaderStartMarker),
+           let endRange = content.range(of: folderHeaderEndMarker, range: startRange.upperBound..<content.endIndex) {
+            let headerBlock = String(content[startRange.upperBound..<endRange.lowerBound])
+            var fields: [String: String] = [:]
+            
+            for line in headerBlock.components(separatedBy: .newlines) {
+                let trimmed = line.trimmingCharacters(in: .whitespaces)
+                if trimmed.hasPrefix("//") {
+                    let content = String(trimmed.dropFirst(2)).trimmingCharacters(in: .whitespaces)
+                    if let colonIndex = content.firstIndex(of: ":") {
+                        let key = String(content[..<colonIndex]).trimmingCharacters(in: .whitespaces)
+                        let value = String(content[content.index(after: colonIndex)...]).trimmingCharacters(in: .whitespaces)
+                        if !key.isEmpty {
+                            fields[key] = value
+                        }
+                    }
+                }
+            }
+            
+            return fields.isEmpty ? nil : fields
         }
         
-        let headerBlock = String(content[startRange.upperBound..<endRange.lowerBound])
-        var fields: [String: String] = [:]
-        
-        for line in headerBlock.components(separatedBy: .newlines) {
-            let trimmed = line.trimmingCharacters(in: .whitespaces)
-            if trimmed.hasPrefix("//") {
-                let content = String(trimmed.dropFirst(2)).trimmingCharacters(in: .whitespaces)
-                if let colonIndex = content.firstIndex(of: ":") {
-                    let key = String(content[..<colonIndex]).trimmingCharacters(in: .whitespaces)
-                    let value = String(content[content.index(after: colonIndex)...]).trimmingCharacters(in: .whitespaces)
+        // Try old format
+        let oldStartMarker = "// @EntelechiaFolderHeaderStart"
+        let oldEndMarker = "// @EntelechiaFolderHeaderEnd"
+        if let startRange = content.range(of: oldStartMarker),
+           let endRange = content.range(of: oldEndMarker, range: startRange.upperBound..<content.endIndex) {
+            let headerBlock = String(content[startRange.upperBound..<endRange.lowerBound])
+            var fields: [String: String] = [:]
+            
+            for line in headerBlock.components(separatedBy: .newlines) {
+                let trimmed = line.trimmingCharacters(in: .whitespaces)
+                // Old format may not have // prefix
+                let lineContent = trimmed.hasPrefix("//") ? String(trimmed.dropFirst(2)).trimmingCharacters(in: .whitespaces) : trimmed
+                if let colonIndex = lineContent.firstIndex(of: ":") {
+                    let key = String(lineContent[..<colonIndex]).trimmingCharacters(in: .whitespaces)
+                    let value = String(lineContent[lineContent.index(after: colonIndex)...]).trimmingCharacters(in: .whitespaces)
                     if !key.isEmpty {
                         fields[key] = value
                     }
                 }
             }
+            
+            return fields.isEmpty ? nil : fields
         }
         
-        return fields.isEmpty ? nil : fields
+        return nil
     }
     
     // MARK: - Ensure Header (with Signifier)
