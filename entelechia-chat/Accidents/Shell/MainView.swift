@@ -33,11 +33,16 @@ struct MainWorkspaceView: View {
             // CENTER: Chat or No File Selected
             Group {
                 if let selectedNode = workspaceViewModel.selectedNode {
-                    ChatView(conversation: workspaceViewModel.conversation(for: selectedNode.path))
+                    // Use a computed property to get the latest conversation from store
+                    let currentConversation = workspaceViewModel.conversation(for: selectedNode.path)
+                    ChatView(conversation: currentConversation)
                         .environmentObject(workspaceViewModel)
                         .navigationTitle(selectedNode.name)
-                        .task {
+                        .task(id: selectedNode.path) {
                             // Ensure conversation exists asynchronously (outside view rendering)
+                            // The conversation returned by workspaceViewModel.conversation(for:) will
+                            // automatically reflect updates from ConversationStore since it reads from
+                            // the @Published conversations array
                             do {
                                 _ = try await workspaceViewModel.ensureConversation(for: selectedNode.path)
                             } catch {
