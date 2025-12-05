@@ -71,20 +71,20 @@ struct EntWriter {
         let entURL = folderURL.appendingPathComponent("Folder.ent")
         let folderName = folderURL.lastPathComponent
         
-        // If Folder.ent exists, update it preserving existing content
+        // If Folder.ent exists, ONLY add Signifier if missing - NEVER modify anything else
         if FileManager.default.fileExists(atPath: entURL.path) {
             if let existingContent = try? String(contentsOf: entURL, encoding: .utf8) {
-                // Only update if we can parse it and Signifier is missing
-                if let existingFields = HeaderParser.parseFolderHeader(from: existingContent) {
-                    // If Signifier is missing, add it
-                    if existingFields["Signifier"] == nil || existingFields["Signifier"]?.isEmpty == true {
-                        let (updatedContent, _, _) = HeaderParser.ensureFolderHeader(in: existingContent, folderName: folderName)
+                // Check if Signifier is missing
+                let existingFields = HeaderParser.parseFolderHeader(from: existingContent) ?? [:]
+                if existingFields["Signifier"] == nil || existingFields["Signifier"]?.isEmpty == true {
+                    // Only add Signifier - ensureFolderHeader will preserve all other content
+                    let (updatedContent, _, _) = HeaderParser.ensureFolderHeader(in: existingContent, folderName: folderName)
+                    // Only write if content actually changed (Signifier was added)
+                    if updatedContent != existingContent {
                         try updatedContent.write(to: entURL, atomically: true, encoding: .utf8)
                     }
-                    // Otherwise, leave it untouched
-                    return
                 }
-                // If we can't parse it (old format), leave it alone - don't destroy existing content
+                // If Signifier exists or we can't parse, leave it completely untouched
                 return
             }
         }

@@ -218,36 +218,65 @@ struct HeaderParser {
     // MARK: - Ensure Folder Header
     
     /// Ensure folder has proper header with Signifier
+    /// CRITICAL: ONLY adds Signifier if missing - NEVER modifies existing fields
     /// Returns: (updated content, signifier value, todos)
     static func ensureFolderHeader(in content: String, folderName: String) -> (content: String, signifier: String, todos: [String]) {
         var todos: [String] = []
         
         // Parse existing header if present
-        var existingFields = parseFolderHeader(from: content) ?? [:]
+        let existingFields = parseFolderHeader(from: content) ?? [:]
         
-        // Ensure Signifier exists
-        if existingFields["Signifier"] == nil || existingFields["Signifier"]?.isEmpty == true {
-            existingFields["Signifier"] = folderName
+        // Check if Signifier is missing
+        let hasSignifier = existingFields["Signifier"] != nil && !(existingFields["Signifier"]?.isEmpty ?? true)
+        
+        // If Signifier exists, return content unchanged
+        if hasSignifier {
+            // Just collect TODOs for missing fields (but don't modify)
+            for key in orderedKeys {
+                if existingFields[key] == nil || existingFields[key]?.isEmpty == true {
+                    if key != "Signifier" {
+                        todos.append("\(folderName)/Folder.ent: Missing \(key)")
+                    }
+                }
+            }
+            return (content, existingFields["Signifier"] ?? folderName, todos)
         }
         
-        // Check for missing fields
-        for key in orderedKeys {
-            if existingFields[key] == nil || existingFields[key]?.isEmpty == true {
-                if key == "Signifier" {
-                    continue
-                }
-                todos.append("\(folderName)/Folder.ent: Missing \(key)")
+        // Signifier is missing - add it ONLY, preserving all other content
+        // Try new format first
+        if content.contains(folderHeaderStartMarker) && content.contains(folderHeaderEndMarker) {
+            if let startRange = content.range(of: folderHeaderStartMarker),
+               let endRange = content.range(of: folderHeaderEndMarker, range: startRange.upperBound..<content.endIndex) {
+                let headerBlock = String(content[startRange.upperBound..<endRange.lowerBound])
+                let beforeHeader = String(content[..<startRange.upperBound])
+                let afterHeader = String(content[endRange.upperBound...])
+                
+                // Insert Signifier as first line after start marker
+                let newHeaderBlock = "// Signifier: \(folderName)\n" + headerBlock
+                let newContent = beforeHeader + folderHeaderStartMarker + "\n" + newHeaderBlock + folderHeaderEndMarker + afterHeader
+                return (newContent, folderName, todos)
             }
         }
         
-        // If header exists, update it
-        if content.contains(folderHeaderStartMarker) && content.contains(folderHeaderEndMarker) {
-            return (updateExistingFolderHeader(in: content, with: existingFields), existingFields["Signifier"] ?? folderName, todos)
+        // Try old format
+        let oldStartMarker = "// @EntelechiaFolderHeaderStart"
+        let oldEndMarker = "// @EntelechiaFolderHeaderEnd"
+        if content.contains(oldStartMarker) && content.contains(oldEndMarker) {
+            if let startRange = content.range(of: oldStartMarker),
+               let endRange = content.range(of: oldEndMarker, range: startRange.upperBound..<content.endIndex) {
+                let headerBlock = String(content[startRange.upperBound..<endRange.lowerBound])
+                let beforeHeader = String(content[..<startRange.upperBound])
+                let afterHeader = String(content[endRange.upperBound...])
+                
+                // Insert Signifier as first line after start marker
+                let newHeaderBlock = "Signifier: \(folderName)\n" + headerBlock
+                let newContent = beforeHeader + oldStartMarker + "\n" + newHeaderBlock + oldEndMarker + afterHeader
+                return (newContent, folderName, todos)
+            }
         }
         
-        // Otherwise, create new header
-        let newHeader = renderFolderHeaderBlock(fields: existingFields)
-        return (newHeader, existingFields["Signifier"] ?? folderName, todos)
+        // No header found - return unchanged (shouldn't happen, but be safe)
+        return (content, folderName, todos)
     }
     
     // MARK: - Update Existing Folder Header
