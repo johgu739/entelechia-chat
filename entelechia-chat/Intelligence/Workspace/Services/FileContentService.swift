@@ -20,7 +20,12 @@ final class FileContentService {
     private init() {}
     
     /// Load file content with proper error handling and encoding detection
+    /// Excludes forbidden files from being loaded
     func loadContent(at url: URL) async throws -> String {
+        // Skip forbidden files
+        if FileExclusion.isForbiddenFile(url: url) {
+            throw FileContentError.notATextFile
+        }
         try await Task.detached(priority: .userInitiated) {
             // Check if file is text-based before reading
             let resourceValues = try? url.resourceValues(forKeys: [.contentTypeKey])
@@ -46,7 +51,13 @@ final class FileContentService {
     }
     
     /// Collect all files from a file node (recursively for folders)
+    /// Excludes forbidden directories and files from context collection
     func collectFiles(from node: FileNode) async throws -> [LoadedFile] {
+        // Skip forbidden directories and files
+        if FileExclusion.isForbiddenDirectory(url: node.path) || FileExclusion.isForbiddenFile(url: node.path) {
+            return []
+        }
+        
         var files: [LoadedFile] = []
         
         // If node is a file, return only its content
@@ -70,8 +81,13 @@ final class FileContentService {
     }
     
     private func collectFilesRecursively(from node: FileNode, into files: inout [LoadedFile]) async throws {
+        // Skip forbidden directories and files
+        if FileExclusion.isForbiddenDirectory(url: node.path) || FileExclusion.isForbiddenFile(url: node.path) {
+            return
+        }
+        
         if node.children == nil || node.children?.isEmpty == true {
-            // It's a file
+            // It's a file - collect it
             let content = try await loadContent(at: node.path)
             let fileType = UTType(filenameExtension: node.path.pathExtension)
             let loadedFile = LoadedFile(
@@ -83,7 +99,7 @@ final class FileContentService {
             )
             files.append(loadedFile)
         } else {
-            // It's a folder, recurse
+            // It's a folder, recurse into children
             for child in node.children ?? [] {
                 try await collectFilesRecursively(from: child, into: &files)
             }
