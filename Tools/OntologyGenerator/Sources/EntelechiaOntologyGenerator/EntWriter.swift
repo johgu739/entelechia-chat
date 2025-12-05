@@ -61,14 +61,36 @@ struct EntWriter {
     }
     
     /// Write Folder.ent to disk (only if directory is ontology-writable)
+    /// NEVER overwrites existing Folder.ent - only creates if missing or updates Signifier
     static func writeFolderEnt(folderURL: URL, appRoot: URL) throws {
         // CRITICAL: Only write to ontology-writable directories
         guard ExclusionEngine.isOntologyWritableDirectory(url: folderURL, appRoot: appRoot) else {
             throw OntologyError.forbiddenOntologyDirectory(folderURL.path)
         }
         
-        let (content, _, _) = generateFolderEnt(folderURL: folderURL, appRoot: appRoot)
         let entURL = folderURL.appendingPathComponent("Folder.ent")
+        let folderName = folderURL.lastPathComponent
+        
+        // If Folder.ent exists, update it preserving existing content
+        if FileManager.default.fileExists(atPath: entURL.path) {
+            if let existingContent = try? String(contentsOf: entURL, encoding: .utf8) {
+                // Only update if we can parse it and Signifier is missing
+                if let existingFields = HeaderParser.parseFolderHeader(from: existingContent) {
+                    // If Signifier is missing, add it
+                    if existingFields["Signifier"] == nil || existingFields["Signifier"]?.isEmpty == true {
+                        let (updatedContent, _, _) = HeaderParser.ensureFolderHeader(in: existingContent, folderName: folderName)
+                        try updatedContent.write(to: entURL, atomically: true, encoding: .utf8)
+                    }
+                    // Otherwise, leave it untouched
+                    return
+                }
+                // If we can't parse it (old format), leave it alone - don't destroy existing content
+                return
+            }
+        }
+        
+        // Create new Folder.ent only if it doesn't exist
+        let (content, _, _) = generateFolderEnt(folderURL: folderURL, appRoot: appRoot)
         try content.write(to: entURL, atomically: true, encoding: .utf8)
     }
     
