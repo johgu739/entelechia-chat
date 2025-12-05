@@ -1,1 +1,1 @@
-// Placeholder - this file is excluded from compilation
+// Placeholder file - excluded from compilation
