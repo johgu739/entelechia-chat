@@ -16,6 +16,8 @@ import Foundation
 /// Exclusion utility for workspace file tree building
 /// Mirrors the logic from OntologyGenerator.ExclusionEngine
 enum FileExclusion {
+    // MARK: - Forbidden Directory Names
+    
     static let forbiddenDirectoryNames: Set<String> = [
         ".git",
         ".swift-module-cache",
@@ -34,11 +36,20 @@ enum FileExclusion {
         "xcshareddata"
     ]
     
+    // MARK: - Whitelisted Dot-Prefixed Directories
+    
+    /// Dot-prefixed directories that are explicitly allowed (none by default)
+    static let whitelistedDotDirectories: Set<String> = []
+    
+    // MARK: - Forbidden File Names
+    
     static let forbiddenFileNames: Set<String> = [
         ".DS_Store",
         "Package.resolved",
         ".swiftpm"
     ]
+    
+    // MARK: - Forbidden File Extensions
     
     static let forbiddenExtensions: Set<String> = [
         "png", "jpg", "jpeg", "gif", "webp", "heic",
@@ -48,17 +59,20 @@ enum FileExclusion {
         "xcuserstate", "xcworkspacedata"
     ]
     
+    // MARK: - Core Exclusion Logic
+    
     /// Returns true if the directory should be excluded from file tree
     static func isForbiddenDirectory(url: URL) -> Bool {
         let pathComponents = url.pathComponents
         
+        // Check if any path component matches a forbidden name
         for component in pathComponents {
             if forbiddenDirectoryNames.contains(component) {
                 return true
             }
             
-            // Exclude dot-prefixed directories (except explicitly allowed ones)
-            if component.hasPrefix(".") {
+            // Check if it's a dot-prefixed directory that's not whitelisted
+            if component.hasPrefix(".") && !whitelistedDotDirectories.contains(component) {
                 return true
             }
         }
