@@ -112,10 +112,15 @@ final class ConversationService {
         conversation.updatedAt = Date()
         
         // Persist the conversation - if this fails, crash with clear error
-        do {
-            try conversationStore.save(conversation)
-        } catch {
-            fatalError("❌ Failed to save conversation \(conversation.id): \(error.localizedDescription). This is a fatal error - database must be valid.")
+        // CRITICAL: Save asynchronously to avoid publishing during view updates
+        Task { @MainActor in
+            do {
+                try await Task {
+                    try conversationStore.save(conversation)
+                }.value
+            } catch {
+                fatalError("❌ Failed to save conversation \(conversation.id): \(error.localizedDescription). This is a fatal error - database must be valid.")
+            }
         }
     }
     
