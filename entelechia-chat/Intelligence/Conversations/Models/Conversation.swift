@@ -15,14 +15,15 @@ import Foundation
 import SwiftUI
 import Combine
 
-/// Conversation model - ObservableObject for SwiftUI, Codable for persistence
-final class Conversation: Identifiable, ObservableObject, Codable {
+/// Conversation model - Value type for SwiftUI purity, Codable for persistence
+/// CRITICAL: Struct ensures accessors return immutable values, not mutable references
+struct Conversation: Identifiable, Codable, Equatable {
     let id: UUID
-    @Published var title: String
+    var title: String
     let createdAt: Date
-    @Published var updatedAt: Date
-    @Published var messages: [Message]
-    @Published var contextFilePaths: [String]
+    var updatedAt: Date
+    var messages: [Message]
+    var contextFilePaths: [String]
     
     enum CodingKeys: String, CodingKey {
         case id

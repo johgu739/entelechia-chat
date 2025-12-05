@@ -359,7 +359,10 @@ class WorkspaceViewModel: ObservableObject {
             return Conversation(contextFilePaths: [url.path])
         }
         
-        return try await service.ensureConversation(for: url, urlToConversationId: &urlToConversationId)
+        // Service returns updated mapping - update our stored property
+        let (conversation, updatedMapping) = try await service.ensureConversation(for: url, urlToConversationId: urlToConversationId)
+        urlToConversationId = updatedMapping
+        return conversation
     }
     
     func sendMessage(_ text: String, for conversation: Conversation) async {
@@ -372,11 +375,20 @@ class WorkspaceViewModel: ObservableObject {
         defer { isLoading = false }
         
         do {
-            try await service.sendMessage(text, in: conversation, contextNode: selectedNode)
+            // Service returns updated conversation (struct - value type)
+            let updatedConversation = try await service.sendMessage(text, in: conversation, contextNode: selectedNode)
             
-            // Update URL mapping
-            if let url = conversation.contextURL {
-                urlToConversationId[url] = conversation.id
+            // Update URL mapping with updated conversation
+            if let url = updatedConversation.contextURL {
+                urlToConversationId[url] = updatedConversation.id
+            }
+            
+            // Update conversation store asynchronously
+            await MainActor.run {
+                if let store = conversationStore,
+                   let index = store.conversations.firstIndex(where: { $0.id == updatedConversation.id }) {
+                    store.conversations[index] = updatedConversation
+                }
             }
         } catch {
             print("Error sending message: \(error.localizedDescription)")

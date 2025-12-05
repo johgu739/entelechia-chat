@@ -1,5 +1,14 @@
 {
   "allTodos" : [
+    "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Scripts\/generateOntology.swift: Missing Substance",
+    "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Scripts\/generateOntology.swift: Missing Genus",
+    "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Scripts\/generateOntology.swift: Missing Differentia",
+    "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Scripts\/generateOntology.swift: Missing Form",
+    "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Scripts\/generateOntology.swift: Missing Matter",
+    "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Scripts\/generateOntology.swift: Missing Powers",
+    "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Scripts\/generateOntology.swift: Missing FinalCause",
+    "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Scripts\/generateOntology.swift: Missing Relations",
+    "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Scripts\/generateOntology.swift: Missing CausalityType",
     "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/Tools\/OntologyGenerator\/Package.swift: Missing Substance",
     "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/Tools\/OntologyGenerator\/Package.swift: Missing Genus",
     "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/Tools\/OntologyGenerator\/Package.swift: Missing Differentia",
@@ -131,6 +140,7 @@
     "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Infrastructure\/Rendering\/Folder.ent: Missing Relations"
   ],
   "filesWithIncompleteHeaders" : [
+    "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Scripts\/generateOntology.swift",
     "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/Tools\/OntologyGenerator\/Package.swift"
   ],
   "foldersWithIncompleteEnts" : [
@@ -159,7 +169,7 @@
     "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Infrastructure\/Persistence",
     "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Infrastructure\/Rendering"
   ],
-  "generatedAt" : "2025-12-05T07:41:40Z",
+  "generatedAt" : "2025-12-05T07:50:54Z",
   "missingFolderEnts" : [
 
   ],

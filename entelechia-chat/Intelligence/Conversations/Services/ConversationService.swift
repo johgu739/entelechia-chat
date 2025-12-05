@@ -31,11 +31,12 @@ final class ConversationService {
     }
     
     /// Send a message in a conversation with context files
+    /// Returns updated conversation (struct - value type)
     func sendMessage(
         _ text: String,
         in conversation: Conversation,
         contextNode: FileNode?
-    ) async throws {
+    ) async throws -> Conversation {
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw ConversationServiceError.emptyMessage
         }
@@ -54,17 +55,15 @@ final class ConversationService {
             contextFiles = []
         }
         
-        // Create user message
+        // Create user message and update conversation (struct - create new instance)
         let userMessage = Message(role: .user, text: text)
-        // CRITICAL: Mutate @Published properties asynchronously
-        await MainActor.run {
-            conversation.messages.append(userMessage)
-            conversation.updatedAt = Date()
-            
-            // Auto-update title if first user message
-            if conversation.messages.filter({ $0.role == .user }).count == 1 {
-                conversation.title = conversation.summaryTitle
-            }
+        var updatedConversation = conversation
+        updatedConversation.messages.append(userMessage)
+        updatedConversation.updatedAt = Date()
+        
+        // Auto-update title if first user message
+        if updatedConversation.messages.filter({ $0.role == .user }).count == 1 {
+            updatedConversation.title = updatedConversation.summaryTitle
         }
         
         // Get included files
@@ -75,7 +74,7 @@ final class ConversationService {
         var finalMessage: Message?
         
         do {
-            let stream = try await assistant.send(messages: conversation.messages, contextFiles: includedFiles)
+            let stream = try await assistant.send(messages: updatedConversation.messages, contextFiles: includedFiles)
             
             for await chunk in stream {
                 switch chunk {
@@ -99,33 +98,27 @@ final class ConversationService {
                 }
             }
             
-            // CRITICAL: Mutate @Published properties asynchronously
-            await MainActor.run {
-                if let message = finalMessage {
-                    conversation.messages.append(message)
-                } else if !streamingText.isEmpty {
-                    conversation.messages.append(Message(role: .assistant, text: streamingText))
-                }
-                conversation.updatedAt = Date()
+            // Append assistant message (struct - create new instance)
+            if let message = finalMessage {
+                updatedConversation.messages.append(message)
+            } else if !streamingText.isEmpty {
+                updatedConversation.messages.append(Message(role: .assistant, text: streamingText))
             }
+            updatedConversation.updatedAt = Date()
         } catch {
-            // CRITICAL: Mutate @Published properties asynchronously
-            await MainActor.run {
-                let errorMessage = Message(
-                    role: .assistant,
-                    text: "Sorry, I encountered an error: \(error.localizedDescription)"
-                )
-                conversation.messages.append(errorMessage)
-                conversation.updatedAt = Date()
-            }
+            // Append error message (struct - create new instance)
+            let errorMessage = Message(
+                role: .assistant,
+                text: "Sorry, I encountered an error: \(error.localizedDescription)"
+            )
+            updatedConversation.messages.append(errorMessage)
+            updatedConversation.updatedAt = Date()
         }
         
-        // Persist the conversation - save is already async-safe (mutations deferred)
-        do {
-            try conversationStore.save(conversation)
-        } catch {
-            fatalError("❌ Failed to save conversation \(conversation.id): \(error.localizedDescription). This is a fatal error - database must be valid.")
-        }
+        // Persist the conversation
+        try conversationStore.save(updatedConversation)
+        
+        return updatedConversation
     }
     
     /// Get conversation for a URL (pure accessor - never mutates)
@@ -151,19 +144,22 @@ final class ConversationService {
     
     /// Ensure a conversation exists for a URL (side-effecting - must be called from async context)
     /// This creates and persists if needed, but never during view rendering
+    /// Returns updated conversation and updated URL-to-ID mapping (avoids actor-isolated inout)
     @MainActor
-    func ensureConversation(for url: URL, urlToConversationId: inout [URL: UUID]) async throws -> Conversation {
+    func ensureConversation(for url: URL, urlToConversationId: [URL: UUID]) async throws -> (Conversation, [URL: UUID]) {
         // First check if it already exists (pure read)
         if let existing = conversation(for: url, urlToConversationId: urlToConversationId) {
-            urlToConversationId[url] = existing.id
-            return existing
+            var updatedMapping = urlToConversationId
+            updatedMapping[url] = existing.id
+            return (existing, updatedMapping)
         }
         
         // Create and persist a new conversation for this file
         let new = Conversation(contextFilePaths: [url.path])
         try conversationStore.save(new)
-        urlToConversationId[url] = new.id
-        return new
+        var updatedMapping = urlToConversationId
+        updatedMapping[url] = new.id
+        return (new, updatedMapping)
     }
 }
 

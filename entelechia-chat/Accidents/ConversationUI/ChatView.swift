@@ -15,7 +15,7 @@ import SwiftUI
 import AppKit
 
 struct ChatView: View {
-    @ObservedObject var conversation: Conversation
+    @State var conversation: Conversation
     @EnvironmentObject var workspaceViewModel: WorkspaceViewModel
     @StateObject private var chatViewModel = ChatViewModel(assistant: MockCodeAssistant())
     @State private var inputText: String = ""

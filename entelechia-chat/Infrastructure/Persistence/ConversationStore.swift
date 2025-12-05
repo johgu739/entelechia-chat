@@ -178,7 +178,7 @@ final class ConversationStore: ObservableObject {
     /// Rename a conversation
     /// Throws if save fails
     func rename(_ conversation: Conversation, to newTitle: String) throws {
-        let updated = conversation
+        var updated = conversation
         updated.title = newTitle
         updated.updatedAt = Date()
         try save(updated)
@@ -187,7 +187,7 @@ final class ConversationStore: ObservableObject {
     /// Append a message to a conversation
     /// Throws if save fails
     func appendMessage(_ message: Message, to conversation: Conversation) throws {
-        let updated = conversation
+        var updated = conversation
         updated.messages.append(message)
         updated.updatedAt = Date()
         
