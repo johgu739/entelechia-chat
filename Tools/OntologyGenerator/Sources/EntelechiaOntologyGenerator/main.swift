@@ -43,11 +43,27 @@ do {
     }
     
     let projectRootPath = args[projectRootIndex]
-    let projectRootURL = URL(fileURLWithPath: projectRootPath)
+    
+    // CRITICAL: Use absolute path, never rely on currentDirectoryPath
+    // Check for SRCROOT environment variable first (from Xcode build scripts)
+    let rootPath: String
+    if let srcRoot = ProcessInfo.processInfo.environment["SRCROOT"] {
+        rootPath = srcRoot
+    } else {
+        rootPath = projectRootPath
+    }
+    
+    let projectRootURL = URL(fileURLWithPath: rootPath)
     let appRootURL = projectRootURL.appendingPathComponent("entelechia-chat")
     
     // Determine app root (could be project root itself)
     let actualAppRoot = FileManager.default.fileExists(atPath: appRootURL.path) ? appRootURL : projectRootURL
+    
+    // Validate root exists
+    guard FileManager.default.fileExists(atPath: projectRootURL.path) else {
+        print("❌ Error: Project root does not exist: \(projectRootURL.path)")
+        Darwin.exit(1)
+    }
     
     print("🔍 Scanning project at: \(projectRootURL.path)")
     print("📁 App root: \(actualAppRoot.path)")
