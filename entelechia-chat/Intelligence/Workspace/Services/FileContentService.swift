@@ -22,12 +22,15 @@ final class FileContentService {
     
     /// Load file content with proper error handling and encoding detection
     /// Excludes forbidden files from being loaded
+    /// CRITICAL: Every code path must return String or throw - no unused expressions
     func loadContent(at url: URL) async throws -> String {
         // Skip forbidden files
         if FileExclusion.isForbiddenFile(url: url) {
             throw FileContentError.notATextFile
         }
-        try await Task.detached(priority: .userInitiated) {
+        
+        // Perform I/O on background thread
+        return try await Task.detached(priority: .userInitiated) {
             // Check if file is text-based before reading
             let resourceValues = try? url.resourceValues(forKeys: [.contentTypeKey])
             guard let contentType = resourceValues?.contentType else {
@@ -45,7 +48,7 @@ final class FileContentService {
                 return content
             }
             
-            // Fallback: try reading with UTF-8 encoding
+            // Fallback: try reading with UTF-8 encoding - MUST return
             return try String(contentsOf: url, encoding: .utf8)
         }.value
     }
