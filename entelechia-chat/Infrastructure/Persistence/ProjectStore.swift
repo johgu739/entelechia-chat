@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: ProjectStore
 // Substance: Project metadata store
 // Genus: Domain store
 // Differentia: Persists recent projects and names

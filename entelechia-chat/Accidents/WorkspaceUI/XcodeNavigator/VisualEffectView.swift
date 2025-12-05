@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: VisualEffectView
 // Substance: Visual effect wrapper
 // Genus: UI effect view
 // Differentia: Wraps NSVisualEffectView

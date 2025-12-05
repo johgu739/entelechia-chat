@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: ContextInspector
 // Substance: Context inspector UI
 // Genus: UI inspector
 // Differentia: Shows file context metadata

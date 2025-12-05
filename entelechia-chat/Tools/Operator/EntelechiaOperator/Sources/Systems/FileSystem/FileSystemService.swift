@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: FileSystemService
 // Substance: Operator file system service
 // Genus: File service
 // Differentia: Performs file read/write/list for operator tasks

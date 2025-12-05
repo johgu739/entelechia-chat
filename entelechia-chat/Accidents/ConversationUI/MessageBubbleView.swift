@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: MessageBubbleView
 // Substance: Message bubble UI
 // Genus: UI view
 // Differentia: Renders single message with role styling

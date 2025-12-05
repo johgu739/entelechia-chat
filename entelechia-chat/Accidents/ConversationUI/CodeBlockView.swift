@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: CodeBlockView
 // Substance: Code block UI
 // Genus: UI view
 // Differentia: Displays code segments

@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: FileNode
 // Substance: File tree node
 // Genus: Workspace data model
 // Differentia: Represents directories/files with children

@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: Conversation
 // Substance: Conversation aggregate
 // Genus: Conversation entity
 // Differentia: Captures dialogue plus context paths

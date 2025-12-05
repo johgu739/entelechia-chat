@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: Attachment
 // Substance: Attachment model
 // Genus: Conversation data model
 // Differentia: Represents message attachment metadata

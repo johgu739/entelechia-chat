@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: ModelResponse
 // Substance: Model response envelope
 // Genus: Conversation output model
 // Differentia: Captures model reply fields

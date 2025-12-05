@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: ChatView
 // Substance: Conversation UI surface
 // Genus: UI view
 // Differentia: Displays conversation and input

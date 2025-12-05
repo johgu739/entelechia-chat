@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: OnboardingSelectProjectView
 // Substance: Onboarding UI
 // Genus: UI onboarding view
 // Differentia: Collects project folder and name

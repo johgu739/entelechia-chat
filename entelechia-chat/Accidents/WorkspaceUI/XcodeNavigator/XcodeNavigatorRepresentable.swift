@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: XcodeNavigatorRepresentable
 // Substance: AppKit outline bridge
 // Genus: UI bridge
 // Differentia: Wires NSOutlineView data source/delegate

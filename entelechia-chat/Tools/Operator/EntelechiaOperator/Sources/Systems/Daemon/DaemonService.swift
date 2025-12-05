@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: DaemonService
 // Substance: Operator daemon service
 // Genus: Backend connector
 // Differentia: Manages connection to daemon

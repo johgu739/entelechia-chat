@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: FileStore
 // Substance: File persistence instrument
 // Genus: Disk IO helper
 // Differentia: Atomic read/write of JSON files

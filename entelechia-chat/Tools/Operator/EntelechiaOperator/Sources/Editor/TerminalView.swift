@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: TerminalView
 // Substance: Operator terminal view
 // Genus: UI view
 // Differentia: Renders console I/O

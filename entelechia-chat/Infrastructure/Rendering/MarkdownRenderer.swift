@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: MarkdownRenderer
 // Substance: Markdown rendering instrument
 // Genus: Text rendering helper
 // Differentia: Transforms markdown to attributed text

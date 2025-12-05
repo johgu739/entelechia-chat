@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: EntelechiaOperatorApp
 // Substance: Operator app telos orchestrator
 // Genus: Teleological entry point
 // Differentia: Assembles operator scenes and services

@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: RootLayout
 // Substance: Operator root layout
 // Genus: UI container
 // Differentia: Composes sidebar, editor surface, inspectors

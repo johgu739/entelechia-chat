@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: RootView
 // Substance: UI shell switcher
 // Genus: UI shell view
 // Differentia: Routes onboarding vs workspace

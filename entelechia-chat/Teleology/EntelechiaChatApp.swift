@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: EntelechiaChatApp
 // Substance: App telos orchestrator
 // Genus: Teleological entry point
 // Differentia: Composes environment objects and scenes

@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: CodeView
 // Substance: Operator code view
 // Genus: UI view
 // Differentia: Displays code with navigation/edit affordances

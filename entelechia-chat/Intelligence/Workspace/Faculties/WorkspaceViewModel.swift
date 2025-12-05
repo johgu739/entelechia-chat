@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: WorkspaceViewModel
 // Substance: Workspace UI faculty
 // Genus: Application faculty
 // Differentia: Mediates workspace domain to UI

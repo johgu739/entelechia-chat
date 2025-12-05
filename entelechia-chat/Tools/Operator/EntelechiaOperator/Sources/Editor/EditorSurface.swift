@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: EditorSurface
 // Substance: Operator editor surface
 // Genus: UI container
 // Differentia: Hosts code/markdown/terminal panes

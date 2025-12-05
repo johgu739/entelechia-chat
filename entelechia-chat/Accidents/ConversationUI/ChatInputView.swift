@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: ChatInputView
 // Substance: Input accident
 // Genus: UI control
 // Differentia: Captures chat input

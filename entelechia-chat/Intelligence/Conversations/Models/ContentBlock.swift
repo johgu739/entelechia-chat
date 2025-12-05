@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: ContentBlock
 // Substance: Content block value
 // Genus: Message component
 // Differentia: Typed chunk of message payload

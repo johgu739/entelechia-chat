@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: XcodeNavigatorView
 // Substance: Navigator container UI
 // Genus: UI container
 // Differentia: Hosts mode bar and outline bridge

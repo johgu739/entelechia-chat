@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: AppTheme
 // Substance: UI accident palette
 // Genus: UI theme
 // Differentia: Defines colors and styles

@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: MockCodeAssistant
 // Substance: Mock assistant
 // Genus: Test double for AI client
 // Differentia: Returns canned responses

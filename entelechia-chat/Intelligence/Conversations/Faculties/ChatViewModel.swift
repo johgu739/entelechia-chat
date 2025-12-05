@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: ChatViewModel
 // Substance: Chat UI faculty
 // Genus: Application faculty
 // Differentia: Mediates conversation domain to UI

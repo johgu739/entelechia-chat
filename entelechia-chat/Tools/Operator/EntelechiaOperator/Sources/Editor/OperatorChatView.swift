@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: OperatorChatView
 // Substance: Operator chat surface
 // Genus: UI view
 // Differentia: Operator conversations with backend

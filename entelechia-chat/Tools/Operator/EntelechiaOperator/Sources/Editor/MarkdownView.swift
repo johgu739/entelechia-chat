@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: MarkdownView
 // Substance: Operator markdown view
 // Genus: UI view
 // Differentia: Displays formatted markdown

@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: LoadedFile
 // Substance: Loaded file value
 // Genus: Workspace data model
 // Differentia: Holds file content with inclusion flag

@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: PatchDiffView
 // Substance: Operator patch diff view
 // Genus: UI view
 // Differentia: Renders diffs between file versions

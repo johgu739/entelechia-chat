@@ -1,0 +1,705 @@
+{
+  "generatedAt" : "2025-12-05T07:31:49Z",
+  "suggestions" : [
+    {
+      "confidence" : "HIGH",
+      "currentName" : "AppState",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Tools\/Operator\/EntelechiaOperator\/Sources\/App\/AppState.swift",
+      "differentia" : "Holds observable operator state",
+      "genus" : "Application faculty",
+      "proposedName" : "AppState__Applicationfaculty__Holdsobservableoperatorstate.swift",
+      "reason" : "All required fields present",
+      "signifier" : "AppState"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "AppModels",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Tools\/Operator\/EntelechiaOperator\/Sources\/App\/AppModels.swift",
+      "differentia" : "Represent operator entities",
+      "genus" : "Data models",
+      "proposedName" : "AppModels__Datamodels__Representoperatorentities.swift",
+      "reason" : "All required fields present",
+      "signifier" : "AppModels"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "RootLayout",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Tools\/Operator\/EntelechiaOperator\/Sources\/App\/RootLayout.swift",
+      "differentia" : "Composes sidebar, editor surface, inspectors",
+      "genus" : "UI container",
+      "proposedName" : "RootLayout__UIcontainer__Composessidebareditorsurfaceinspectors.swift",
+      "reason" : "All required fields present",
+      "signifier" : "RootLayout"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "EntelechiaOperatorApp",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Tools\/Operator\/EntelechiaOperator\/Sources\/App\/EntelechiaOperatorApp.swift",
+      "differentia" : "Assembles operator scenes and services",
+      "genus" : "Teleological entry point",
+      "proposedName" : "EntelechiaOperatorApp__Teleologicalentrypoint__Assemblesoperatorscenesandservices.swift",
+      "reason" : "All required fields present",
+      "signifier" : "EntelechiaOperatorApp"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "OperatorToolbar",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Tools\/Operator\/EntelechiaOperator\/Sources\/App\/Toolbar\/OperatorToolbar.swift",
+      "differentia" : "Toolbar items and actions",
+      "genus" : "UI control",
+      "proposedName" : "OperatorToolbar__UIcontrol__Toolbaritemsandactions.swift",
+      "reason" : "All required fields present",
+      "signifier" : "OperatorToolbar"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "InspectorPanel",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Tools\/Operator\/EntelechiaOperator\/Sources\/Inspector\/InspectorPanel.swift",
+      "differentia" : "Displays details for selection",
+      "genus" : "UI inspector",
+      "proposedName" : "InspectorPanel__UIinspector__Displaysdetailsforselection.swift",
+      "reason" : "All required fields present",
+      "signifier" : "InspectorPanel"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "NavigatorSidebar",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Tools\/Operator\/EntelechiaOperator\/Sources\/Navigation\/NavigatorSidebar.swift",
+      "differentia" : "Renders navigable operator targets",
+      "genus" : "UI navigator",
+      "proposedName" : "NavigatorSidebar__UInavigator__Rendersnavigableoperatortargets.swift",
+      "reason" : "All required fields present",
+      "signifier" : "NavigatorSidebar"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "PatchEngine",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Tools\/Operator\/EntelechiaOperator\/Sources\/Systems\/PatchEngine\/PatchEngine.swift",
+      "differentia" : "Applies patches safely",
+      "genus" : "Patch processor",
+      "proposedName" : "PatchEngine__Patchprocessor__Appliespatchessafely.swift",
+      "reason" : "All required fields present",
+      "signifier" : "PatchEngine"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "CodexClient",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Tools\/Operator\/EntelechiaOperator\/Sources\/Systems\/Codex\/CodexClient.swift",
+      "differentia" : "Calls Codex backend",
+      "genus" : "API client",
+      "proposedName" : "CodexClient__APIclient__CallsCodexbackend.swift",
+      "reason" : "All required fields present",
+      "signifier" : "CodexClient"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "FileSystemService",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Tools\/Operator\/EntelechiaOperator\/Sources\/Systems\/FileSystem\/FileSystemService.swift",
+      "differentia" : "Performs file read\/write\/list for operator tasks",
+      "genus" : "File service",
+      "proposedName" : "FileSystemService__Fileservice__Performsfilereadwritelistforoperatortasks.swift",
+      "reason" : "All required fields present",
+      "signifier" : "FileSystemService"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "DaemonService",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Tools\/Operator\/EntelechiaOperator\/Sources\/Systems\/Daemon\/DaemonService.swift",
+      "differentia" : "Manages connection to daemon",
+      "genus" : "Backend connector",
+      "proposedName" : "DaemonService__Backendconnector__Managesconnectiontodaemon.swift",
+      "reason" : "All required fields present",
+      "signifier" : "DaemonService"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "EditorSurface",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Tools\/Operator\/EntelechiaOperator\/Sources\/Editor\/EditorSurface.swift",
+      "differentia" : "Hosts code\/markdown\/terminal panes",
+      "genus" : "UI container",
+      "proposedName" : "EditorSurface__UIcontainer__Hostscodemarkdownterminalpanes.swift",
+      "reason" : "All required fields present",
+      "signifier" : "EditorSurface"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "MarkdownView",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Tools\/Operator\/EntelechiaOperator\/Sources\/Editor\/MarkdownView.swift",
+      "differentia" : "Displays formatted markdown",
+      "genus" : "UI view",
+      "proposedName" : "MarkdownView__UIview__Displaysformattedmarkdown.swift",
+      "reason" : "All required fields present",
+      "signifier" : "MarkdownView"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "PatchDiffView",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Tools\/Operator\/EntelechiaOperator\/Sources\/Editor\/PatchDiffView.swift",
+      "differentia" : "Renders diffs between file versions",
+      "genus" : "UI view",
+      "proposedName" : "PatchDiffView__UIview__Rendersdiffsbetweenfileversions.swift",
+      "reason" : "All required fields present",
+      "signifier" : "PatchDiffView"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "CodeView",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Tools\/Operator\/EntelechiaOperator\/Sources\/Editor\/CodeView.swift",
+      "differentia" : "Displays code with navigation\/edit affordances",
+      "genus" : "UI view",
+      "proposedName" : "CodeView__UIview__Displayscodewithnavigationeditaffordances.swift",
+      "reason" : "All required fields present",
+      "signifier" : "CodeView"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "TerminalView",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Tools\/Operator\/EntelechiaOperator\/Sources\/Editor\/TerminalView.swift",
+      "differentia" : "Renders console I\/O",
+      "genus" : "UI view",
+      "proposedName" : "TerminalView__UIview__RendersconsoleIO.swift",
+      "reason" : "All required fields present",
+      "signifier" : "TerminalView"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "OperatorChatView",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Tools\/Operator\/EntelechiaOperator\/Sources\/Editor\/OperatorChatView.swift",
+      "differentia" : "Operator conversations with backend",
+      "genus" : "UI view",
+      "proposedName" : "OperatorChatView__UIview__Operatorconversationswithbackend.swift",
+      "reason" : "All required fields present",
+      "signifier" : "OperatorChatView"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "ProjectSession",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Intelligence\/Projects\/Services\/ProjectSession.swift",
+      "differentia" : "Holds active project state",
+      "genus" : "Project domain faculty",
+      "proposedName" : "ProjectSession__Projectdomainfaculty__Holdsactiveprojectstate.swift",
+      "reason" : "All required fields present",
+      "signifier" : "ProjectSession"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "ProjectCoordinator",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Intelligence\/Projects\/Services\/ProjectCoordinator.swift",
+      "differentia" : "Opens\/closes projects and updates recents",
+      "genus" : "Project domain faculty",
+      "proposedName" : "ProjectCoordinator__Projectdomainfaculty__Opensclosesprojectsandupdatesrecents.swift",
+      "reason" : "All required fields present",
+      "signifier" : "ProjectCoordinator"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "FileViewModel",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Intelligence\/Workspace\/Faculties\/FileViewModel.swift",
+      "differentia" : "Presents file info to UI",
+      "genus" : "Application faculty",
+      "proposedName" : "FileViewModel__Applicationfaculty__PresentsfileinfotoUI.swift",
+      "reason" : "All required fields present",
+      "signifier" : "FileViewModel"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "WorkspaceViewModel",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Intelligence\/Workspace\/Faculties\/WorkspaceViewModel.swift",
+      "differentia" : "Mediates workspace domain to UI",
+      "genus" : "Application faculty",
+      "proposedName" : "WorkspaceViewModel__Applicationfaculty__MediatesworkspacedomaintoUI.swift",
+      "reason" : "All required fields present",
+      "signifier" : "WorkspaceViewModel"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "FileMetadataViewModel",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Intelligence\/Workspace\/Faculties\/FileMetadataViewModel.swift",
+      "differentia" : "Derives and presents metadata",
+      "genus" : "Application faculty",
+      "proposedName" : "FileMetadataViewModel__Applicationfaculty__Derivesandpresentsmetadata.swift",
+      "reason" : "All required fields present",
+      "signifier" : "FileMetadataViewModel"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "FileNode",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Intelligence\/Workspace\/Models\/FileNode.swift",
+      "differentia" : "Represents directories\/files with children",
+      "genus" : "Workspace data model",
+      "proposedName" : "FileNode__Workspacedatamodel__Representsdirectoriesfileswithchildren.swift",
+      "reason" : "All required fields present",
+      "signifier" : "FileNode"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "LoadedFile",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Intelligence\/Workspace\/Models\/LoadedFile.swift",
+      "differentia" : "Holds file content with inclusion flag",
+      "genus" : "Workspace data model",
+      "proposedName" : "LoadedFile__Workspacedatamodel__Holdsfilecontentwithinclusionflag.swift",
+      "reason" : "All required fields present",
+      "signifier" : "LoadedFile"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "FileExclusion",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Intelligence\/Workspace\/Services\/FileExclusion.swift",
+      "differentia" : "Filters forbidden directories and files from file tree",
+      "genus" : "Workspace utility",
+      "proposedName" : "FileExclusion__Workspaceutility__Filtersforbiddendirectoriesandfilesfromfiletree.swift",
+      "reason" : "All required fields present",
+      "signifier" : "FileExclusion"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "FileContentService",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Intelligence\/Workspace\/Services\/FileContentService.swift",
+      "differentia" : "Collects file contents recursively",
+      "genus" : "Workspace domain faculty",
+      "proposedName" : "FileContentService__Workspacedomainfaculty__Collectsfilecontentsrecursively.swift",
+      "reason" : "All required fields present",
+      "signifier" : "FileContentService"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "WorkspaceFileSystemService",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Intelligence\/Workspace\/Services\/WorkspaceFileSystemService.swift",
+      "differentia" : "Builds and queries file trees",
+      "genus" : "Workspace domain faculty",
+      "proposedName" : "WorkspaceFileSystemService__Workspacedomainfaculty__Buildsandqueriesfiletrees.swift",
+      "reason" : "All required fields present",
+      "signifier" : "WorkspaceFileSystemService"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "ChatViewModel",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Intelligence\/Conversations\/Faculties\/ChatViewModel.swift",
+      "differentia" : "Mediates conversation domain to UI",
+      "genus" : "Application faculty",
+      "proposedName" : "ChatViewModel__Applicationfaculty__MediatesconversationdomaintoUI.swift",
+      "reason" : "All required fields present",
+      "signifier" : "ChatViewModel"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "Conversation",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Intelligence\/Conversations\/Models\/Conversation.swift",
+      "differentia" : "Captures dialogue plus context paths",
+      "genus" : "Conversation entity",
+      "proposedName" : "Conversation__Conversationentity__Capturesdialoguepluscontextpaths.swift",
+      "reason" : "All required fields present",
+      "signifier" : "Conversation"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "Attachment",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Intelligence\/Conversations\/Models\/Attachment.swift",
+      "differentia" : "Represents message attachment metadata",
+      "genus" : "Conversation data model",
+      "proposedName" : "Attachment__Conversationdatamodel__Representsmessageattachmentmetadata.swift",
+      "reason" : "All required fields present",
+      "signifier" : "Attachment"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "Message",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Intelligence\/Conversations\/Models\/Message.swift",
+      "differentia" : "Single utterance with role and content",
+      "genus" : "Conversation component",
+      "proposedName" : "Message__Conversationcomponent__Singleutterancewithroleandcontent.swift",
+      "reason" : "All required fields present",
+      "signifier" : "Message"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "ContentBlock",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Intelligence\/Conversations\/Models\/ContentBlock.swift",
+      "differentia" : "Typed chunk of message payload",
+      "genus" : "Message component",
+      "proposedName" : "ContentBlock__Messagecomponent__Typedchunkofmessagepayload.swift",
+      "reason" : "All required fields present",
+      "signifier" : "ContentBlock"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "ModelResponse",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Intelligence\/Conversations\/Models\/ModelResponse.swift",
+      "differentia" : "Captures model reply fields",
+      "genus" : "Conversation output model",
+      "proposedName" : "ModelResponse__Conversationoutputmodel__Capturesmodelreplyfields.swift",
+      "reason" : "All required fields present",
+      "signifier" : "ModelResponse"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "ConversationService",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Intelligence\/Conversations\/Services\/ConversationService.swift",
+      "differentia" : "Orchestrates messaging and streaming",
+      "genus" : "Domain faculty",
+      "proposedName" : "ConversationService__Domainfaculty__Orchestratesmessagingandstreaming.swift",
+      "reason" : "All required fields present",
+      "signifier" : "ConversationService"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "RootView",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Accidents\/Shell\/RootView.swift",
+      "differentia" : "Routes onboarding vs workspace",
+      "genus" : "UI shell view",
+      "proposedName" : "RootView__UIshellview__Routesonboardingvsworkspace.swift",
+      "reason" : "All required fields present",
+      "signifier" : "RootView"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "NoFileSelectedView",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Accidents\/Shell\/NoFileSelectedView.swift",
+      "differentia" : "Shows no-selection copy",
+      "genus" : "UI placeholder",
+      "proposedName" : "NoFileSelectedView__UIplaceholder__Showsno-selectioncopy.swift",
+      "reason" : "All required fields present",
+      "signifier" : "NoFileSelectedView"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "MainView",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Accidents\/Shell\/MainView.swift",
+      "differentia" : "Composes navigator, chat, inspector",
+      "genus" : "UI shell view",
+      "proposedName" : "MainView__UIshellview__Composesnavigatorchatinspector.swift",
+      "reason" : "All required fields present",
+      "signifier" : "MainView"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "AppTheme",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Accidents\/Theme\/AppTheme.swift",
+      "differentia" : "Defines colors and styles",
+      "genus" : "UI theme",
+      "proposedName" : "AppTheme__UItheme__Definescolorsandstyles.swift",
+      "reason" : "All required fields present",
+      "signifier" : "AppTheme"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "FileIconView",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Accidents\/WorkspaceUI\/FileIconView.swift",
+      "differentia" : "Selects icon by file type",
+      "genus" : "UI icon view",
+      "proposedName" : "FileIconView__UIiconview__Selectsiconbyfiletype.swift",
+      "reason" : "All required fields present",
+      "signifier" : "FileIconView"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "XcodeNavigatorView",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Accidents\/WorkspaceUI\/XcodeNavigator\/XcodeNavigatorView.swift",
+      "differentia" : "Hosts mode bar and outline bridge",
+      "genus" : "UI container",
+      "proposedName" : "XcodeNavigatorView__UIcontainer__Hostsmodebarandoutlinebridge.swift",
+      "reason" : "All required fields present",
+      "signifier" : "XcodeNavigatorView"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "XcodeNavigatorRepresentable",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Accidents\/WorkspaceUI\/XcodeNavigator\/XcodeNavigatorRepresentable.swift",
+      "differentia" : "Wires NSOutlineView data source\/delegate",
+      "genus" : "UI bridge",
+      "proposedName" : "XcodeNavigatorRepresentable__UIbridge__WiresNSOutlineViewdatasourcedelegate.swift",
+      "reason" : "All required fields present",
+      "signifier" : "XcodeNavigatorRepresentable"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "VisualEffectView",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Accidents\/WorkspaceUI\/XcodeNavigator\/VisualEffectView.swift",
+      "differentia" : "Wraps NSVisualEffectView",
+      "genus" : "UI effect view",
+      "proposedName" : "VisualEffectView__UIeffectview__WrapsNSVisualEffectView.swift",
+      "reason" : "All required fields present",
+      "signifier" : "VisualEffectView"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "OntologyTodosView",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Accidents\/WorkspaceUI\/OntologyTodosView.swift",
+      "differentia" : "Shows ontology gaps and errors per project",
+      "genus" : "UI list view",
+      "proposedName" : "OntologyTodosView__UIlistview__Showsontologygapsanderrorsperproject.swift",
+      "reason" : "All required fields present",
+      "signifier" : "OntologyTodosView"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "FilesSidebarView",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Accidents\/WorkspaceUI\/FilesSidebarView.swift",
+      "differentia" : "Displays file tree sidebar",
+      "genus" : "UI navigator",
+      "proposedName" : "FilesSidebarView__UInavigator__Displaysfiletreesidebar.swift",
+      "reason" : "All required fields present",
+      "signifier" : "FilesSidebarView"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "OnboardingSelectProjectView",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Accidents\/WorkspaceUI\/OnboardingSelectProjectView.swift",
+      "differentia" : "Collects project folder and name",
+      "genus" : "UI onboarding view",
+      "proposedName" : "OnboardingSelectProjectView__UIonboardingview__Collectsprojectfolderandname.swift",
+      "reason" : "All required fields present",
+      "signifier" : "OnboardingSelectProjectView"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "ContextInspector",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Accidents\/ConversationUI\/ContextInspector.swift",
+      "differentia" : "Shows file context metadata",
+      "genus" : "UI inspector",
+      "proposedName" : "ContextInspector__UIinspector__Showsfilecontextmetadata.swift",
+      "reason" : "All required fields present",
+      "signifier" : "ContextInspector"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "CodeBlockView",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Accidents\/ConversationUI\/CodeBlockView.swift",
+      "differentia" : "Displays code segments",
+      "genus" : "UI view",
+      "proposedName" : "CodeBlockView__UIview__Displayscodesegments.swift",
+      "reason" : "All required fields present",
+      "signifier" : "CodeBlockView"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "MessageBubbleView",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Accidents\/ConversationUI\/MessageBubbleView.swift",
+      "differentia" : "Renders single message with role styling",
+      "genus" : "UI view",
+      "proposedName" : "MessageBubbleView__UIview__Renderssinglemessagewithrolestyling.swift",
+      "reason" : "All required fields present",
+      "signifier" : "MessageBubbleView"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "ChatInputView",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Accidents\/ConversationUI\/ChatInputView.swift",
+      "differentia" : "Captures chat input",
+      "genus" : "UI control",
+      "proposedName" : "ChatInputView__UIcontrol__Captureschatinput.swift",
+      "reason" : "All required fields present",
+      "signifier" : "ChatInputView"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "ChatView",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Accidents\/ConversationUI\/ChatView.swift",
+      "differentia" : "Displays conversation and input",
+      "genus" : "UI view",
+      "proposedName" : "ChatView__UIview__Displaysconversationandinput.swift",
+      "reason" : "All required fields present",
+      "signifier" : "ChatView"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "MarkdownMessageView",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Accidents\/ConversationUI\/MarkdownMessageView.swift",
+      "differentia" : "Renders markdown content",
+      "genus" : "UI view",
+      "proposedName" : "MarkdownMessageView__UIview__Rendersmarkdowncontent.swift",
+      "reason" : "All required fields present",
+      "signifier" : "MarkdownMessageView"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "EntelechiaChatApp",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Teleology\/EntelechiaChatApp.swift",
+      "differentia" : "Composes environment objects and scenes",
+      "genus" : "Teleological entry point",
+      "proposedName" : "EntelechiaChatApp__Teleologicalentrypoint__Composesenvironmentobjectsandscenes.swift",
+      "reason" : "All required fields present",
+      "signifier" : "EntelechiaChatApp"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "ModelClient",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Infrastructure\/AI\/ModelClient.swift",
+      "differentia" : "Calls external model endpoints",
+      "genus" : "Model HTTP client",
+      "proposedName" : "ModelClient__ModelHTTPclient__Callsexternalmodelendpoints.swift",
+      "reason" : "All required fields present",
+      "signifier" : "ModelClient"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "MockCodeAssistant",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Infrastructure\/AI\/MockCodeAssistant.swift",
+      "differentia" : "Returns canned responses",
+      "genus" : "Test double for AI client",
+      "proposedName" : "MockCodeAssistant__TestdoubleforAIclient__Returnscannedresponses.swift",
+      "reason" : "All required fields present",
+      "signifier" : "MockCodeAssistant"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "ProjectStore",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Infrastructure\/Persistence\/ProjectStore.swift",
+      "differentia" : "Persists recent projects and names",
+      "genus" : "Domain store",
+      "proposedName" : "ProjectStore__Domainstore__Persistsrecentprojectsandnames.swift",
+      "reason" : "All required fields present",
+      "signifier" : "ProjectStore"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "ConversationStore",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Infrastructure\/Persistence\/ConversationStore.swift",
+      "differentia" : "Maintains index and per-conversation files",
+      "genus" : "Domain store",
+      "proposedName" : "ConversationStore__Domainstore__Maintainsindexandper-conversationfiles.swift",
+      "reason" : "All required fields present",
+      "signifier" : "ConversationStore"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "FileStore",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Infrastructure\/Persistence\/FileStore.swift",
+      "differentia" : "Atomic read\/write of JSON files",
+      "genus" : "Disk IO helper",
+      "proposedName" : "FileStore__DiskIOhelper__AtomicreadwriteofJSONfiles.swift",
+      "reason" : "All required fields present",
+      "signifier" : "FileStore"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "MarkdownRenderer",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Infrastructure\/Rendering\/MarkdownRenderer.swift",
+      "differentia" : "Transforms markdown to attributed text",
+      "genus" : "Text rendering helper",
+      "proposedName" : "MarkdownRenderer__Textrenderinghelper__Transformsmarkdowntoattributedtext.swift",
+      "reason" : "All required fields present",
+      "signifier" : "MarkdownRenderer"
+    },
+    {
+      "confidence" : "MEDIUM",
+      "currentName" : "Package",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/Tools\/OntologyGenerator\/Package.swift",
+      "differentia" : "TODO_AGENT_FILL",
+      "genus" : "TODO_AGENT_FILL",
+      "proposedName" : "Package.swift",
+      "reason" : "Some fields contain TODO markers",
+      "signifier" : "Package"
+    },
+    {
+      "confidence" : "MEDIUM",
+      "currentName" : "TodoCollector",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/Tools\/OntologyGenerator\/Sources\/EntelechiaOntologyGenerator\/TodoCollector.swift",
+      "differentia" : "Collects all TODO items from headers and folders",
+      "genus" : "Ontology analyzer",
+      "proposedName" : "TodoCollector__Ontologyanalyzer.swift",
+      "reason" : "Some fields contain TODO markers",
+      "signifier" : "TodoCollector"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "OntologyValidator",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/Tools\/OntologyGenerator\/Sources\/EntelechiaOntologyGenerator\/OntologyValidator.swift",
+      "differentia" : "Validates ontology integrity and detects violations",
+      "genus" : "Ontology validator",
+      "proposedName" : "OntologyValidator__Ontologyvalidator__Validatesontologyintegrityanddetectsviolations.swift",
+      "reason" : "All required fields present",
+      "signifier" : "OntologyValidator"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "ExclusionEngine",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/Tools\/OntologyGenerator\/Sources\/EntelechiaOntologyGenerator\/ExclusionEngine.swift",
+      "differentia" : "Defines forbidden directories and files for ontology operations",
+      "genus" : "Ontology utility",
+      "proposedName" : "ExclusionEngine__Ontologyutility__Definesforbiddendirectoriesandfilesforontologyoperations.swift",
+      "reason" : "All required fields present",
+      "signifier" : "ExclusionEngine"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "TopologyBuilder",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/Tools\/OntologyGenerator\/Sources\/EntelechiaOntologyGenerator\/TopologyBuilder.swift",
+      "differentia" : "Builds folder and project topology structures",
+      "genus" : "Ontology builder",
+      "proposedName" : "TopologyBuilder__Ontologybuilder__Buildsfolderandprojecttopologystructures.swift",
+      "reason" : "All required fields present",
+      "signifier" : "TopologyBuilder"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "Renamer",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/Tools\/OntologyGenerator\/Sources\/EntelechiaOntologyGenerator\/Renamer.swift",
+      "differentia" : "Applies canonical renames based on ontology suggestions",
+      "genus" : "Ontology refactorer",
+      "proposedName" : "Renamer__Ontologyrefactorer__Appliescanonicalrenamesbasedonontologysuggestions.swift",
+      "reason" : "All required fields present",
+      "signifier" : "Renamer"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "EntWriter",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/Tools\/OntologyGenerator\/Sources\/EntelechiaOntologyGenerator\/EntWriter.swift",
+      "differentia" : "Generates and writes Folder.ent and topology files",
+      "genus" : "Ontology writer",
+      "proposedName" : "EntWriter__Ontologywriter__GeneratesandwritesFolderentandtopologyfiles.swift",
+      "reason" : "All required fields present",
+      "signifier" : "EntWriter"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "HeaderParser",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/Tools\/OntologyGenerator\/Sources\/EntelechiaOntologyGenerator\/HeaderParser.swift",
+      "differentia" : "Parses and ensures correct header structure with Signifier",
+      "genus" : "Ontology parser",
+      "proposedName" : "HeaderParser__Ontologyparser__ParsesandensurescorrectheaderstructurewithSignifier.swift",
+      "reason" : "All required fields present",
+      "signifier" : "HeaderParser"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "main",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/Tools\/OntologyGenerator\/Sources\/EntelechiaOntologyGenerator\/main.swift",
+      "differentia" : "Orchestrates ontology generation workflow",
+      "genus" : "Executable main",
+      "proposedName" : "main__Executablemain__Orchestratesontologygenerationworkflow.swift",
+      "reason" : "All required fields present",
+      "signifier" : "main"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "RenameSuggestionsGenerator",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/Tools\/OntologyGenerator\/Sources\/EntelechiaOntologyGenerator\/RenameSuggestionsGenerator.swift",
+      "differentia" : "Generates canonical filename suggestions based on ontology",
+      "genus" : "Ontology analyzer",
+      "proposedName" : "RenameSuggestionsGenerator__Ontologyanalyzer__Generatescanonicalfilenamesuggestionsbasedonontology.swift",
+      "reason" : "All required fields present",
+      "signifier" : "RenameSuggestionsGenerator"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "FileScanner",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/Tools\/OntologyGenerator\/Sources\/EntelechiaOntologyGenerator\/FileScanner.swift",
+      "differentia" : "Recursively scans project files respecting exclusion rules",
+      "genus" : "Ontology scanner",
+      "proposedName" : "FileScanner__Ontologyscanner__Recursivelyscansprojectfilesrespectingexclusionrules.swift",
+      "reason" : "All required fields present",
+      "signifier" : "FileScanner"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "ProjectTodos",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/Intelligence\/Projects\/Models\/ProjectTodos.swift",
+      "differentia" : "Represents ontology gaps per project",
+      "genus" : "Project model",
+      "proposedName" : "ProjectTodos__Projectmodel__Representsontologygapsperproject.swift",
+      "reason" : "All required fields present",
+      "signifier" : "ProjectTodos"
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: ConversationService
 // Substance: Conversation faculty
 // Genus: Domain faculty
 // Differentia: Orchestrates messaging and streaming

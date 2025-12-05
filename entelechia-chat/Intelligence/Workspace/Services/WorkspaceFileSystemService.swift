@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: WorkspaceFileSystemService
 // Substance: File tree faculty
 // Genus: Workspace domain faculty
 // Differentia: Builds and queries file trees

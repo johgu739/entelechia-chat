@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: FileIconView
 // Substance: File icon UI
 // Genus: UI icon view
 // Differentia: Selects icon by file type

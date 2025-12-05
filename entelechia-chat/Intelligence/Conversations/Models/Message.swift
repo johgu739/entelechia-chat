@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: Message
 // Substance: Message entity
 // Genus: Conversation component
 // Differentia: Single utterance with role and content

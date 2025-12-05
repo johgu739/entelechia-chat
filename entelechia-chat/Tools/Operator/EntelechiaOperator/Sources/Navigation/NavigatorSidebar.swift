@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: NavigatorSidebar
 // Substance: Operator navigator sidebar UI
 // Genus: UI navigator
 // Differentia: Renders navigable operator targets

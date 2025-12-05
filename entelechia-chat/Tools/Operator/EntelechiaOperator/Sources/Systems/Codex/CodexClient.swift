@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: CodexClient
 // Substance: Codex client
 // Genus: API client
 // Differentia: Calls Codex backend

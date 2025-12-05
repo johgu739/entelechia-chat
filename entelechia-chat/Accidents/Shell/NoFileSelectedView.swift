@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: NoFileSelectedView
 // Substance: Empty-state view
 // Genus: UI placeholder
 // Differentia: Shows no-selection copy

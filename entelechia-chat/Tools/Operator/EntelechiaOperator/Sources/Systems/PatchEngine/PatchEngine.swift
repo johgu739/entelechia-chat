@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: PatchEngine
 // Substance: Patch engine
 // Genus: Patch processor
 // Differentia: Applies patches safely

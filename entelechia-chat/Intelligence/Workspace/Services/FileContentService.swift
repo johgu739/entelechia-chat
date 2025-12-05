@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: FileContentService
 // Substance: Workspace content faculty
 // Genus: Workspace domain faculty
 // Differentia: Collects file contents recursively

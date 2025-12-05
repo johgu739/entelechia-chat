@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: AppModels
 // Substance: Operator app models
 // Genus: Data models
 // Differentia: Represent operator entities

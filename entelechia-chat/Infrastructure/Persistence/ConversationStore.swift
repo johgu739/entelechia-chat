@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: ConversationStore
 // Substance: Conversation persistence instrument
 // Genus: Domain store
 // Differentia: Maintains index and per-conversation files

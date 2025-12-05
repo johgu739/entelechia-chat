@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: AppState
 // Substance: Operator app state container
 // Genus: Application faculty
 // Differentia: Holds observable operator state

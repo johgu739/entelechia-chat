@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: FileViewModel
 // Substance: File UI faculty
 // Genus: Application faculty
 // Differentia: Presents file info to UI

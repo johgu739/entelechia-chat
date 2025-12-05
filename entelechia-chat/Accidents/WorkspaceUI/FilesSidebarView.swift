@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: FilesSidebarView
 // Substance: Sidebar UI
 // Genus: UI navigator
 // Differentia: Displays file tree sidebar

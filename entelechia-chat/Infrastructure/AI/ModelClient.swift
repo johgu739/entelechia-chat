@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: ModelClient
 // Substance: AI model client
 // Genus: Model HTTP client
 // Differentia: Calls external model endpoints

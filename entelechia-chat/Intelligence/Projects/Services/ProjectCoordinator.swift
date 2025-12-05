@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: ProjectCoordinator
 // Substance: Project coordination faculty
 // Genus: Project domain faculty
 // Differentia: Opens/closes projects and updates recents

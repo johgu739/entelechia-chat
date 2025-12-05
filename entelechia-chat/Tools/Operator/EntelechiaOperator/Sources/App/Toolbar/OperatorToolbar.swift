@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: OperatorToolbar
 // Substance: Operator toolbar UI
 // Genus: UI control
 // Differentia: Toolbar items and actions

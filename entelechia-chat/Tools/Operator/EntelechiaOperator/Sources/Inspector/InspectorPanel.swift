@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: InspectorPanel
 // Substance: Operator inspector panel
 // Genus: UI inspector
 // Differentia: Displays details for selection

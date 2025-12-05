@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: MarkdownMessageView
 // Substance: Markdown message UI
 // Genus: UI view
 // Differentia: Renders markdown content

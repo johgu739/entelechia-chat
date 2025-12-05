@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: ProjectSession
 // Substance: Project runtime faculty
 // Genus: Project domain faculty
 // Differentia: Holds active project state

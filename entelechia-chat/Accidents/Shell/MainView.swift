@@ -1,4 +1,5 @@
 // @EntelechiaHeaderStart
+// Signifier: MainView
 // Substance: Workspace layout view
 // Genus: UI shell view
 // Differentia: Composes navigator, chat, inspector
