@@ -29,6 +29,11 @@ struct OntologyValidator {
         
         // Validate Swift files
         for fileURL in swiftFiles {
+            // Skip Package.swift - it cannot have headers (tools-version must be first line)
+            if fileURL.lastPathComponent == "Package.swift" {
+                continue
+            }
+            
             guard let content = try? String(contentsOf: fileURL, encoding: .utf8) else {
                 continue
             }
