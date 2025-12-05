@@ -316,33 +316,50 @@ class WorkspaceViewModel: ObservableObject {
     }
 
     
-    // MARK: - Conversation Management (Delegates to Service)
+    // MARK: - Conversation Management (Pure Accessor + Async Ensurer)
     
+    /// Get conversation for URL (pure accessor - safe during view rendering)
+    /// Returns existing conversation or temporary placeholder - NEVER mutates
     func conversation(for url: URL) -> Conversation {
         guard let store = conversationStore else {
             return Conversation(contextFilePaths: [url.path])
         }
         
-        // Use conversation service if available, otherwise fallback
-        if let service = conversationService {
-            return service.conversation(for: url, urlToConversationId: &urlToConversationId)
+        // Use conversation service if available (pure read - no mutations)
+        if let service = conversationService,
+           let existing = service.conversation(for: url, urlToConversationId: urlToConversationId) {
+            return existing
         }
         
-        // Fallback: direct store access
+        // Fallback: direct store access (pure read)
         if let conversationId = urlToConversationId[url],
            let existing = store.conversations.first(where: { $0.id == conversationId }) {
             return existing
         }
         
-        let new = Conversation(contextFilePaths: [url.path])
-        // If save fails, crash - no silent errors
-        do {
-            try store.save(new)
-        } catch {
-            fatalError("❌ Failed to save conversation: \(error.localizedDescription). This is a fatal error - database must be valid.")
+        // Try to find existing by path (pure read)
+        if let existing = store.conversations
+            .filter({ $0.contextFilePaths.contains(url.path) })
+            .sorted(by: { $0.updatedAt > $1.updatedAt })
+            .first {
+            return existing
         }
-        urlToConversationId[url] = new.id
-        return new
+        
+        // Return temporary placeholder (will be replaced when ensureConversation completes)
+        // This is safe because it doesn't mutate @Published properties
+        return Conversation(contextFilePaths: [url.path])
+    }
+    
+    /// Ensure conversation exists (side-effecting - must be called from async context)
+    /// This should be called when a conversation is actually needed, not during view rendering
+    @MainActor
+    func ensureConversation(for url: URL) async throws -> Conversation {
+        guard let service = conversationService else {
+            // No service - return temporary
+            return Conversation(contextFilePaths: [url.path])
+        }
+        
+        return try await service.ensureConversation(for: url, urlToConversationId: &urlToConversationId)
     }
     
     func sendMessage(_ text: String, for conversation: Conversation) async {
