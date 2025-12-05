@@ -1,0 +1,11 @@
+// @EntelechiaFolderHeaderStart
+Genus: SensibleAccidents-Conversation
+Differentia: Sensible presentation of conversation acts
+FormalCause: Render messages, input, bubbles, markdown
+FinalCause: Make conversational intelligence perceptible
+Relations:
+  - Parent: SensibleAccidents
+  - Children: AUTO
+  - DependsOn: Intelligence/Conversations
+CausalityType: AccidentalFormal
+// @EntelechiaFolderHeaderEnd

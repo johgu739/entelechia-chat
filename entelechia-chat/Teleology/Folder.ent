@@ -1,0 +1,11 @@
+// @EntelechiaFolderHeaderStart
+Genus: TeleologicalRoot
+Differentia: Directs the entire application toward its ultimate end
+FormalCause: Governs global composition and ordering
+FinalCause: Ensure coherent unity across all layers and faculties
+Relations:
+  - Parent: ProjectRoot
+  - Children: AUTO
+  - DependsOn: Intelligence, Infrastructure
+CausalityType: FinalFormal
+// @EntelechiaFolderHeaderEnd

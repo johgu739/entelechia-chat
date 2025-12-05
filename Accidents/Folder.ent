@@ -1,0 +1,11 @@
+// @EntelechiaFolderHeaderStart
+Genus: SensibleAccidents
+Differentia: Provide the sensible forms of deeper intelligible structure
+FormalCause: Organize UI components to express intelligible order
+FinalCause: Make the system’s logic perceptible to the senses
+Relations:
+  - Parent: Teleology
+  - Children: AUTO
+  - DependsOn: Intelligence
+CausalityType: Accidental
+// @EntelechiaFolderHeaderEnd

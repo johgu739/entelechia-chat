@@ -1,0 +1,12 @@
+# Generated ontology artifacts
+Topology.json
+OntologyReport.md
+ProjectTopology.json
+**/Folder.topology.json
+
+# Local caches for sandboxed runs
+.swift_module_cache/
+.tmp_home/
+
+# macOS
+.DS_Store

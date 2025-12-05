@@ -1,0 +1,11 @@
+// @EntelechiaFolderHeaderStart
+Genus: SensibleAccidents-Navigator
+Differentia: Visual hierarchy of the file tree in AppKit form
+FormalCause: Organize outline navigation
+FinalCause: Enable structured traversal of file forms
+Relations:
+  - Parent: SensibleAccidents-Workspace
+  - Children: AUTO
+  - DependsOn: Intelligence/Workspace
+CausalityType: AccidentalFormal
+// @EntelechiaFolderHeaderEnd

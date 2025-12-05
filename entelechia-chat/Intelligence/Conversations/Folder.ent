@@ -1,0 +1,11 @@
+// @EntelechiaFolderHeaderStart
+Genus: ConversationalIntellect
+Differentia: Governs the formation, storage, and operation of dialogues
+FormalCause: Orders conversation models, services, and faculties
+FinalCause: Achieve intelligible context-aware dialogue
+Relations:
+  - Parent: DomainIntelligence
+  - Children: AUTO
+  - DependsOn: Workspace, Projects
+CausalityType: Formal
+// @EntelechiaFolderHeaderEnd

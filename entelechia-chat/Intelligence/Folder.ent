@@ -1,0 +1,11 @@
+// @EntelechiaFolderHeaderStart
+Genus: DomainIntelligence
+Differentia: Contains intrinsic forms and faculties governing domain reasoning
+FormalCause: Organizes models, services, and faculties by nature
+FinalCause: Produce correct domain-understanding and operations
+Relations:
+  - Parent: Teleology
+  - Children: AUTO
+  - DependsOn: Infrastructure
+CausalityType: Formal
+// @EntelechiaFolderHeaderEnd
