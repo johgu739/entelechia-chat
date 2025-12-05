@@ -34,6 +34,11 @@ struct OntologyValidator {
                 continue
             }
             
+            // Skip Scripts directory - placeholder files excluded from compilation
+            if fileURL.pathComponents.contains("Scripts") {
+                continue
+            }
+            
             guard let content = try? String(contentsOf: fileURL, encoding: .utf8) else {
                 continue
             }
