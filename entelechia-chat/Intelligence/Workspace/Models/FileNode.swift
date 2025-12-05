@@ -145,8 +145,18 @@ final class FileNode: Identifiable {
                 return url1.lastPathComponent.localizedCaseInsensitiveCompare(url2.lastPathComponent) == .orderedAscending
             }
             
-            // Convert ALL items to FileNodes - no filtering
+            // Convert items to FileNodes, excluding forbidden directories and files
             for childURL in sortedContents {
+                // Skip forbidden directories
+                if FileExclusion.isForbiddenDirectory(url: childURL) {
+                    continue
+                }
+                
+                // Skip forbidden files
+                if FileExclusion.isForbiddenFile(url: childURL) {
+                    continue
+                }
+                
                 if let childNode = FileNode.from(url: childURL, includeParent: false, isParentDir: false) {
                     directoryChildren.append(childNode)
                 } else {
