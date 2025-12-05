@@ -1,4 +1,6 @@
-// @EntelechiaFolderHeaderStart
+// @EntelechiaFolderHeaderStart// @EntelechiaFolderHeaderStart
+Signifier: WorkspaceUI
+
 Genus: SensibleAccidents-Workspace
 Differentia: Visible form of workspace file structures
 FormalCause: Render file trees, inspectors, icons

@@ -1,4 +1,6 @@
-// @EntelechiaFolderHeaderStart
+// @EntelechiaFolderHeaderStart// @EntelechiaFolderHeaderStart
+Signifier: Services
+
 Genus: ProjectPowers
 Differentia: Operational rules for project state and coordination
 FormalCause: Implement project opening, closing, and persistence linkage

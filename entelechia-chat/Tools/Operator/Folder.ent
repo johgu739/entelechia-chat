@@ -1,4 +1,6 @@
-// @EntelechiaFolderHeaderStart
+// @EntelechiaFolderHeaderStart// @EntelechiaFolderHeaderStart
+Signifier: Operator
+
 Genus: OperatorUtilities
 Differentia: Tools for introspecting or manipulating project state
 FormalCause: Provide auxiliary forms for developer control

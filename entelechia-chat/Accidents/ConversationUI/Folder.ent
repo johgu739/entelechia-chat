@@ -1,4 +1,6 @@
-// @EntelechiaFolderHeaderStart
+// @EntelechiaFolderHeaderStart// @EntelechiaFolderHeaderStart
+Signifier: ConversationUI
+
 Genus: SensibleAccidents-Conversation
 Differentia: Sensible presentation of conversation acts
 FormalCause: Render messages, input, bubbles, markdown

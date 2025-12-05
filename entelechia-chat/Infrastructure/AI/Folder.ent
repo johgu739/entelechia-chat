@@ -1,4 +1,6 @@
-// @EntelechiaFolderHeaderStart
+// @EntelechiaFolderHeaderStart// @EntelechiaFolderHeaderStart
+Signifier: AI
+
 Genus: InstrumentalAI
 Differentia: Provides access to model inference and mock behavior
 FormalCause: Implement client interfaces and assistants

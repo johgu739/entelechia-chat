@@ -1,4 +1,6 @@
-// @EntelechiaFolderHeaderStart
+// @EntelechiaFolderHeaderStart// @EntelechiaFolderHeaderStart
+Signifier: Services
+
 Genus: WorkspacePowers
 Differentia: Execute file traversal, loading, and context gathering
 FormalCause: Implement operational rules for workspace domain

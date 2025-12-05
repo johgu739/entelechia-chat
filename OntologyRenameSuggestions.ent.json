@@ -1,5 +1,5 @@
 {
-  "generatedAt" : "2025-12-05T07:31:49Z",
+  "generatedAt" : "2025-12-05T07:41:40Z",
   "suggestions" : [
     {
       "confidence" : "HIGH",
@@ -170,6 +170,16 @@
       "proposedName" : "OperatorChatView__UIview__Operatorconversationswithbackend.swift",
       "reason" : "All required fields present",
       "signifier" : "OperatorChatView"
+    },
+    {
+      "confidence" : "HIGH",
+      "currentName" : "ProjectTodos",
+      "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Intelligence\/Projects\/Models\/ProjectTodos.swift",
+      "differentia" : "Represents ontology gaps per project",
+      "genus" : "Project model",
+      "proposedName" : "ProjectTodos__Projectmodel__Representsontologygapsperproject.swift",
+      "reason" : "All required fields present",
+      "signifier" : "ProjectTodos"
     },
     {
       "confidence" : "HIGH",

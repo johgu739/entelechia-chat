@@ -1,4 +1,6 @@
-// @EntelechiaFolderHeaderStart
+// @EntelechiaFolderHeaderStart// @EntelechiaFolderHeaderStart
+Signifier: XcodeNavigator
+
 Genus: SensibleAccidents-Navigator
 Differentia: Visual hierarchy of the file tree in AppKit form
 FormalCause: Organize outline navigation
