@@ -17,6 +17,9 @@ import Combine
 import UniformTypeIdentifiers
 import CoreServices
 
+// ProjectTodos is defined in Intelligence/Projects/Models/ProjectTodos.swift
+// Since it's in the same app target, no explicit import needed, but ensure file is in target
+
 /// Navigator mode matching Xcode's navigator tabs
 enum NavigatorMode: String, CaseIterable {
     case project = "Project"
