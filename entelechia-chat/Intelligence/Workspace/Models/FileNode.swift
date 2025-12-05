@@ -42,8 +42,9 @@ final class FileNode: Identifiable {
     }
     
     /// Create a FileNode from a file system URL
+    /// Returns nil for forbidden directories and files
     static func from(url: URL, includeParent: Bool = false, isParentDir: Bool = false) -> FileNode? {
-        // For parent directory nodes, create directly
+        // For parent directory nodes, create directly (never exclude parent navigation)
         if isParentDir {
             return FileNode(
                 name: "..",
@@ -52,6 +53,11 @@ final class FileNode: Identifiable {
                 icon: "arrow.up.circle.fill",
                 isParentDirectory: true
             )
+        }
+        
+        // Exclude forbidden directories and files at creation time
+        if FileExclusion.isForbiddenDirectory(url: url) || FileExclusion.isForbiddenFile(url: url) {
+            return nil
         }
         
         // Try to access the resource (may fail for some URLs, but continue anyway)
