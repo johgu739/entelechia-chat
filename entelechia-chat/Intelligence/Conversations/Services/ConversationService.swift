@@ -123,8 +123,9 @@ final class ConversationService {
         }
     }
     
-    /// Get or create a conversation for a URL
-    func conversation(for url: URL, urlToConversationId: inout [URL: UUID]) -> Conversation {
+    /// Get conversation for a URL (pure accessor - never mutates)
+    /// This is safe to call from view rendering contexts
+    func conversation(for url: URL, urlToConversationId: [URL: UUID]) -> Conversation? {
         // Check map first
         if let conversationId = urlToConversationId[url],
            let existing = conversationStore.conversations.first(where: { $0.id == conversationId }) {
@@ -136,21 +137,26 @@ final class ConversationService {
             .filter({ $0.contextFilePaths.contains(url.path) })
             .sorted(by: { $0.updatedAt > $1.updatedAt })
             .first {
-            urlToConversationId[url] = existing.id
             return existing
         }
 
+        // Not found - return nil (caller must use ensureConversation to create)
+        return nil
+    }
+    
+    /// Ensure a conversation exists for a URL (side-effecting - must be called from async context)
+    /// This creates and persists if needed, but never during view rendering
+    @MainActor
+    func ensureConversation(for url: URL, urlToConversationId: inout [URL: UUID]) async throws -> Conversation {
+        // First check if it already exists (pure read)
+        if let existing = conversation(for: url, urlToConversationId: urlToConversationId) {
+            urlToConversationId[url] = existing.id
+            return existing
+        }
+        
         // Create and persist a new conversation for this file
         let new = Conversation(contextFilePaths: [url.path])
-        // CRITICAL: Save asynchronously to avoid publishing during view updates
-        // Use DispatchQueue to ensure save happens outside view rendering cycle
-        DispatchQueue.main.async {
-            do {
-                try conversationStore.save(new)
-            } catch {
-                fatalError("❌ Failed to save new conversation: \(error.localizedDescription). This is a fatal error - conversation store must be writable.")
-            }
-        }
+        try conversationStore.save(new)
         urlToConversationId[url] = new.id
         return new
     }

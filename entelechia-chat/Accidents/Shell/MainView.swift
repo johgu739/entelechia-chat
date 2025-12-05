@@ -36,6 +36,14 @@ struct MainWorkspaceView: View {
                     ChatView(conversation: workspaceViewModel.conversation(for: selectedNode.path))
                         .environmentObject(workspaceViewModel)
                         .navigationTitle(selectedNode.name)
+                        .task {
+                            // Ensure conversation exists asynchronously (outside view rendering)
+                            do {
+                                _ = try await workspaceViewModel.ensureConversation(for: selectedNode.path)
+                            } catch {
+                                print("Warning: Failed to ensure conversation: \(error.localizedDescription)")
+                            }
+                        }
                 } else {
                     NoFileSelectedView()
                         .navigationTitle(projectSession.projectName.isEmpty ? "No Selection" : projectSession.projectName)
