@@ -181,10 +181,17 @@ do {
         appRoot: actualAppRoot
     )
     
-    let projectTopologyURL = projectRootURL.appendingPathComponent("ProjectTopology.json")
+    // CRITICAL: Write to actualAppRoot, not projectRootURL, to maintain formal unity
+    // Validate path exists before writing
+    guard FileManager.default.fileExists(atPath: actualAppRoot.path) else {
+        print("  ❌ Error: App root does not exist: \(actualAppRoot.path)")
+        Darwin.exit(1)
+    }
+    
+    let projectTopologyURL = actualAppRoot.appendingPathComponent("ProjectTopology.json")
     if let jsonData = try? JSONSerialization.data(withJSONObject: projectTopology, options: [.prettyPrinted, .sortedKeys]) {
         try? jsonData.write(to: projectTopologyURL)
-        print("  ✅ Created ProjectTopology.json")
+        print("  ✅ Created ProjectTopology.json at \(projectTopologyURL.path)")
     }
     
     // 6. Generate RenameSuggestions.ent.json
