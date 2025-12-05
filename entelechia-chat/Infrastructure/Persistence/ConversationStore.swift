@@ -136,8 +136,8 @@ final class ConversationStore: ObservableObject {
         try fileStore.save(conversation, to: conversationURL)
         
         // Update in-memory array asynchronously to avoid publishing during view updates
-        // Use asyncAfter to ensure this happens outside the current run loop
-        DispatchQueue.main.async { [weak self] in
+        // Use Task to ensure this happens outside the current run loop
+        Task { @MainActor [weak self] in
             guard let self = self else { return }
             if let index = self.conversations.firstIndex(where: { $0.id == conversation.id }) {
                 self.conversations[index] = conversation
@@ -161,18 +161,25 @@ final class ConversationStore: ObservableObject {
     
     /// Delete a conversation
     /// Throws if delete fails - no silent errors
+    /// CRITICAL: Mutations to @Published properties must happen asynchronously
     func delete(_ conversation: Conversation) throws {
         let conversationURL = fileStore.resolveConversationsDirectory()
             .appendingPathComponent("\(conversation.id.uuidString).json")
         
         try fileStore.delete(at: conversationURL)
-        conversations.removeAll { $0.id == conversation.id }
         
-        if selectedConversation?.id == conversation.id {
-            selectedConversation = nil
+        // Update in-memory array asynchronously to avoid publishing during view updates
+        Task { @MainActor [weak self] in
+            guard let self = self else { return }
+            self.conversations.removeAll { $0.id == conversation.id }
+            
+            if self.selectedConversation?.id == conversation.id {
+                self.selectedConversation = nil
+            }
+            
+            // Sync index asynchronously
+            try? self.syncIndex()
         }
-        
-        try syncIndex()
     }
     
     /// Rename a conversation
@@ -186,6 +193,7 @@ final class ConversationStore: ObservableObject {
     
     /// Append a message to a conversation
     /// Throws if save fails
+    /// CRITICAL: Mutations to @Published properties must happen asynchronously
     func appendMessage(_ message: Message, to conversation: Conversation) throws {
         var updated = conversation
         updated.messages.append(message)
@@ -198,9 +206,12 @@ final class ConversationStore: ObservableObject {
         
         try save(updated)
         
-        // Update selected conversation if it's the same
-        if selectedConversation?.id == conversation.id {
-            selectedConversation = updated
+        // Update selected conversation asynchronously if it's the same
+        Task { @MainActor [weak self] in
+            guard let self = self else { return }
+            if self.selectedConversation?.id == conversation.id {
+                self.selectedConversation = updated
+            }
         }
     }
     
