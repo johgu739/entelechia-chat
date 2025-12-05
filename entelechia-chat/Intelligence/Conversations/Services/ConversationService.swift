@@ -56,12 +56,15 @@ final class ConversationService {
         
         // Create user message
         let userMessage = Message(role: .user, text: text)
-        conversation.messages.append(userMessage)
-        conversation.updatedAt = Date()
-        
-        // Auto-update title if first user message
-        if conversation.messages.filter({ $0.role == .user }).count == 1 {
-            conversation.title = conversation.summaryTitle
+        // CRITICAL: Mutate @Published properties asynchronously
+        await MainActor.run {
+            conversation.messages.append(userMessage)
+            conversation.updatedAt = Date()
+            
+            // Auto-update title if first user message
+            if conversation.messages.filter({ $0.role == .user }).count == 1 {
+                conversation.title = conversation.summaryTitle
+            }
         }
         
         // Get included files
@@ -96,30 +99,32 @@ final class ConversationService {
                 }
             }
             
-            if let message = finalMessage {
-                conversation.messages.append(message)
-            } else if !streamingText.isEmpty {
-                conversation.messages.append(Message(role: .assistant, text: streamingText))
+            // CRITICAL: Mutate @Published properties asynchronously
+            await MainActor.run {
+                if let message = finalMessage {
+                    conversation.messages.append(message)
+                } else if !streamingText.isEmpty {
+                    conversation.messages.append(Message(role: .assistant, text: streamingText))
+                }
+                conversation.updatedAt = Date()
             }
         } catch {
-            let errorMessage = Message(
-                role: .assistant,
-                text: "Sorry, I encountered an error: \(error.localizedDescription)"
-            )
-            conversation.messages.append(errorMessage)
+            // CRITICAL: Mutate @Published properties asynchronously
+            await MainActor.run {
+                let errorMessage = Message(
+                    role: .assistant,
+                    text: "Sorry, I encountered an error: \(error.localizedDescription)"
+                )
+                conversation.messages.append(errorMessage)
+                conversation.updatedAt = Date()
+            }
         }
         
-        conversation.updatedAt = Date()
-        
-        // Persist the conversation - if this fails, crash with clear error
-        // CRITICAL: Save asynchronously to avoid publishing during view updates
-        // Use DispatchQueue to ensure save happens outside view rendering cycle
-        DispatchQueue.main.async {
-            do {
-                try conversationStore.save(conversation)
-            } catch {
-                fatalError("❌ Failed to save conversation \(conversation.id): \(error.localizedDescription). This is a fatal error - database must be valid.")
-            }
+        // Persist the conversation - save is already async-safe (mutations deferred)
+        do {
+            try conversationStore.save(conversation)
+        } catch {
+            fatalError("❌ Failed to save conversation \(conversation.id): \(error.localizedDescription). This is a fatal error - database must be valid.")
         }
     }
     
