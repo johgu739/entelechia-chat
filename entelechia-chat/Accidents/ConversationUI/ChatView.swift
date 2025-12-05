@@ -92,8 +92,13 @@ struct ChatView: View {
         let text = inputText
         inputText = ""
         
-        Task {
+        Task { @MainActor in
             await workspaceViewModel.sendMessage(text, for: conversation)
+            // Update local conversation state after message is sent
+            // The conversation will be updated via WorkspaceViewModel
+            if let updated = workspaceViewModel.conversationStore?.conversations.first(where: { $0.id == conversation.id }) {
+                conversation = updated
+            }
         }
     }
     
