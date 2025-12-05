@@ -217,8 +217,9 @@ final class ConversationStore: ObservableObject {
     
     /// Load conversation messages if not already loaded
     /// Throws if file exists but is corrupted
+    /// CRITICAL: Pure accessor - returns value, updates store asynchronously
     func loadConversationIfNeeded(_ conversation: Conversation) throws -> Conversation {
-        // Check if already fully loaded (has messages)
+        // Check if already fully loaded (has messages) - pure read
         if let existing = conversations.first(where: { $0.id == conversation.id }),
            !existing.messages.isEmpty {
             return existing
@@ -230,9 +231,12 @@ final class ConversationStore: ObservableObject {
         
         // If file exists but decode fails, throw - no silent errors
         if let loaded = try fileStore.load(Conversation.self, from: conversationURL) {
-            // Update in-memory array
-            if let index = conversations.firstIndex(where: { $0.id == loaded.id }) {
-                conversations[index] = loaded
+            // Update in-memory array asynchronously to avoid publishing during view updates
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                if let index = self.conversations.firstIndex(where: { $0.id == loaded.id }) {
+                    self.conversations[index] = loaded
+                }
             }
             return loaded
         }
