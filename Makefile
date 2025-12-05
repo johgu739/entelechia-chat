@@ -1,7 +1,13 @@
-.PHONY: ontology
+.PHONY: ontology ontology-validate ontology-rename
 
-APP_ROOT := $(CURDIR)/entelechia-chat
-
-# Run ontology scan safely with local HOME/cache to avoid permission issues
+# Run ontology generator
 ontology:
-	@cd "$(APP_ROOT)" && HOME=$$(PWD)/.tmp_home SWIFT_MODULE_CACHE_PATH=$$(PWD)/.swift_module_cache ./Scripts/generateOntology.swift
+	swift run --package-path Tools/OntologyGenerator entelechia-ontology .
+
+# Run validation only
+ontology-validate:
+	swift run --package-path Tools/OntologyGenerator entelechia-ontology --validate-only .
+
+# Apply renames (placeholder - not implemented yet)
+ontology-rename:
+	swift run --package-path Tools/OntologyGenerator entelechia-ontology --apply-renames .
