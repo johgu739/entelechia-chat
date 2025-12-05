@@ -138,10 +138,15 @@ final class ConversationService {
 
         // Create and persist a new conversation for this file
         let new = Conversation(contextFilePaths: [url.path])
-        do {
-            try conversationStore.save(new)
-        } catch {
-            fatalError("❌ Failed to save new conversation: \(error.localizedDescription). This is a fatal error - conversation store must be writable.")
+        // CRITICAL: Save asynchronously to avoid publishing during view updates
+        Task { @MainActor in
+            do {
+                try await Task {
+                    try conversationStore.save(new)
+                }.value
+            } catch {
+                fatalError("❌ Failed to save new conversation: \(error.localizedDescription). This is a fatal error - conversation store must be writable.")
+            }
         }
         urlToConversationId[url] = new.id
         return new

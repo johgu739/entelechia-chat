@@ -127,21 +127,25 @@ final class ConversationStore: ObservableObject {
     
     /// Save a conversation to disk
     /// Throws if save fails - no silent errors
+    /// CRITICAL: Mutations to @Published properties must happen asynchronously
     func save(_ conversation: Conversation) throws {
         let conversationURL = fileStore.resolveConversationsDirectory()
             .appendingPathComponent("\(conversation.id.uuidString).json")
         
         try fileStore.save(conversation, to: conversationURL)
         
-        // Update in-memory array BEFORE syncing index to avoid nested publishes
-        if let index = conversations.firstIndex(where: { $0.id == conversation.id }) {
-            conversations[index] = conversation
-        } else {
-            conversations.append(conversation)
-            conversations.sort { $0.updatedAt > $1.updatedAt }
+        // Update in-memory array asynchronously to avoid publishing during view updates
+        Task { @MainActor in
+            if let index = self.conversations.firstIndex(where: { $0.id == conversation.id }) {
+                self.conversations[index] = conversation
+            } else {
+                self.conversations.append(conversation)
+                self.conversations.sort { $0.updatedAt > $1.updatedAt }
+            }
+            
+            // Sync index asynchronously
+            try? self.syncIndex()
         }
-        
-        try syncIndex()
     }
     
     /// Create a new conversation
