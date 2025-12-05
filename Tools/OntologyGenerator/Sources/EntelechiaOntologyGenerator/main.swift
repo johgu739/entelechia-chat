@@ -91,12 +91,12 @@ do {
     var filesProcessed = 0
     
     for fileURL in swiftFiles {
-        guard var content = try? String(contentsOf: fileURL, encoding: .utf8) else {
+        guard let content = try? String(contentsOf: fileURL, encoding: .utf8) else {
             continue
         }
         
         let fileName = fileURL.lastPathComponent
-        let (updatedContent, signifier, todos) = HeaderParser.ensureHeader(in: content, fileName: fileName)
+        let (updatedContent, _, todos) = HeaderParser.ensureHeader(in: content, fileName: fileName)
         
         if updatedContent != content {
             try updatedContent.write(to: fileURL, atomically: true, encoding: .utf8)
