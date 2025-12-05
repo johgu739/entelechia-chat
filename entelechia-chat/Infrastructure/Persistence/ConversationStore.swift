@@ -128,6 +128,7 @@ final class ConversationStore: ObservableObject {
     /// Save a conversation to disk
     /// Throws if save fails - no silent errors
     /// CRITICAL: Mutations to @Published properties must happen asynchronously
+    /// This function is synchronous for file I/O but defers @Published mutations
     func save(_ conversation: Conversation) throws {
         let conversationURL = fileStore.resolveConversationsDirectory()
             .appendingPathComponent("\(conversation.id.uuidString).json")
@@ -135,7 +136,9 @@ final class ConversationStore: ObservableObject {
         try fileStore.save(conversation, to: conversationURL)
         
         // Update in-memory array asynchronously to avoid publishing during view updates
-        Task { @MainActor in
+        // Use asyncAfter to ensure this happens outside the current run loop
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
             if let index = self.conversations.firstIndex(where: { $0.id == conversation.id }) {
                 self.conversations[index] = conversation
             } else {

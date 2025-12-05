@@ -113,11 +113,10 @@ final class ConversationService {
         
         // Persist the conversation - if this fails, crash with clear error
         // CRITICAL: Save asynchronously to avoid publishing during view updates
-        Task { @MainActor in
+        // Use DispatchQueue to ensure save happens outside view rendering cycle
+        DispatchQueue.main.async {
             do {
-                try await Task {
-                    try conversationStore.save(conversation)
-                }.value
+                try conversationStore.save(conversation)
             } catch {
                 fatalError("❌ Failed to save conversation \(conversation.id): \(error.localizedDescription). This is a fatal error - database must be valid.")
             }
@@ -144,11 +143,10 @@ final class ConversationService {
         // Create and persist a new conversation for this file
         let new = Conversation(contextFilePaths: [url.path])
         // CRITICAL: Save asynchronously to avoid publishing during view updates
-        Task { @MainActor in
+        // Use DispatchQueue to ensure save happens outside view rendering cycle
+        DispatchQueue.main.async {
             do {
-                try await Task {
-                    try conversationStore.save(new)
-                }.value
+                try conversationStore.save(new)
             } catch {
                 fatalError("❌ Failed to save new conversation: \(error.localizedDescription). This is a fatal error - conversation store must be writable.")
             }

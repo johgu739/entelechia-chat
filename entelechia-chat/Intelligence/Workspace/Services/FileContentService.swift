@@ -46,8 +46,7 @@ final class FileContentService {
             }
             
             // Fallback: try reading with UTF-8 encoding
-            let content = try String(contentsOf: url, encoding: .utf8)
-            return content
+            return try String(contentsOf: url, encoding: .utf8)
         }.value
     }
     
