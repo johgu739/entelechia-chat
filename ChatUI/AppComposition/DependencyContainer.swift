@@ -119,21 +119,21 @@ struct NoopSecurityScopeHandler: SecurityScopeHandling {
 
 // MARK: - Engine-facing codex client adapter type eraser
 
-struct AnyCodexClient: CodexClient, @unchecked Sendable {
+struct AnyCodexClient: CoreEngine.CodexClient, @unchecked Sendable {
     typealias MessageType = Message
-    typealias ContextFileType = LoadedFile
+    typealias ContextFileType = CoreEngine.LoadedFile
     typealias OutputPayload = ModelResponse
 
-    private let streamHandler: ([MessageType], [ContextFileType]) async throws -> AsyncThrowingStream<StreamChunk<OutputPayload>, Error>
+    private let streamHandler: ([MessageType], [ContextFileType]) async throws -> AsyncThrowingStream<CoreEngine.StreamChunk<OutputPayload>, Error>
 
-    init(_ streamHandler: @escaping ([MessageType], [ContextFileType]) async throws -> AsyncThrowingStream<StreamChunk<OutputPayload>, Error>) {
+    init(_ streamHandler: @escaping ([MessageType], [ContextFileType]) async throws -> AsyncThrowingStream<CoreEngine.StreamChunk<OutputPayload>, Error>) {
         self.streamHandler = streamHandler
     }
 
     func stream(
         messages: [MessageType],
         contextFiles: [ContextFileType]
-    ) async throws -> AsyncThrowingStream<StreamChunk<OutputPayload>, Error> {
+    ) async throws -> AsyncThrowingStream<CoreEngine.StreamChunk<OutputPayload>, Error> {
         try await streamHandler(messages, contextFiles)
     }
 }
@@ -142,8 +142,8 @@ extension AnyCodexClient {
     static func stub() -> AnyCodexClient {
         AnyCodexClient { _, _ in
             AsyncThrowingStream { continuation in
-                continuation.yield(.output(ModelResponse(content: "Stub response")))
-                continuation.yield(.done)
+                continuation.yield(CoreEngine.StreamChunk.output(ModelResponse(content: "Stub response")))
+                continuation.yield(CoreEngine.StreamChunk.done)
                 continuation.finish()
             }
         }
@@ -173,7 +173,7 @@ private extension DefaultContainer {
 }
 
 /// Adapter that forwards Engine alert sink calls to the shared `AlertCenter`.
-private struct AlertCenterSink: AlertSink {
+private struct AlertCenterSink: AlertSink, @unchecked Sendable {
     let alertCenter: AlertCenter
     func emit(_ error: Error) {
         Task { @MainActor in

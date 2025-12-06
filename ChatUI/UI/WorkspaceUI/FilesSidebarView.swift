@@ -19,7 +19,7 @@ import CoreEngine
 struct FilesSidebarView: View {
     @ObservedObject var fileViewModel: FileViewModel
     @State private var isFileImporterPresented = false
-    @State private var previewFile: LoadedFile?
+    @State private var previewFile: WorkspaceLoadedFile?
     @State private var selectedFileID: UUID?
     
     private let byteFormatter: ByteCountFormatter = {
@@ -204,7 +204,7 @@ struct FilesSidebarView: View {
 }
 
 struct FileRow: View {
-    let file: LoadedFile
+    let file: WorkspaceLoadedFile
     @ObservedObject var fileViewModel: FileViewModel
     let byteFormatter: ByteCountFormatter
     let tokenFormatter: NumberFormatter
@@ -286,7 +286,7 @@ struct FileRow: View {
 }
 
 struct FilePreviewView: View {
-    let file: LoadedFile
+    let file: WorkspaceLoadedFile
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {

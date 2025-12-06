@@ -19,7 +19,7 @@ import CoreEngine
 
 @MainActor
 class FileViewModel: ObservableObject {
-    @Published var loadedFiles: [LoadedFile] = []
+    @Published var loadedFiles: [WorkspaceLoadedFile] = []
     @Published var errorMessage: String?
     
     let budget: ContextBudget
@@ -28,7 +28,7 @@ class FileViewModel: ObservableObject {
         self.budget = budget ?? .default
     }
     
-    var includedFiles: [LoadedFile] {
+    var includedFiles: [WorkspaceLoadedFile] {
         loadedFiles.filter { $0.isIncludedInContext }
     }
     
@@ -66,7 +66,7 @@ class FileViewModel: ObservableObject {
         
         let fileType = UTType(filenameExtension: url.pathExtension)
         
-        let file = LoadedFile(name: name, url: url, content: content, fileType: fileType)
+        let file = WorkspaceLoadedFile(name: name, url: url, content: content, fileType: fileType)
         loadedFiles.append(file)
         errorMessage = nil
     }
@@ -88,11 +88,11 @@ class FileViewModel: ObservableObject {
         }
     }
     
-    func removeFile(_ file: LoadedFile) {
+    func removeFile(_ file: WorkspaceLoadedFile) {
         loadedFiles.removeAll { $0.id == file.id }
     }
     
-    func toggleFileInclusion(_ file: LoadedFile) {
+    func toggleFileInclusion(_ file: WorkspaceLoadedFile) {
         if let index = loadedFiles.firstIndex(where: { $0.id == file.id }) {
             var updatedFile = loadedFiles[index]
             updatedFile.isIncludedInContext.toggle()

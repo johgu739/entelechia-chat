@@ -18,7 +18,7 @@ import AppKit
 import os.log
 import CoreEngine
 
-private typealias FileExclusion = Engine.FileExclusion
+private typealias FileExclusion = CoreEngine.FileExclusion
 
 enum FileNodeError: LocalizedError {
     case childCreationFailed(URL)

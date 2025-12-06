@@ -1,14 +1,15 @@
 import CoreEngine
 
-typealias Conversation = Engine.Conversation
-typealias Message = Engine.Message
-typealias Attachment = Engine.Attachment
-typealias ContentBlock = Engine.ContentBlock
-typealias ModelResponse = Engine.ModelResponse
-typealias ContextBuildResult = Engine.ContextBuildResult
-typealias ContextExclusion = Engine.ContextExclusion
-typealias ContextExclusionReason = Engine.ContextExclusionReason
-typealias ContextBudget = Engine.ContextBudget
-typealias ContextBuilder = Engine.ContextBuilder
-typealias TokenEstimator = Engine.TokenEstimator
+typealias Conversation = CoreEngine.Conversation
+typealias Message = CoreEngine.Message
+typealias Attachment = CoreEngine.Attachment
+typealias ContentBlock = CoreEngine.ContentBlock
+typealias ModelResponse = CoreEngine.ModelResponse
+typealias LoadedFile = CoreEngine.LoadedFile
+typealias ContextBuildResult = CoreEngine.ContextBuildResult
+typealias ContextExclusion = CoreEngine.ContextExclusion
+typealias ContextExclusionReason = CoreEngine.ContextExclusionReason
+typealias ContextBudget = CoreEngine.ContextBudget
+typealias ContextBuilder = CoreEngine.ContextBuilder
+typealias TokenEstimator = CoreEngine.TokenEstimator
 

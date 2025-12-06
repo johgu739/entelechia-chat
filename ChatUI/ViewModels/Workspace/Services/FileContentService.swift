@@ -15,7 +15,7 @@ import Foundation
 import UniformTypeIdentifiers
 import CoreEngine
 
-private typealias FileExclusion = Engine.FileExclusion
+private typealias FileExclusion = CoreEngine.FileExclusion
 
 /// Service for reading file content with proper error handling
 final class FileContentService {
@@ -58,19 +58,19 @@ final class FileContentService {
     
     /// Collect all files from a file node (recursively for folders)
     /// Excludes forbidden directories and files from context collection
-    func collectFiles(from node: FileNode) async throws -> [LoadedFile] {
+    func collectFiles(from node: FileNode) async throws -> [WorkspaceLoadedFile] {
         // Skip forbidden directories and files
         if FileExclusion.isForbiddenDirectory(url: node.path) || FileExclusion.isForbiddenFile(url: node.path) {
             return []
         }
         
-        var files: [LoadedFile] = []
+        var files: [WorkspaceLoadedFile] = []
         
         // If node is a file, return only its content
         if node.children == nil || node.children?.isEmpty == true {
             let content = try await loadContent(at: node.path)
             let fileType = UTType(filenameExtension: node.path.pathExtension)
-            let loadedFile = LoadedFile(
+            let loadedFile = WorkspaceLoadedFile(
                 name: node.name,
                 url: node.path,
                 content: content,
@@ -86,7 +86,7 @@ final class FileContentService {
         return files
     }
     
-    private func collectFilesRecursively(from node: FileNode, into files: inout [LoadedFile]) async throws {
+    private func collectFilesRecursively(from node: FileNode, into files: inout [WorkspaceLoadedFile]) async throws {
         // Skip forbidden directories and files
         if FileExclusion.isForbiddenDirectory(url: node.path) || FileExclusion.isForbiddenFile(url: node.path) {
             return
@@ -96,7 +96,7 @@ final class FileContentService {
             // It's a file - collect it
             let content = try await loadContent(at: node.path)
             let fileType = UTType(filenameExtension: node.path.pathExtension)
-            let loadedFile = LoadedFile(
+            let loadedFile = WorkspaceLoadedFile(
                 name: node.name,
                 url: node.path,
                 content: content,

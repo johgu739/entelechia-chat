@@ -1,8 +1,7 @@
 import Foundation
 import CoreEngine
 import UniformTypeIdentifiers
-
-private typealias FileExclusion = Engine.FileExclusion
+private typealias FileExclusion = CoreEngine.FileExclusion
 
 extension FileNode {
     /// Build a UI `FileNode` tree from Engine `FileDescriptor` values.

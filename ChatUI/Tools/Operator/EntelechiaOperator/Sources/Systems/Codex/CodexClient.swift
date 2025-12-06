@@ -1,5 +1,5 @@
 // @EntelechiaHeaderStart
-// Signifier: CodexClient
+// Signifier: OperatorCodexClient
 // Substance: Codex client
 // Genus: API client
 // Differentia: Calls Codex backend
@@ -13,11 +13,11 @@
 
 import Foundation
 
-protocol CodexClient {
+protocol OperatorCodexClient {
     func send(message: String) async throws -> AsyncStream<String>
 }
 
-final class StubCodexClient: CodexClient {
+final class StubCodexClient: OperatorCodexClient {
     func send(message: String) async throws -> AsyncStream<String> {
         return AsyncStream { continuation in
             continuation.yield("Codex response placeholder for: \(message)")
