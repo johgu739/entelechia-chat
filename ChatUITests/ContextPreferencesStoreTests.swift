@@ -1,5 +1,5 @@
 import XCTest
-@testable import entelechia_chat
+@testable import ChatUI
 
 @MainActor
 final class ContextPreferencesStoreTests: XCTestCase {
