@@ -24,7 +24,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		5B86E5452EE19FAD00482C26 /* entelechia-chat.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "entelechia-chat.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		5B86E5452EE19FAD00482C26 /* ChatUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ChatUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B86FEAA2EE3201F00482C26 /* entelechia-chatTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "entelechia-chatTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -75,7 +75,7 @@
 		5B86E5462EE19FAD00482C26 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				5B86E5452EE19FAD00482C26 /* entelechia-chat.app */,
+				5B86E5452EE19FAD00482C26 /* ChatUI.app */,
 				5B86FEAA2EE3201F00482C26 /* entelechia-chatTests.xctest */,
 			);
 			name = Products;
@@ -84,9 +84,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		5B86E5442EE19FAD00482C26 /* entelechia-chat */ = {
+		5B86E5442EE19FAD00482C26 /* ChatUI */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 5B86E5502EE19FAF00482C26 /* Build configuration list for PBXNativeTarget "entelechia-chat" */;
+			buildConfigurationList = 5B86E5502EE19FAF00482C26 /* Build configuration list for PBXNativeTarget "ChatUI" */;
 			buildPhases = (
 				5B86E5412EE19FAD00482C26 /* Sources */,
 				5B86E5422EE19FAD00482C26 /* Frameworks */,
@@ -99,13 +99,13 @@
 			fileSystemSynchronizedGroups = (
 				5B86E5472EE19FAD00482C26 /* ChatUI */,
 			);
-			name = "entelechia-chat";
+			name = "ChatUI";
 			packageProductDependencies = (
 				EEEEE115FACEBEEF00000005 /* CoreEngine */,
 				EEEEE116FACEBEEF00000006 /* AppAdapters */,
 			);
-			productName = "entelechia-chat";
-			productReference = 5B86E5452EE19FAD00482C26 /* entelechia-chat.app */;
+			productName = "ChatUI";
+			productReference = 5B86E5452EE19FAD00482C26 /* ChatUI.app */;
 			productType = "com.apple.product-type.application";
 		};
 		5B86FEA92EE3201F00482C26 /* entelechia-chatTests */ = {
@@ -152,7 +152,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 5B86E5402EE19FAD00482C26 /* Build configuration list for PBXProject "entelechia-chat" */;
+			buildConfigurationList = 5B86E5402EE19FAD00482C26 /* Build configuration list for PBXProject "ChatUI" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
