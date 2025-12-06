@@ -29,9 +29,9 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		5B86E5472EE19FAD00482C26 /* entelechia-chat */ = {
+		5B86E5472EE19FAD00482C26 /* ChatUI */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "entelechia-chat";
+			path = ChatUI;
 			sourceTree = "<group>";
 		};
 		5B86FEAB2EE3201F00482C26 /* entelechia-chatTests */ = {
@@ -66,7 +66,7 @@
 		5B86E53C2EE19FAD00482C26 = {
 			isa = PBXGroup;
 			children = (
-				5B86E5472EE19FAD00482C26 /* entelechia-chat */,
+				5B86E5472EE19FAD00482C26 /* ChatUI */,
 				5B86FEAB2EE3201F00482C26 /* entelechia-chatTests */,
 				5B86E5462EE19FAD00482C26 /* Products */,
 			);

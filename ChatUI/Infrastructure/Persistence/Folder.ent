@@ -1,0 +1,13 @@
+// @EntelechiaFolderHeaderStart// @EntelechiaFolderHeaderStart
+Signifier: Persistence
+
+Genus: InstrumentalPersistence
+Differentia: Handles durable storage of domain data
+FormalCause: Arrange file IO and JSON encoding
+FinalCause: Preserve intelligible records across time
+Relations:
+  - Parent: InstrumentalCauses
+  - Children: AUTO
+  - DependsOn: None
+CausalityType: EfficientInstrumental
+// @EntelechiaFolderHeaderEnd

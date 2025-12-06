@@ -1,0 +1,13 @@
+// @EntelechiaFolderHeaderStart// @EntelechiaFolderHeaderStart
+Signifier: Shell
+
+Genus: SensibleAccidents-Shell
+Differentia: Outer perceptible structure of workspace vs onboarding vs root
+FormalCause: Compose high-level UI surfaces
+FinalCause: Present the system’s major operational states
+Relations:
+  - Parent: SensibleAccidents
+  - Children: AUTO
+  - DependsOn: Intelligence
+CausalityType: AccidentalFormal
+// @EntelechiaFolderHeaderEnd

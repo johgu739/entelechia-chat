@@ -1,0 +1,13 @@
+// @EntelechiaFolderHeaderStart// @EntelechiaFolderHeaderStart
+Signifier: Models
+
+Genus: ConversationalSubstances
+Differentia: Essential data forms of conversations
+FormalCause: Provide stable structures for dialogue entities
+FinalCause: Represent the intelligible content of interactions
+Relations:
+  - Parent: ConversationalIntellect
+  - Children: AUTO
+  - DependsOn: None
+CausalityType: MaterialFormal
+// @EntelechiaFolderHeaderEnd

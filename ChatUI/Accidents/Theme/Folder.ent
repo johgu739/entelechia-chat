@@ -1,0 +1,13 @@
+// @EntelechiaFolderHeaderStart// @EntelechiaFolderHeaderStart
+Signifier: Theme
+
+Genus: SensibleAccidents-Theme
+Differentia: Styles and visual qualities expressing the system’s order
+FormalCause: Provide unified aesthetic forms
+FinalCause: Make UI coherently sensible and harmonious
+Relations:
+  - Parent: SensibleAccidents
+  - Children: AUTO
+  - DependsOn: None
+CausalityType: AccidentalFormal
+// @EntelechiaFolderHeaderEnd

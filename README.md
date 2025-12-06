@@ -18,14 +18,14 @@ Generated artifacts and caches are ignored via `.gitignore`.
 
 ## Canonical project layout (post-package split)
 
-- App target lives under `entelechia-chat/`  
-  - UI views in `entelechia-chat/Accidents/`  
-  - View models/adapters in `entelechia-chat/Intelligence/`  
-  - App composition in `entelechia-chat/Teleology/`  
-  - UI-only infrastructure helpers in `entelechia-chat/Infrastructure/`
+- App (UI) target lives under `ChatUI/`  
+  - UI views in `ChatUI/Accidents/`  
+  - View models/adapters in `ChatUI/Intelligence/`  
+  - App composition in `ChatUI/Teleology/`  
+  - UI-only infrastructure helpers in `ChatUI/Infrastructure/`
 - Engine package (pure domain + services) in `Engine/`
 - Adapter package (platform/persistence/Codex adapters) in `UIConnections/`
-- Operator tool target in `entelechia-chat/Tools/Operator/`
+- Operator tool target in `ChatUI/Tools/Operator/`
 - Ontology generator SPM tool in `Tools/OntologyGenerator/`
 
-Xcode uses the synchronized root group pointing at `entelechia-chat/`; there are no parallel shadow trees anymore.
+Xcode uses the synchronized root group pointing at `ChatUI/`; there are no parallel shadow trees anymore.

@@ -1,0 +1,13 @@
+// @EntelechiaFolderHeaderStart// @EntelechiaFolderHeaderStart
+Signifier: Faculties
+
+Genus: WorkspaceFaculties
+Differentia: UI-facing powers that participate in workspace form
+FormalCause: Bind workspace domain forms to visible UI states
+FinalCause: Allow the user to perceive and navigate workspace intelligibly
+Relations:
+  - Parent: WorkspaceIntellect
+  - Children: AUTO
+  - DependsOn: WorkspaceModels, WorkspaceServices
+CausalityType: FormalParticipated
+// @EntelechiaFolderHeaderEnd

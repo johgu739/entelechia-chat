@@ -1,0 +1,13 @@
+// @EntelechiaFolderHeaderStart// @EntelechiaFolderHeaderStart
+Signifier: Models
+
+Genus: WorkspaceSubstances
+Differentia: Essential forms of files and file trees
+FormalCause: Provide structured representation of the project’s matter
+FinalCause: Enable reasoning about workspace structure
+Relations:
+  - Parent: WorkspaceIntellect
+  - Children: AUTO
+  - DependsOn: None
+CausalityType: MaterialFormal
+// @EntelechiaFolderHeaderEnd

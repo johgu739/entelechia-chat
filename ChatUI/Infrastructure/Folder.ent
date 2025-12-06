@@ -1,0 +1,13 @@
+// @EntelechiaFolderHeaderStart// @EntelechiaFolderHeaderStart
+Signifier: Infrastructure
+
+Genus: InstrumentalCauses
+Differentia: Provide tools necessary for higher-level intelligible operations
+FormalCause: Organize persistence, IO, rendering, and AI connections
+FinalCause: Empower faculties without being part of their essence
+Relations:
+  - Parent: Teleology
+  - Children: AUTO
+  - DependsOn: None
+CausalityType: EfficientInstrumental
+// @EntelechiaFolderHeaderEnd
