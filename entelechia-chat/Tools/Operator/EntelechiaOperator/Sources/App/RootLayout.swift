@@ -12,6 +12,7 @@
 // @EntelechiaHeaderEnd
 
 import SwiftUI
+import Engine
 
 struct RootLayout: View {
     @EnvironmentObject private var appState: AppState

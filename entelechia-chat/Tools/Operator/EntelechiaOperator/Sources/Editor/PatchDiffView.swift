@@ -12,6 +12,7 @@
 // @EntelechiaHeaderEnd
 
 import SwiftUI
+import Engine
 
 struct PatchDiffView: View {
     let patchID: UUID

@@ -12,15 +12,13 @@
 // @EntelechiaHeaderEnd
 
 import SwiftUI
+import Engine
 import os.log
 
 @main
 struct EntelechiaChatApp: App {
-    @StateObject private var store: ProjectStore
-    @StateObject private var conversationStore: ConversationStore
     @StateObject private var projectSession: ProjectSession
     @StateObject private var projectCoordinator: ProjectCoordinator
-    @StateObject private var appEnvironment: AppEnvironment
     @StateObject private var alertCenter: AlertCenter
     private let container: DependencyContainer
     
@@ -31,35 +29,21 @@ struct EntelechiaChatApp: App {
             self.container = testContainer
             let alertCenter = testContainer.alertCenter
             _alertCenter = StateObject(wrappedValue: alertCenter)
-
-            let testStore = testContainer.projectStore
-            _store = StateObject(wrappedValue: testStore)
             
             let testSession = ProjectSession(
-                projectStore: testStore,
-                fileSystemService: testContainer.workspaceFileSystemService,
+                projectEngine: testContainer.projectEngine,
+                workspaceEngine: testContainer.workspaceEngine,
                 securityScopeHandler: testContainer.securityScopeHandler
             )
             _projectSession = StateObject(wrappedValue: testSession)
             
             _projectCoordinator = StateObject(wrappedValue: ProjectCoordinator(
-                projectStore: testStore,
+                projectEngine: testContainer.projectEngine,
                 projectSession: testSession,
                 alertCenter: alertCenter,
                 securityScopeHandler: testContainer.securityScopeHandler
             ))
-            
-            _conversationStore = StateObject(wrappedValue: testContainer.conversationStore)
-            _appEnvironment = StateObject(wrappedValue: AppEnvironment(container: testContainer))
             return
-        }
-        
-        do {
-            try PersistenceMigrator().runMigrations()
-        } catch {
-            let tempAlert = AlertCenter()
-            Logger.persistence.error("Migration failed at startup: \(error.localizedDescription, privacy: .public)")
-            tempAlert.publish(error, fallbackTitle: "Failed to Run Migrations")
         }
         
         let container = DefaultContainer()
@@ -67,51 +51,31 @@ struct EntelechiaChatApp: App {
         let alertCenter = container.alertCenter
         _alertCenter = StateObject(wrappedValue: alertCenter)
         
-        _store = StateObject(wrappedValue: container.projectStore)
-        
         let session = ProjectSession(
-            projectStore: container.projectStore,
-            fileSystemService: container.workspaceFileSystemService,
+            projectEngine: container.projectEngine,
+            workspaceEngine: container.workspaceEngine,
             securityScopeHandler: container.securityScopeHandler
         )
         _projectSession = StateObject(wrappedValue: session)
         
         _projectCoordinator = StateObject(wrappedValue: ProjectCoordinator(
-            projectStore: container.projectStore,
+            projectEngine: container.projectEngine,
             projectSession: session,
             alertCenter: alertCenter,
             securityScopeHandler: container.securityScopeHandler
         ))
-        
-        _conversationStore = StateObject(wrappedValue: container.conversationStore)
-        _appEnvironment = StateObject(wrappedValue: AppEnvironment(container: container))
-        
-        // No auto-open - user must manually select a project
     }
     
     var body: some Scene {
         WindowGroup {
             RootView(
-                assistant: appEnvironment.assistant,
-                workspaceFileSystemService: container.workspaceFileSystemService,
-                preferencesStore: container.preferencesStore,
-                contextPreferencesStore: container.contextPreferencesStore
+                workspaceEngine: container.workspaceEngine,
+                conversationEngine: container.conversationEngine
             )
-                .environmentObject(store)
-                .environmentObject(conversationStore)
                 .environmentObject(projectSession)
                 .environmentObject(projectCoordinator)
-                .environmentObject(appEnvironment)
                 .environmentObject(alertCenter)
                 .frame(minWidth: 1000, minHeight: 700)
-                .task {
-                    // Load conversations on startup - if database is corrupted, app will crash
-                    do {
-                        try conversationStore.loadAll()
-                    } catch {
-                        alertCenter.publish(error, fallbackTitle: "Failed to Load Conversations")
-                    }
-                }
         }
         .windowStyle(.automatic)
         .commands {
@@ -145,13 +109,6 @@ struct EntelechiaChatApp: App {
                         
                         Divider()
                         
-                        Button("Clear Menu") {
-                            do {
-                                try projectCoordinator.projectStore.clearRecentProjects()
-                            } catch {
-                                alertCenter.publish(error, fallbackTitle: "Failed to Clear Recent Projects")
-                            }
-                        }
                     }
                 }
                 

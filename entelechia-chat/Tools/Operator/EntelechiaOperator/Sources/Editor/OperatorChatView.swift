@@ -12,6 +12,7 @@
 // @EntelechiaHeaderEnd
 
 import SwiftUI
+import Engine
 
 struct OperatorChatView: View {
     let sessionID: UUID

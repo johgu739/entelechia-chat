@@ -14,7 +14,7 @@
 import Foundation
 import os.log
 
-struct ContextPreferences: Codable, Equatable {
+struct ContextPreferences: Codable, Equatable, Sendable {
     var includedPaths: Set<String>
     var excludedPaths: Set<String>
     var lastFocusedFilePath: String?

@@ -14,6 +14,7 @@
 import SwiftUI
 import AppKit
 import UniformTypeIdentifiers
+import Engine
 
 struct ContextInspector: View {
     @EnvironmentObject var workspaceViewModel: WorkspaceViewModel

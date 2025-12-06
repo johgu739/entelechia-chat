@@ -14,7 +14,7 @@
 import Foundation
 import os.log
 
-enum PreferenceValue: Codable, Equatable {
+enum PreferenceValue: Codable, Equatable, Sendable {
     case bool(Bool)
     case string(String)
     case integer(Int)
@@ -66,7 +66,7 @@ enum PreferenceValue: Codable, Equatable {
     }
 }
 
-struct Preferences: Codable, Equatable {
+struct Preferences: Codable, Equatable, Sendable {
     private(set) var values: [String: PreferenceValue]
 
     static let empty = Preferences(values: [:])

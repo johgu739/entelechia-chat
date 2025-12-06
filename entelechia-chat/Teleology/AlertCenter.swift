@@ -27,7 +27,6 @@ struct UserFacingError: Identifiable, Equatable {
     }
 }
 
-@MainActor
 final class AlertCenter: ObservableObject {
     @Published var alert: UserFacingError?
 

@@ -12,6 +12,7 @@
 // @EntelechiaHeaderEnd
 
 import SwiftUI
+import Engine
 import UniformTypeIdentifiers
 
 /// Onboarding view shown when no project is open
@@ -143,7 +144,7 @@ struct OnboardingSelectProjectView: View {
 
 /// Row for a recent project in the onboarding view
 struct RecentProjectRow: View {
-    let project: ProjectStore.StoredProject
+    let project: RecentProject
     let action: () -> Void
     @State private var isHovered = false
     

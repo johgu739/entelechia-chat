@@ -17,6 +17,8 @@ import Combine
 import UniformTypeIdentifiers
 import CoreServices
 import os.log
+import Engine
+import UIConnections
 
 enum WorkspaceViewModelError: LocalizedError {
     case invalidProjectPath(String)
@@ -102,18 +104,12 @@ class WorkspaceViewModel: ObservableObject {
     
     // MARK: - Dependencies (Services)
     
-    private let fileSystemService: WorkspaceFileSystemService
-    private let assistant: CodeAssistant
-    private var conversationService: ConversationService?
-    var conversationStore: ConversationStore!
-    private var projectStore: ProjectStore?
-    private var preferencesStore: PreferencesStore?
-    private var contextPreferencesStore: ContextPreferencesStore?
+    private let workspaceEngine: WorkspaceEngine
+    private let conversationEngine: ConversationEngineLive<AnyCodexClient, FileStoreConversationPersistence>
     private var eventStream: FSEventStreamRef?
     private var alertCenter: AlertCenter?
     private let logger = Logger.persistence
     private let sentinelDirectoryPath = URL(fileURLWithPath: "/").path
-    private let lastSelectionPreferenceKey = "workspace.lastSelection.path"
     
     // MARK: - Private State
     
@@ -123,62 +119,20 @@ class WorkspaceViewModel: ObservableObject {
     // MARK: - Initialization
     
     init(
-        fileSystemService: WorkspaceFileSystemService,
-        assistant: CodeAssistant,
-        conversationStore: ConversationStore? = nil,
+        workspaceEngine: WorkspaceEngine,
+        conversationEngine: ConversationEngineLive<AnyCodexClient, FileStoreConversationPersistence>,
         alertCenter: AlertCenter? = nil
     ) {
-        self.fileSystemService = fileSystemService
-        self.assistant = assistant
+        self.workspaceEngine = workspaceEngine
+        self.conversationEngine = conversationEngine
         self.alertCenter = alertCenter
         
         // FIX 3: Use sentinel value that does NOT trigger file tree loading
         // Root directory will be set when a real project is opened
         self.rootDirectory = URL(fileURLWithPath: "/")
         self.rootFileNode = nil
-        
-        // Set conversation store if provided
-        if let store = conversationStore {
-            setConversationStore(store)
-        }
     }
     
-    /// Set conversation store (called from MainView with environment object)
-    func setConversationStore(_ store: ConversationStore) {
-        guard conversationStore == nil else { return }
-        self.conversationStore = store
-        
-        do {
-            try store.loadAll()
-        } catch {
-            logger.error("Failed to load conversations: \(error.localizedDescription, privacy: .public)")
-            alertCenter?.publish(error, fallbackTitle: "Failed to Load Conversations")
-            return
-        }
-        
-        // Initialize conversation service with existing assistant
-        self.conversationService = ConversationService(
-            assistant: assistant,
-            conversationStore: store,
-            fileContentService: FileContentService.shared
-        )
-    }
-
-    /// Set project store for persisting per-project UI state (last selection).
-    func setProjectStore(_ store: ProjectStore) {
-        guard projectStore == nil else { return }
-        projectStore = store
-    }
-    
-    func setPreferencesStore(_ store: PreferencesStore) {
-        guard preferencesStore == nil else { return }
-        preferencesStore = store
-    }
-    
-    func setContextPreferencesStore(_ store: ContextPreferencesStore) {
-        guard contextPreferencesStore == nil else { return }
-        contextPreferencesStore = store
-    }
 
     func setAlertCenter(_ center: AlertCenter) {
         guard alertCenter == nil else { return }
@@ -193,7 +147,7 @@ class WorkspaceViewModel: ObservableObject {
     
     func setSelectedURL(_ url: URL?) {
         selectedURL = url
-        persistSelection()
+        Task { try? await workspaceEngine.select(path: url?.path) }
     }
 
     func streamingText(for conversationID: UUID) -> String {
@@ -218,8 +172,21 @@ class WorkspaceViewModel: ObservableObject {
         }
 
         loadProjectTodos()
-        if loadFileTree(preserveSelection: false) {
-            startWatchingRoot()
+
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            isLoading = true
+            defer { isLoading = false }
+            do {
+                try await workspaceEngine.openWorkspace(rootPath: rootDirectory.path)
+                let loaded = await loadFileTree(preserveSelection: false)
+                if loaded {
+                    startWatchingRoot()
+                }
+            } catch {
+                handleFileSystemError(error, fallbackTitle: "Failed to Load Project")
+                rootFileNode = nil
+            }
         }
     }
     
@@ -228,20 +195,20 @@ class WorkspaceViewModel: ObservableObject {
             selectedNode = nil
             return
         }
-        
+
         // Try to find node in loaded tree
         if let root = rootFileNode,
-           let node = fileSystemService.findNode(withURL: url, in: root) {
+           let node = root.findNode(withURL: url) {
             selectedNode = node
         } else {
             // Fallback: create standalone node
-            selectedNode = fileSystemService.createFileNode(for: url)
+            selectedNode = FileNode.from(url: url, includeParent: false)
         }
     }
 
     /// Rebuild file tree; optionally preserve current selection.
     @discardableResult
-    private func loadFileTree(preserveSelection: Bool) -> Bool {
+    private func loadFileTree(preserveSelection: Bool) async -> Bool {
         guard rootDirectory.path != sentinelDirectoryPath else {
             stopWatchingRoot()
             return false
@@ -256,7 +223,10 @@ class WorkspaceViewModel: ObservableObject {
 
         do {
             logger.debug("Loading workspace tree for \(self.rootDirectory.path, privacy: .private)")
-            let tree = try fileSystemService.buildTree(for: self.rootDirectory)
+            let descriptors = try await workspaceEngine.refresh()
+            guard let tree = FileNode.fromDescriptors(descriptors, rootPath: rootDirectory.path) else {
+                throw WorkspaceViewModelError.unreadableProject(rootDirectory.path)
+            }
             rootFileNode = tree
         } catch {
             handleFileSystemError(error, fallbackTitle: "Failed to Load Project")
@@ -272,9 +242,6 @@ class WorkspaceViewModel: ObservableObject {
 
         if !preserveSelection {
             if let saved = lastSelectionFromPreferences(for: rootDirectory) {
-                selectedURL = saved
-            } else if let saved = projectStore?.lastSelection(for: rootDirectory) {
-                // Fallback to legacy storage to avoid data loss during transition
                 selectedURL = saved
             }
         }
@@ -331,88 +298,45 @@ class WorkspaceViewModel: ObservableObject {
     }
 
     private func handleFileSystemEvent() {
-        DispatchQueue.main.async { [weak self] in
+        Task { @MainActor [weak self] in
             guard let self else { return }
             if isReloadingFromWatcher { return }
             isReloadingFromWatcher = true
-            loadFileTree(preserveSelection: true)
+            _ = await loadFileTree(preserveSelection: true)
             isReloadingFromWatcher = false
         }
     }
-    /// Persist last selection per project when available.
-    private func persistSelection() {
-        guard let selected = selectedURL else { return }
-        guard rootDirectory.path != sentinelDirectoryPath else { return }
-        do {
-            if let preferencesStore {
-                _ = try preferencesStore.update(for: rootDirectory) { preferences in
-                    preferences[lastSelectionPreferenceKey] = .string(selected.path)
-                }
-            } else if let store = projectStore {
-                try store.setLastSelection(selected, for: rootDirectory)
-            }
-        } catch {
-            let wrapped = WorkspaceViewModelError.selectionPersistenceFailed(error)
-            logger.error("Failed to persist last selection: \(error.localizedDescription, privacy: .public)")
-            alertCenter?.publish(wrapped, fallbackTitle: "Failed to Save Selection")
-        }
-    }
-    
+
+    /// Selection persistence handled by WorkspaceEngine; lookup helper for UI.
     private func lastSelectionFromPreferences(for root: URL) -> URL? {
-        guard let preferencesStore else { return nil }
-        let preferences = (try? preferencesStore.load(for: root, strict: false)) ?? .empty
-        guard
-            let value = preferences[lastSelectionPreferenceKey],
-            case let .string(path) = value
-        else { return nil }
-        let url = URL(fileURLWithPath: path)
-        guard FileManager.default.fileExists(atPath: url.path) else { return nil }
-        return url
+        workspaceEngine.state().lastPersistedSelection.map { URL(fileURLWithPath: $0) }
     }
     
     // MARK: - Context Preferences
     
     func isPathIncludedInContext(_ url: URL) -> Bool {
-        guard let contextPreferencesStore, rootDirectory.path != sentinelDirectoryPath else { return true }
-        let preferences = (try? contextPreferencesStore.load(for: rootDirectory, strict: false)) ?? .empty
+        guard rootDirectory.path != sentinelDirectoryPath else { return true }
+        let prefs = workspaceEngine.state().contextPreferences
         let path = url.path
-        
-        if preferences.excludedPaths.contains(path) {
-            return false
-        }
-        if preferences.includedPaths.isEmpty {
-            return true
-        }
-        return preferences.includedPaths.contains(path)
+        if prefs.excludedPaths.contains(path) { return false }
+        if prefs.includedPaths.isEmpty { return true }
+        return prefs.includedPaths.contains(path)
     }
     
     func setContextInclusion(_ include: Bool, for url: URL) {
-        guard let contextPreferencesStore, rootDirectory.path != sentinelDirectoryPath else { return }
-        var preferences = (try? contextPreferencesStore.load(for: rootDirectory, strict: false)) ?? .empty
-        let path = url.path
-        
-        if include {
-            preferences.excludedPaths.remove(path)
-            preferences.includedPaths.insert(path)
-            preferences.lastFocusedFilePath = path
-        } else {
-            preferences.includedPaths.remove(path)
-            preferences.excludedPaths.insert(path)
-            preferences.lastFocusedFilePath = path
-        }
-        
-        do {
-            try contextPreferencesStore.save(preferences, for: rootDirectory)
-        } catch {
-            let wrapped = WorkspaceViewModelError.selectionPersistenceFailed(error)
-            logger.error("Failed to persist context preferences: \(error.localizedDescription, privacy: .public)")
-            alertCenter?.publish(wrapped, fallbackTitle: "Failed to Save Context Preferences")
+        guard rootDirectory.path != sentinelDirectoryPath else { return }
+        Task {
+            _ = try? await workspaceEngine.setContextInclusion(path: url.path, included: include)
         }
     }
     
     private func currentContextPreferences() -> ContextPreferences? {
-        guard let contextPreferencesStore, rootDirectory.path != sentinelDirectoryPath else { return nil }
-        return try? contextPreferencesStore.load(for: rootDirectory, strict: false)
+        let prefs = workspaceEngine.state().contextPreferences
+        return ContextPreferences(
+            includedPaths: prefs.includedPaths,
+            excludedPaths: prefs.excludedPaths,
+            lastFocusedFilePath: prefs.lastFocusedFilePath
+        )
     }
     
     // MARK: - UI State Methods
@@ -435,32 +359,9 @@ class WorkspaceViewModel: ObservableObject {
     /// Get conversation for URL (pure accessor - safe during view rendering)
     /// Returns existing conversation or temporary placeholder - NEVER mutates
     func conversation(for url: URL) -> Conversation {
-        guard let store = conversationStore else {
-            return Conversation(contextFilePaths: [url.path])
-        }
-        
-        // Use conversation service if available (pure read - no mutations)
-        if let service = conversationService,
-           let existing = service.conversation(for: url, urlToConversationId: urlToConversationId) {
+        if let existing = conversationEngine.conversation(for: url) {
             return existing
         }
-        
-        // Fallback: direct store access (pure read)
-        if let conversationId = urlToConversationId[url],
-           let existing = store.conversations.first(where: { $0.id == conversationId }) {
-            return existing
-        }
-        
-        // Try to find existing by path (pure read)
-        if let existing = store.conversations
-            .filter({ $0.contextFilePaths.contains(url.path) })
-            .sorted(by: { $0.updatedAt > $1.updatedAt })
-            .first {
-            return existing
-        }
-        
-        // Return temporary placeholder (will be replaced when ensureConversation completes)
-        // This is safe because it doesn't mutate @Published properties
         return Conversation(contextFilePaths: [url.path])
     }
     
@@ -468,13 +369,9 @@ class WorkspaceViewModel: ObservableObject {
     /// This should be called when a conversation is actually needed, not during view rendering
     @MainActor
     func ensureConversation(for url: URL) async {
-        guard let service = conversationService else {
-            return
-        }
-        
         do {
-            let (_, updatedMapping) = try await service.ensureConversation(for: url, urlToConversationId: urlToConversationId)
-            urlToConversationId = updatedMapping
+            let convo = try await conversationEngine.ensureConversation(for: url)
+            urlToConversationId[url] = convo.id
         } catch {
             let wrapped = WorkspaceViewModelError.conversationEnsureFailed(error)
             logger.error("Failed to ensure conversation: \(error.localizedDescription, privacy: .public)")
@@ -483,8 +380,6 @@ class WorkspaceViewModel: ObservableObject {
     }
     
     func sendMessage(_ text: String, for conversation: Conversation) async {
-        guard let service = conversationService else { return }
-        
         isLoading = true
         streamingMessages[conversation.id] = ""
         defer {
@@ -493,36 +388,36 @@ class WorkspaceViewModel: ObservableObject {
         }
         
         do {
-            let (updatedConversation, contextResult) = try await service.sendMessage(
+            let (updatedConversation, contextResult) = try await conversationEngine.sendMessage(
                 text,
                 in: conversation,
-                contextNode: selectedNode,
-                preferences: currentContextPreferences(),
-                onStreamEvent: { [weak self] chunk in
+                contextURL: selectedNode?.path,
+                onStream: ({ [weak self] event in
                     guard let self = self else { return }
                     Task { @MainActor in
-                        switch chunk {
-                        case .token(let token):
+                        switch event {
+                        case .context(let context):
+                            self.lastContextResult = context
+                        case .model(let chunk):
+                            switch chunk {
+                            case .token(let token):
                             let current = self.streamingMessages[conversation.id] ?? ""
                             self.streamingMessages[conversation.id] = current + token
-                        case .output, .done:
-                            self.streamingMessages[conversation.id] = ""
+                            case .output(let response):
+                                self.streamingMessages[conversation.id] = response.content
+                            case .done:
+                                break
+                            }
                         }
                     }
-                }
+                } as ((ConversationStreamEvent) -> Void)?)
             )
             
-            if let url = updatedConversation.contextURL {
+            if let url = updatedConversation.contextURL ?? updatedConversation.contextFilePaths.first.map({ URL(fileURLWithPath: $0) }) {
                 urlToConversationId[url] = updatedConversation.id
             }
             lastContextResult = contextResult
             
-            await MainActor.run {
-                if let store = conversationStore,
-                   let index = store.conversations.firstIndex(where: { $0.id == updatedConversation.id }) {
-                    store.conversations[index] = updatedConversation
-                }
-            }
         } catch {
             let wrapped = WorkspaceViewModelError.conversationEnsureFailed(error)
             logger.error("Failed to send message: \(error.localizedDescription, privacy: .public)")

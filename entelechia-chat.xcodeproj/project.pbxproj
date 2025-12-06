@@ -6,6 +6,13 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		EEEEE111FACEBEEF00000001 /* Engine in Frameworks */ = {isa = PBXBuildFile; productRef = EEEEE115FACEBEEF00000005 /* Engine */; };
+		EEEEE112FACEBEEF00000002 /* UIConnections in Frameworks */ = {isa = PBXBuildFile; productRef = EEEEE116FACEBEEF00000006 /* UIConnections */; };
+		EEEEE113FACEBEEF00000003 /* Engine in Frameworks */ = {isa = PBXBuildFile; productRef = EEEEE117FACEBEEF00000007 /* Engine */; };
+		EEEEE114FACEBEEF00000004 /* UIConnections in Frameworks */ = {isa = PBXBuildFile; productRef = EEEEE118FACEBEEF00000008 /* UIConnections */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		5B86FEAE2EE3201F00482C26 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -39,6 +46,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EEEEE111FACEBEEF00000001 /* Engine in Frameworks */,
+				EEEEE112FACEBEEF00000002 /* UIConnections in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -46,6 +55,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EEEEE113FACEBEEF00000003 /* Engine in Frameworks */,
+				EEEEE114FACEBEEF00000004 /* UIConnections in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -90,6 +101,8 @@
 			);
 			name = "entelechia-chat";
 			packageProductDependencies = (
+				EEEEE115FACEBEEF00000005 /* Engine */,
+				EEEEE116FACEBEEF00000006 /* UIConnections */,
 			);
 			productName = "entelechia-chat";
 			productReference = 5B86E5452EE19FAD00482C26 /* entelechia-chat.app */;
@@ -113,6 +126,8 @@
 			);
 			name = "entelechia-chatTests";
 			packageProductDependencies = (
+				EEEEE117FACEBEEF00000007 /* Engine */,
+				EEEEE118FACEBEEF00000008 /* UIConnections */,
 			);
 			productName = "entelechia-chatTests";
 			productReference = 5B86FEAA2EE3201F00482C26 /* entelechia-chatTests.xctest */;
@@ -146,6 +161,10 @@
 			);
 			mainGroup = 5B86E53C2EE19FAD00482C26;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				EEEEE119FACEBEEF00000009 /* XCLocalSwiftPackageReference "Engine" */,
+				EEEEE11AFACEBEEF0000000A /* XCLocalSwiftPackageReference "UIConnections" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 5B86E5462EE19FAD00482C26 /* Products */;
 			projectDirPath = "";
@@ -353,7 +372,6 @@
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
@@ -383,7 +401,6 @@
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
@@ -459,6 +476,40 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		EEEEE119FACEBEEF00000009 /* XCLocalSwiftPackageReference "Engine" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Engine;
+		};
+		EEEEE11AFACEBEEF0000000A /* XCLocalSwiftPackageReference "UIConnections" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = UIConnections;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		EEEEE115FACEBEEF00000005 /* Engine */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EEEEE119FACEBEEF00000009 /* XCLocalSwiftPackageReference "Engine" */;
+			productName = Engine;
+		};
+		EEEEE116FACEBEEF00000006 /* UIConnections */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EEEEE11AFACEBEEF0000000A /* XCLocalSwiftPackageReference "UIConnections" */;
+			productName = UIConnections;
+		};
+		EEEEE117FACEBEEF00000007 /* Engine */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EEEEE119FACEBEEF00000009 /* XCLocalSwiftPackageReference "Engine" */;
+			productName = Engine;
+		};
+		EEEEE118FACEBEEF00000008 /* UIConnections */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EEEEE11AFACEBEEF0000000A /* XCLocalSwiftPackageReference "UIConnections" */;
+			productName = UIConnections;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 5B86E53D2EE19FAD00482C26 /* Project object */;
 }

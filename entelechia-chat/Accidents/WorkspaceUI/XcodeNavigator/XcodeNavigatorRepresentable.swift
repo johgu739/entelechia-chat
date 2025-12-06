@@ -15,6 +15,7 @@ import SwiftUI
 import AppKit
 import UniformTypeIdentifiers
 
+@MainActor
 struct XcodeNavigatorRepresentable: NSViewRepresentable {
     @EnvironmentObject var workspaceViewModel: WorkspaceViewModel
     
@@ -139,6 +140,7 @@ struct XcodeNavigatorRepresentable: NSViewRepresentable {
         Coordinator()
     }
     
+    @MainActor
     class Coordinator {
         var dataSource: NavigatorDataSource?
         var outlineView: NSOutlineView?
@@ -151,6 +153,7 @@ struct XcodeNavigatorRepresentable: NSViewRepresentable {
 
 // MARK: - Navigator Data Source
 
+@MainActor
 class NavigatorDataSource: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate {
     weak var workspaceViewModel: WorkspaceViewModel?
     
@@ -164,6 +167,7 @@ class NavigatorDataSource: NSObject, NSOutlineViewDataSource, NSOutlineViewDeleg
     }
     
     /// Ladda om hela trädet från aktuell `rootDirectory`.
+    @MainActor
     func reloadData() {
         guard let root = workspaceViewModel?.rootFileNode else {
             rootNode = nil
@@ -431,6 +435,7 @@ class NavigatorDataSource: NSObject, NSOutlineViewDataSource, NSOutlineViewDeleg
 }
 
 private extension NavigatorDataSource {
+    @MainActor
     func loadChildren(for node: FileNode) -> [FileNode]? {
         do {
             try node.loadChildrenIfNeeded(projectRoot: workspaceViewModel?.rootDirectory)

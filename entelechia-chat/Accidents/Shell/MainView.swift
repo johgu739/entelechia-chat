@@ -12,33 +12,28 @@
 // @EntelechiaHeaderEnd
 
 import SwiftUI
+import Engine
+import UIConnections
+import UIConnections
 
 struct MainWorkspaceView: View {
-    private let assistant: CodeAssistant
-    private let workspaceFileSystemService: WorkspaceFileSystemService
-    private let preferencesStore: PreferencesStore
-    private let contextPreferencesStore: ContextPreferencesStore
-    @EnvironmentObject var conversationStore: ConversationStore
+    private let workspaceEngine: WorkspaceEngine
+    private let conversationEngine: ConversationEngineLive<AnyCodexClient, FileStoreConversationPersistence>
     @EnvironmentObject var projectSession: ProjectSession
-    @EnvironmentObject var store: ProjectStore
     @EnvironmentObject var alertCenter: AlertCenter
     @StateObject private var workspaceViewModel: WorkspaceViewModel
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
 
     init(
-        assistant: CodeAssistant,
-        workspaceFileSystemService: WorkspaceFileSystemService,
-        preferencesStore: PreferencesStore,
-        contextPreferencesStore: ContextPreferencesStore
+        workspaceEngine: WorkspaceEngine,
+        conversationEngine: ConversationEngineLive<AnyCodexClient, FileStoreConversationPersistence>
     ) {
-        self.assistant = assistant
-        self.workspaceFileSystemService = workspaceFileSystemService
-        self.preferencesStore = preferencesStore
-        self.contextPreferencesStore = contextPreferencesStore
+        self.workspaceEngine = workspaceEngine
+        self.conversationEngine = conversationEngine
         _workspaceViewModel = StateObject(
             wrappedValue: WorkspaceViewModel(
-                fileSystemService: workspaceFileSystemService,
-                assistant: assistant
+                workspaceEngine: workspaceEngine,
+                conversationEngine: conversationEngine
             )
         )
     }
@@ -102,10 +97,6 @@ struct MainWorkspaceView: View {
         }
         .background(AppTheme.windowBackground)
         .onAppear {
-            workspaceViewModel.setConversationStore(conversationStore)
-            workspaceViewModel.setProjectStore(store)
-            workspaceViewModel.setPreferencesStore(preferencesStore)
-            workspaceViewModel.setContextPreferencesStore(contextPreferencesStore)
             workspaceViewModel.setAlertCenter(alertCenter)
             projectSession.setAlertCenter(alertCenter)
             if let url = projectSession.activeProjectURL {

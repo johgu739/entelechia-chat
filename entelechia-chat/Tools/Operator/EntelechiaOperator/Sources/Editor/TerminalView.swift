@@ -12,6 +12,7 @@
 // @EntelechiaHeaderEnd
 
 import SwiftUI
+import Engine
 import AppKit
 
 struct TerminalView: NSViewRepresentable {

@@ -13,6 +13,8 @@
 
 import Foundation
 import SwiftUI
+import Engine
+import UIConnections
 import Combine
 import os.log
 
@@ -45,13 +47,12 @@ enum ProjectSessionError: LocalizedError {
 }
 
 /// Runtime session for the currently open project
-@MainActor
 final class ProjectSession: ObservableObject, ProjectSessioning {
     @Published var activeProjectURL: URL?
     @Published var projectName: String = ""
     
-    private let projectStore: ProjectStore
-    private let fileSystemService: WorkspaceFileSystemService
+    private let projectEngine: ProjectEngineImpl<ProjectStoreRealAdapter>
+    private let workspaceEngine: WorkspaceEngine
     private let securityScopeHandler: SecurityScopeHandling
     private var activeSecurityScopedURL: URL?
     private var hasActiveSecurityScope: Bool = false
@@ -59,12 +60,12 @@ final class ProjectSession: ObservableObject, ProjectSessioning {
     private var alertCenter: AlertCenter?
     
     init(
-        projectStore: ProjectStore,
-        fileSystemService: WorkspaceFileSystemService,
+        projectEngine: ProjectEngineImpl<ProjectStoreRealAdapter>,
+        workspaceEngine: WorkspaceEngine,
         securityScopeHandler: SecurityScopeHandling
     ) {
-        self.projectStore = projectStore
-        self.fileSystemService = fileSystemService
+        self.projectEngine = projectEngine
+        self.workspaceEngine = workspaceEngine
         self.securityScopeHandler = securityScopeHandler
     }
 
@@ -108,8 +109,7 @@ final class ProjectSession: ObservableObject, ProjectSessioning {
         startSecurityScope(for: resolvedURL)
         
         // Set active project (runtime state only)
-        // Get name from store (source of truth) or use provided name or fallback to URL
-        let finalName = name ?? projectStore.getName(for: resolvedURL) ?? resolvedURL.lastPathComponent
+        let finalName = name ?? resolvedURL.lastPathComponent
         activeProjectURL = resolvedURL
         projectName = finalName
     }
@@ -121,16 +121,16 @@ final class ProjectSession: ObservableObject, ProjectSessioning {
         projectName = ""
     }
     
-    /// Reload files for current project
-    func reloadFiles() -> FileNode? {
-        guard let url = activeProjectURL else { return nil }
+    /// Reload descriptors for current project (UI projection happens elsewhere)
+    func reloadDescriptors() async -> [FileDescriptor] {
+        guard activeProjectURL != nil else { return [] }
         do {
-            return try fileSystemService.buildTree(for: url)
+            return try await workspaceEngine.refresh()
         } catch {
             logger.error("Failed to reload files: \(error.localizedDescription, privacy: .public)")
             let wrapped = ProjectSessionError.reloadFailed(error)
             alertCenter?.publish(wrapped, fallbackTitle: "Failed to Reload Project")
-            return nil
+            return []
         }
     }
 

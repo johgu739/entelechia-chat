@@ -13,6 +13,7 @@
 
 import Foundation
 import UniformTypeIdentifiers
+import Engine
 
 struct LoadedFile: Identifiable, Equatable {
     let id: UUID
@@ -75,11 +76,4 @@ struct LoadedFile: Identifiable, Equatable {
             return "doc"
         }
     }
-}
-
-enum ContextExclusionReason: Equatable {
-    case exceedsPerFileBytes(limit: Int)
-    case exceedsPerFileTokens(limit: Int)
-    case exceedsTotalBytes(limit: Int)
-    case exceedsTotalTokens(limit: Int)
 }

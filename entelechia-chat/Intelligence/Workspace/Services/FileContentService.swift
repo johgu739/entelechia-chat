@@ -13,6 +13,9 @@
 
 import Foundation
 import UniformTypeIdentifiers
+import Engine
+
+private typealias FileExclusion = Engine.FileExclusion
 
 /// Service for reading file content with proper error handling
 final class FileContentService {

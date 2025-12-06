@@ -1,6 +1,5 @@
 import Foundation
 import Darwin
-@testable import entelechia_chat
 
 /// Creates a unique temporary directory for file-based tests.
 func makeTemporaryDirectory() throws -> URL {
@@ -45,9 +44,3 @@ struct TemporaryHome {
     }
 }
 
-/// Provides isolated persistence services for a sandbox root.
-func makeTestPersistence(to root: URL) -> (fileStore: FileStore, workspaceFileSystemService: WorkspaceFileSystemService) {
-    let fileStore = FileStore(baseURL: root)
-    let workspaceFileSystemService = WorkspaceFileSystemService(fileManager: FileManager.default)
-    return (fileStore, workspaceFileSystemService)
-}

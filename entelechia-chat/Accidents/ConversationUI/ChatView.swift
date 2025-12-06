@@ -12,6 +12,7 @@
 // @EntelechiaHeaderEnd
 
 import SwiftUI
+import Engine
 import AppKit
 
 struct ChatView: View {
@@ -97,8 +98,9 @@ struct ChatView: View {
         
         Task { @MainActor in
             await workspaceViewModel.sendMessage(text, for: conversation)
-            if let updated = workspaceViewModel.conversationStore?.conversations.first(where: { $0.id == conversation.id }) {
-                conversation = updated
+            let targetURL = workspaceViewModel.selectedNode?.path ?? conversation.contextURL ?? conversation.contextFilePaths.first.map { URL(fileURLWithPath: $0) }
+            if let url = targetURL {
+                conversation = workspaceViewModel.conversation(for: url)
             }
         }
     }
