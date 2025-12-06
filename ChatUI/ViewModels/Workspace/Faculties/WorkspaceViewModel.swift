@@ -178,7 +178,7 @@ class WorkspaceViewModel: ObservableObject {
             isLoading = true
             defer { isLoading = false }
             do {
-                try await workspaceEngine.openWorkspace(rootPath: rootDirectory.path)
+                _ = try await workspaceEngine.openWorkspace(rootPath: rootDirectory.path)
                 let loaded = await loadFileTree(preserveSelection: false)
                 if loaded {
                     startWatchingRoot()
