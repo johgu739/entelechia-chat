@@ -19,12 +19,12 @@ Generated artifacts and caches are ignored via `.gitignore`.
 ## Canonical project layout (post-package split)
 
 - App (UI) target lives under `ChatUI/`  
-  - UI views in `ChatUI/Accidents/`  
-  - View models/adapters in `ChatUI/Intelligence/`  
-  - App composition in `ChatUI/Teleology/`  
-  - UI-only infrastructure helpers in `ChatUI/Infrastructure/`
-- Engine package (pure domain + services) in `Engine/`
-- Adapter package (platform/persistence/Codex adapters) in `UIConnections/`
+  - UI views in `ChatUI/UI/`  
+  - View models/adapters in `ChatUI/ViewModels/`  
+  - App composition in `ChatUI/AppComposition/`  
+  - UI-only helpers in `ChatUI/Support/`
+- Engine package (pure domain + services) in `CoreEngine/`
+- Adapter package (platform/persistence/Codex adapters) in `AppAdapters/`
 - Operator tool target in `ChatUI/Tools/Operator/`
 - Ontology generator SPM tool in `Tools/OntologyGenerator/`
 

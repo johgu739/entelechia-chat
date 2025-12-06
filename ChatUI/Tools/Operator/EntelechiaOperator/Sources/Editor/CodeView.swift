@@ -12,7 +12,7 @@
 // @EntelechiaHeaderEnd
 
 import SwiftUI
-import Engine
+import CoreEngine
 import AppKit
 
 struct CodeView: NSViewRepresentable {

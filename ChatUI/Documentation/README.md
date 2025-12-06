@@ -19,11 +19,11 @@ A premium macOS SwiftUI chat application with a clean, Apple-quality interface.
 
 ## Project Structure (UI-only)
 
-- `Teleology/`: app entry and composition
-- `Intelligence/`: view models (UI-facing adapters over Engine protocols)
-- `Accidents/`: SwiftUI views
-- `Infrastructure/`: UI-only helpers (logging, rendering, security glue)
-- Engine lives in `Engine/` (SPM); adapters in `UIConnections/` (SPM).
+- `AppComposition/`: app entry and composition
+- `ViewModels/`: view models (UI-facing adapters over Engine protocols)
+- `UI/`: SwiftUI views
+- `Support/`: UI-only helpers (logging, rendering, security glue)
+- Engine lives in `CoreEngine/` (SPM); adapters in `AppAdapters/` (SPM).
 
 ## Setup
 
