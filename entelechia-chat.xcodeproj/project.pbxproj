@@ -25,7 +25,7 @@
 
 /* Begin PBXFileReference section */
 		5B86E5452EE19FAD00482C26 /* ChatUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ChatUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		5B86FEAA2EE3201F00482C26 /* ChatUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "ChatUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		5B86FEAA2EE3201F00482C26 /* ChatUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ChatUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -36,7 +36,7 @@
 		};
 		5B86FEAB2EE3201F00482C26 /* ChatUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "ChatUITests";
+			path = ChatUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -124,12 +124,12 @@
 			fileSystemSynchronizedGroups = (
 				5B86FEAB2EE3201F00482C26 /* ChatUITests */,
 			);
-			name = "ChatUITests";
+			name = ChatUITests;
 			packageProductDependencies = (
 				EEEEE117FACEBEEF00000007 /* CoreEngine */,
 				EEEEE118FACEBEEF00000008 /* AppAdapters */,
 			);
-			productName = "ChatUITests";
+			productName = ChatUITests;
 			productReference = 5B86FEAA2EE3201F00482C26 /* ChatUITests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
@@ -152,7 +152,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 5B86E5402EE19FAD00482C26 /* Build configuration list for PBXProject "ChatUI" */;
+			buildConfigurationList = 5B86E5402EE19FAD00482C26 /* Build configuration list for PBXProject "entelechia-chat" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -415,7 +415,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "cath.ChatUITests";
+				PRODUCT_BUNDLE_IDENTIFIER = cath.ChatUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -434,7 +434,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "cath.ChatUITests";
+				PRODUCT_BUNDLE_IDENTIFIER = cath.ChatUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -448,7 +448,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		5B86E5402EE19FAD00482C26 /* Build configuration list for PBXProject "ChatUI" */ = {
+		5B86E5402EE19FAD00482C26 /* Build configuration list for PBXProject "entelechia-chat" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				5B86E54E2EE19FAF00482C26 /* Debug */,

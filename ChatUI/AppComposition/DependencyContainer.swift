@@ -119,10 +119,10 @@ struct NoopSecurityScopeHandler: SecurityScopeHandling {
 
 // MARK: - Engine-facing codex client adapter type eraser
 
-struct AnyCodexClient: Engine.CodexClient, @unchecked Sendable {
-    typealias MessageType = Engine.Message
-    typealias ContextFileType = Engine.LoadedFile
-    typealias OutputPayload = Engine.ModelResponse
+struct AnyCodexClient: CodexClient, @unchecked Sendable {
+    typealias MessageType = Message
+    typealias ContextFileType = LoadedFile
+    typealias OutputPayload = ModelResponse
 
     private let streamHandler: ([MessageType], [ContextFileType]) async throws -> AsyncThrowingStream<StreamChunk<OutputPayload>, Error>
 
@@ -142,7 +142,7 @@ extension AnyCodexClient {
     static func stub() -> AnyCodexClient {
         AnyCodexClient { _, _ in
             AsyncThrowingStream { continuation in
-                continuation.yield(.output(Engine.ModelResponse(content: "Stub response")))
+                continuation.yield(.output(ModelResponse(content: "Stub response")))
                 continuation.yield(.done)
                 continuation.finish()
             }
