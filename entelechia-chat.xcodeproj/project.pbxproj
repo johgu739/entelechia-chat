@@ -25,7 +25,7 @@
 
 /* Begin PBXFileReference section */
 		5B86E5452EE19FAD00482C26 /* ChatUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ChatUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		5B86FEAA2EE3201F00482C26 /* entelechia-chatTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "entelechia-chatTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		5B86FEAA2EE3201F00482C26 /* ChatUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "ChatUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -34,9 +34,9 @@
 			path = ChatUI;
 			sourceTree = "<group>";
 		};
-		5B86FEAB2EE3201F00482C26 /* entelechia-chatTests */ = {
+		5B86FEAB2EE3201F00482C26 /* ChatUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "entelechia-chatTests";
+			path = "ChatUITests";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -67,7 +67,7 @@
 			isa = PBXGroup;
 			children = (
 				5B86E5472EE19FAD00482C26 /* ChatUI */,
-				5B86FEAB2EE3201F00482C26 /* entelechia-chatTests */,
+				5B86FEAB2EE3201F00482C26 /* ChatUITests */,
 				5B86E5462EE19FAD00482C26 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -76,7 +76,7 @@
 			isa = PBXGroup;
 			children = (
 				5B86E5452EE19FAD00482C26 /* ChatUI.app */,
-				5B86FEAA2EE3201F00482C26 /* entelechia-chatTests.xctest */,
+				5B86FEAA2EE3201F00482C26 /* ChatUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -99,18 +99,18 @@
 			fileSystemSynchronizedGroups = (
 				5B86E5472EE19FAD00482C26 /* ChatUI */,
 			);
-			name = "ChatUI";
+			name = ChatUI;
 			packageProductDependencies = (
 				EEEEE115FACEBEEF00000005 /* CoreEngine */,
 				EEEEE116FACEBEEF00000006 /* AppAdapters */,
 			);
-			productName = "ChatUI";
+			productName = ChatUI;
 			productReference = 5B86E5452EE19FAD00482C26 /* ChatUI.app */;
 			productType = "com.apple.product-type.application";
 		};
-		5B86FEA92EE3201F00482C26 /* entelechia-chatTests */ = {
+		5B86FEA92EE3201F00482C26 /* ChatUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 5B86FEB02EE3201F00482C26 /* Build configuration list for PBXNativeTarget "entelechia-chatTests" */;
+			buildConfigurationList = 5B86FEB02EE3201F00482C26 /* Build configuration list for PBXNativeTarget "ChatUITests" */;
 			buildPhases = (
 				5B86FEA62EE3201F00482C26 /* Sources */,
 				5B86FEA72EE3201F00482C26 /* Frameworks */,
@@ -122,15 +122,15 @@
 				5B86FEAF2EE3201F00482C26 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				5B86FEAB2EE3201F00482C26 /* entelechia-chatTests */,
+				5B86FEAB2EE3201F00482C26 /* ChatUITests */,
 			);
-			name = "entelechia-chatTests";
+			name = "ChatUITests";
 			packageProductDependencies = (
 				EEEEE117FACEBEEF00000007 /* CoreEngine */,
 				EEEEE118FACEBEEF00000008 /* AppAdapters */,
 			);
-			productName = "entelechia-chatTests";
-			productReference = 5B86FEAA2EE3201F00482C26 /* entelechia-chatTests.xctest */;
+			productName = "ChatUITests";
+			productReference = 5B86FEAA2EE3201F00482C26 /* ChatUITests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
@@ -170,8 +170,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				5B86E5442EE19FAD00482C26 /* entelechia-chat */,
-				5B86FEA92EE3201F00482C26 /* entelechia-chatTests */,
+				5B86E5442EE19FAD00482C26 /* ChatUI */,
+				5B86FEA92EE3201F00482C26 /* ChatUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -213,7 +213,7 @@
 /* Begin PBXTargetDependency section */
 		5B86FEAF2EE3201F00482C26 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 5B86E5442EE19FAD00482C26 /* entelechia-chat */;
+			target = 5B86E5442EE19FAD00482C26 /* ChatUI */;
 			targetProxy = 5B86FEAE2EE3201F00482C26 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -415,7 +415,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "cath.entelechia-chatTests";
+				PRODUCT_BUNDLE_IDENTIFIER = "cath.ChatUITests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -434,7 +434,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "cath.entelechia-chatTests";
+				PRODUCT_BUNDLE_IDENTIFIER = "cath.ChatUITests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -448,7 +448,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		5B86E5402EE19FAD00482C26 /* Build configuration list for PBXProject "entelechia-chat" */ = {
+		5B86E5402EE19FAD00482C26 /* Build configuration list for PBXProject "ChatUI" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				5B86E54E2EE19FAF00482C26 /* Debug */,
@@ -457,7 +457,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		5B86E5502EE19FAF00482C26 /* Build configuration list for PBXNativeTarget "entelechia-chat" */ = {
+		5B86E5502EE19FAF00482C26 /* Build configuration list for PBXNativeTarget "ChatUI" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				5B86E5512EE19FAF00482C26 /* Debug */,
@@ -466,7 +466,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		5B86FEB02EE3201F00482C26 /* Build configuration list for PBXNativeTarget "entelechia-chatTests" */ = {
+		5B86FEB02EE3201F00482C26 /* Build configuration list for PBXNativeTarget "ChatUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				5B86FEB12EE3201F00482C26 /* Debug */,
