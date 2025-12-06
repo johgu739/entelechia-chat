@@ -14,24 +14,62 @@
 import Foundation
 import SwiftUI
 import Combine
+import os.log
+
+enum ProjectSessionError: LocalizedError {
+    case invalidProjectURL(URL, Error)
+    case missingProjectDirectory(String)
+    case reloadFailed(Error)
+
+    var errorDescription: String? {
+        switch self {
+        case .invalidProjectURL(let url, _):
+            return "Unable to determine a valid project directory for \(url.path)."
+        case .missingProjectDirectory(let path):
+            return "Project path does not exist: \(path)"
+        case .reloadFailed:
+            return "Failed to reload project files."
+        }
+    }
+
+    var failureReason: String? {
+        switch self {
+        case .invalidProjectURL(_, let error):
+            return error.localizedDescription
+        case .missingProjectDirectory(let path):
+            return "The directory \(path) was not found on disk."
+        case .reloadFailed(let error):
+            return error.localizedDescription
+        }
+    }
+}
 
 /// Runtime session for the currently open project
 @MainActor
-final class ProjectSession: ObservableObject {
+final class ProjectSession: ObservableObject, ProjectSessioning {
     @Published var activeProjectURL: URL?
     @Published var projectName: String = ""
     
     private let projectStore: ProjectStore
     private let fileSystemService: WorkspaceFileSystemService
+    private let securityScopeHandler: SecurityScopeHandling
     private var activeSecurityScopedURL: URL?
     private var hasActiveSecurityScope: Bool = false
+    private let logger = Logger.persistence
+    private var alertCenter: AlertCenter?
     
     init(
         projectStore: ProjectStore,
-        fileSystemService: WorkspaceFileSystemService
+        fileSystemService: WorkspaceFileSystemService,
+        securityScopeHandler: SecurityScopeHandling
     ) {
         self.projectStore = projectStore
         self.fileSystemService = fileSystemService
+        self.securityScopeHandler = securityScopeHandler
+    }
+
+    func setAlertCenter(_ center: AlertCenter) {
+        alertCenter = center
     }
     
     /// Open a project (runtime state only - persistence handled by ProjectCoordinator)
@@ -47,13 +85,17 @@ final class ProjectSession: ObservableObject {
                 resolvedURL = url.deletingLastPathComponent()
             }
         } catch {
-            print("Error: Could not determine directory state for \(url.path): \(error.localizedDescription)")
+            logger.error("Failed to resolve project directory: \(error.localizedDescription, privacy: .public)")
+            let wrapped = ProjectSessionError.invalidProjectURL(url, error)
+            alertCenter?.publish(wrapped, fallbackTitle: "Unable to Open Project")
             return
         }
         
         // Validate resolved directory exists
         guard FileManager.default.fileExists(atPath: resolvedURL.path) else {
-            print("Error: Project path does not exist: \(resolvedURL.path)")
+            logger.error("Project path does not exist: \(resolvedURL.path, privacy: .public)")
+            let wrapped = ProjectSessionError.missingProjectDirectory(resolvedURL.path)
+            alertCenter?.publish(wrapped, fallbackTitle: "Unable to Open Project")
             return
         }
         
@@ -82,11 +124,18 @@ final class ProjectSession: ObservableObject {
     /// Reload files for current project
     func reloadFiles() -> FileNode? {
         guard let url = activeProjectURL else { return nil }
-        return fileSystemService.buildTree(for: url)
+        do {
+            return try fileSystemService.buildTree(for: url)
+        } catch {
+            logger.error("Failed to reload files: \(error.localizedDescription, privacy: .public)")
+            let wrapped = ProjectSessionError.reloadFailed(error)
+            alertCenter?.publish(wrapped, fallbackTitle: "Failed to Reload Project")
+            return nil
+        }
     }
 
     private func startSecurityScope(for url: URL) {
-        let started = url.startAccessingSecurityScopedResource()
+        let started = securityScopeHandler.startAccessing(url)
         if started {
             hasActiveSecurityScope = true
             activeSecurityScopedURL = url
@@ -95,7 +144,7 @@ final class ProjectSession: ObservableObject {
 
     private func stopSecurityScopeIfNeeded() {
         if hasActiveSecurityScope, let url = activeSecurityScopedURL {
-            url.stopAccessingSecurityScopedResource()
+            securityScopeHandler.stopAccessing(url)
         }
         hasActiveSecurityScope = false
         activeSecurityScopedURL = nil

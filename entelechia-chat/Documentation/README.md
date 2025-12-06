@@ -26,7 +26,6 @@ A premium macOS SwiftUI chat application with a clean, Apple-quality interface.
 │   ├── ModelResponse.swift
 │   └── Conversation.swift
 ├── ViewModels/
-│   ├── ChatViewModel.swift
 │   └── FileViewModel.swift
 ├── Views/
 │   ├── MainView.swift
@@ -58,11 +57,96 @@ A premium macOS SwiftUI chat application with a clean, Apple-quality interface.
 The app uses a `ModelClient` protocol. Currently, a `StubModelClient` is provided for testing. To integrate with a real LLM:
 
 1. Implement the `ModelClient` protocol
-2. Replace `StubModelClient()` in `ChatViewModel` initialization
+2. Provide a `CodeAssistant` through `AppEnvironment` (defaults to `MockCodeAssistant` when no Codex config is present)
 3. The protocol expects:
    - User message text
    - Array of context files (with content)
    - Returns a `ModelResponse` with content or error
+
+## Persistence Layout & `.entelechia/` folders
+
+The runtime now maintains deterministic folders for every project and for global state:
+
+| Location | Purpose |
+| --- | --- |
+| `~/Library/Application Support/Entelechia/Conversations/` | One JSON file per conversation + `index.json` |
+| `~/Library/Application Support/Entelechia/Projects/` | `recent.json`, `last_opened.json`, `project_settings.json` |
+| `<ProjectRoot>/.entelechia/context_preferences.json` | File inclusion toggles & trim metadata |
+| `<ProjectRoot>/.entelechia/preferences.json` | UI/inspector preferences specific to that project |
+
+The `.entelechia` folder is created automatically the first time you open a project. You can inspect or edit the JSON by hand if needed:
+
+```bash
+cat /path/to/project/.entelechia/context_preferences.json | jq
+```
+
+Deleting these files is safe; the app will regenerate them with defaults on launch.
+
+## Codex Configuration
+
+Codex credentials are loaded through the configuration scaffolding. Pick **one** of the following:
+
+1. **Secrets plist**  
+   - Copy `entelechia-chat/Configuration/CodexSecrets.example.plist` to `CodexSecrets.plist`.  
+   - Fill in `CODEX_API_KEY`, `CODEX_BASE_URL`, and (optionally) `CODEX_ORG`.  
+   - Keep the file out of source control; `.gitignore` already excludes it.
+
+2. **Environment variables**  
+   ```bash
+   export CODEX_API_KEY="sk-..."
+   export CODEX_BASE_URL="https://api.openai.com/v1"
+   export CODEX_ORG="your-org-id"   # optional
+   ```
+
+3. **Keychain (recommended)**  
+   Store secrets once and keep them off disk:  
+   ```bash
+   security add-generic-password -a CODEX_API_KEY \
+     -s chat.entelechia.codex \
+     -w "sk-..." \
+     -U
+
+   security add-generic-password -a CODEX_BASE_URL \
+     -s chat.entelechia.codex \
+     -w "https://api.openai.com/v1" \
+     -U
+   ```
+   Verify or delete entries with:
+   ```bash
+   security find-generic-password -s chat.entelechia.codex -a CODEX_API_KEY -w
+   security delete-generic-password -s chat.entelechia.codex -a CODEX_API_KEY
+   ```
+
+When no credentials are present the app logs a warning and composes `MockCodeAssistant`, so you can develop safely without the live Codex API.
+
+## Context Preferences & Budgeting
+
+Context files are budgeted before every Codex call. Toggle inclusion per file from the inspector; the decisions persist inside `.entelechia/context_preferences.json`. A sample entry:
+
+```json
+{
+  "files": {
+    "Sources/App/WorkspaceViewModel.swift": {
+      "isIncluded": true,
+      "trimmedBytes": 16384,
+      "reason": "Trimmed to 16 KB budget"
+    }
+  }
+}
+```
+
+Deleting the file resets toggles to their defaults. When the project contains more than 220 KB of selected context, exclusions are logged via `Logger.persistence` and surfaced in the inspector UI.
+
+## Codex Readiness Checklist
+
+Before switching to the production Codex assistant ensure:
+
+1. **Persistence OK** – conversations index rebuilds cleanly and `.entelechia/` exists in your project.
+2. **Credentials OK** – `security find-generic-password -s chat.entelechia.codex -a CODEX_API_KEY -w` returns a key or your plist/env vars are set.
+3. **UI Banner** – the workspace shell shows a Codex readiness banner if configuration fails; resolve it before relying on real completions.
+4. **Tests** – run `xcodebuild test -scheme "entelechia-chat"` to validate migrations and the new stores.
+
+Once all four pass, the teleology composes the Codex-backed assistant automatically; otherwise it remains in mock mode and logs the reason.
 
 ## Design Philosophy
 

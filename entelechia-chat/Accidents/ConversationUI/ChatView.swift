@@ -15,17 +15,20 @@ import SwiftUI
 import AppKit
 
 struct ChatView: View {
-    @State var conversation: Conversation
+    @State private var conversation: Conversation
     @EnvironmentObject var workspaceViewModel: WorkspaceViewModel
-    @StateObject private var chatViewModel = ChatViewModel(assistant: MockCodeAssistant())
     @State private var inputText: String = ""
+    
+    init(conversation: Conversation) {
+        _conversation = State(initialValue: conversation)
+    }
     
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 0) {
                     // Show empty state if no messages
-                    if conversation.messages.isEmpty && chatViewModel.streamingText.isEmpty {
+                    if conversation.messages.isEmpty && currentStreamingText.isEmpty {
                         emptyStateView
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .padding(.top, 60)
@@ -36,8 +39,8 @@ struct ChatView: View {
                                 .transition(.opacity.combined(with: .move(edge: .bottom)))
                         }
                         
-                        if !chatViewModel.streamingText.isEmpty {
-                            ChatAssistantMessageView(text: chatViewModel.streamingText)
+                        if !currentStreamingText.isEmpty {
+                            ChatAssistantMessageView(text: currentStreamingText)
                                 .id("streaming")
                         }
                         
@@ -63,7 +66,7 @@ struct ChatView: View {
                     }
                 }
             }
-            .onChange(of: chatViewModel.streamingText) { oldValue, newValue in
+            .onChange(of: currentStreamingText) { oldValue, newValue in
                 if !newValue.isEmpty {
                     withAnimation {
                         proxy.scrollTo("streaming", anchor: .bottom)
@@ -94,12 +97,14 @@ struct ChatView: View {
         
         Task { @MainActor in
             await workspaceViewModel.sendMessage(text, for: conversation)
-            // Update local conversation state after message is sent
-            // The conversation will be updated via WorkspaceViewModel
             if let updated = workspaceViewModel.conversationStore?.conversations.first(where: { $0.id == conversation.id }) {
                 conversation = updated
             }
         }
+    }
+    
+    private var currentStreamingText: String {
+        workspaceViewModel.streamingText(for: conversation.id)
     }
     
     @ViewBuilder

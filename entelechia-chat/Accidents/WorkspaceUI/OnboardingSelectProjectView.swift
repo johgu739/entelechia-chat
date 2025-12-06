@@ -20,6 +20,7 @@ struct OnboardingSelectProjectView: View {
     @State private var selectedURL: URL?
     @State private var projectName: String = ""
     @State private var showingFilePicker = false
+    @EnvironmentObject private var alertCenter: AlertCenter
     
     var body: some View {
         VStack(spacing: 32) {
@@ -134,7 +135,7 @@ struct OnboardingSelectProjectView: View {
                     }
                 }
             case .failure(let error):
-                fatalError("❌ Failed to select project folder: \(error.localizedDescription). This is a fatal error.")
+                alertCenter.publish(error, fallbackTitle: "Folder Selection Failed")
             }
         }
     }

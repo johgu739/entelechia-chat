@@ -21,6 +21,24 @@ class FileViewModel: ObservableObject {
     @Published var loadedFiles: [LoadedFile] = []
     @Published var errorMessage: String?
     
+    let budget: ContextBudget
+    
+    init(budget: ContextBudget? = nil) {
+        self.budget = budget ?? .default
+    }
+    
+    var includedFiles: [LoadedFile] {
+        loadedFiles.filter { $0.isIncludedInContext }
+    }
+    
+    var includedByteCount: Int {
+        includedFiles.reduce(0) { $0 + $1.byteCount }
+    }
+    
+    var includedTokenCount: Int {
+        includedFiles.reduce(0) { $0 + $1.tokenEstimate }
+    }
+    
     func loadFile(from url: URL) async throws {
         // Check if file is text-based before reading
         let resourceValues = try url.resourceValues(forKeys: [.contentTypeKey])

@@ -13,13 +13,36 @@
 
 import Foundation
 import Combine
+import os.log
+
+enum ProjectStoreError: LocalizedError {
+    case applicationSupportUnavailable
+    case directoryCreationFailed(Error)
+    case databaseCorrupted(URL, Error)
+    case saveFailed(URL, Error)
+
+    var errorDescription: String? {
+        switch self {
+        case .applicationSupportUnavailable:
+            return "Unable to access Application Support directory."
+        case .directoryCreationFailed(let error):
+            return "Failed to create project storage directory: \(error.localizedDescription)"
+        case .databaseCorrupted(let url, _):
+            return "Project database at \(url.path) is corrupted."
+        case .saveFailed(_, let error):
+            return "Failed to save project metadata: \(error.localizedDescription)"
+        }
+    }
+}
 
 /// Persistent storage for project metadata (recent projects, last opened)
+@MainActor
 final class ProjectStore: ObservableObject {
     let objectWillChange = PassthroughSubject<Void, Never>()
     
     private let maxRecentProjects = 20
-    private let storeURL: URL
+    private let logger = Logger.persistence
+    private let projectsDirectory: ProjectsDirectory
     
     struct StoredProject: Codable, Equatable {
         var name: String
@@ -41,60 +64,145 @@ final class ProjectStore: ObservableObject {
     
     private var data: ProjectData
     
-    private init(data: ProjectData, storeURL: URL) {
+    private init(data: ProjectData, projectsDirectory: ProjectsDirectory) {
         self.data = data
-        self.storeURL = storeURL
+        self.projectsDirectory = projectsDirectory
+        logger.debug("ProjectStore init with \(data.recent.count) recents and lastOpened \(data.lastOpened?.path ?? "nil", privacy: .private)")
     }
     
-    /// Ensure storage directory exists
-    static func ensureStorageDirectory() throws {
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let entelechiaDir = appSupport.appendingPathComponent("EntelechiaOperator", isDirectory: true)
-        try FileManager.default.createDirectory(at: entelechiaDir, withIntermediateDirectories: true)
+    deinit {
+        let stack = Thread.callStackSymbols.joined(separator: "\n")
+        logger.debug("ProjectStore deinit. Stack:\n\(stack, privacy: .public)")
     }
     
-    /// Load ProjectStore from disk (call this in App.init)
-    /// Throws if database file exists but is corrupted or has wrong format
-    static func loadFromDisk() throws -> ProjectStore {
-        try ensureStorageDirectory()
-        
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let entelechiaDir = appSupport.appendingPathComponent("EntelechiaOperator", isDirectory: true)
-        let storeURL = entelechiaDir.appendingPathComponent("projects.json", isDirectory: false)
-        
-        let data: ProjectData
-        if FileManager.default.fileExists(atPath: storeURL.path) {
-            // File exists - MUST decode correctly, no fallbacks
-            do {
-                let fileData = try Data(contentsOf: storeURL)
-                data = try JSONDecoder().decode(ProjectData.self, from: fileData)
-            } catch {
-                // Database file exists but is corrupted - FAIL LOUDLY
-                fatalError("❌ ProjectStore database file exists but is corrupted or has wrong format at \(storeURL.path). Error: \(error.localizedDescription). Delete the file manually if you want to start fresh.")
+    // MARK: - Lifecycle
+    
+    static func loadFromDisk(
+        projectsDirectory provided: ProjectsDirectory? = nil,
+        strict: Bool = false
+    ) throws -> ProjectStore {
+        let projectsDirectory: ProjectsDirectory
+        do {
+            if let provided = provided {
+                projectsDirectory = provided
+                try projectsDirectory.ensureExists()
+            } else {
+                let resolved = try ProjectsDirectory()
+                try resolved.ensureExists()
+                projectsDirectory = resolved
             }
-        } else {
-            // File doesn't exist - start with empty data
-            data = ProjectData()
+        } catch {
+            Logger.persistence.error("ProjectsDirectory init/ensure failed: \(error.localizedDescription, privacy: .public)")
+            throw error
         }
-
-        let store = ProjectStore(data: data, storeURL: storeURL)
-
-        // Sanitize legacy entries (missing/invalid bookmarks or paths)
-        let didChange = store.sanitizeProjectsInPlace()
-        if didChange {
-            try store.save()
+        let decoder = JSONDecoder()
+        let recentURL = projectsDirectory.url(for: .recent)
+        let lastOpenedURL = projectsDirectory.url(for: .lastOpened)
+        let settingsURL = projectsDirectory.url(for: .settings)
+        
+        var loaded = ProjectData()
+        do {
+            if FileManager.default.fileExists(atPath: recentURL.path) {
+                let data = try Data(contentsOf: recentURL)
+                loaded.recent = try decoder.decode([StoredProject].self, from: data)
+                Logger.persistence.debug("Loaded recents from \(recentURL.path, privacy: .private) count=\(loaded.recent.count)")
+            } else {
+                Logger.persistence.debug("Recents file missing at \(recentURL.path, privacy: .private)")
+            }
+            
+            if FileManager.default.fileExists(atPath: lastOpenedURL.path) {
+                let data = try Data(contentsOf: lastOpenedURL)
+                loaded.lastOpened = try decoder.decode(StoredProject?.self, from: data)
+                Logger.persistence.debug("Loaded lastOpened from \(lastOpenedURL.path, privacy: .private) = \(loaded.lastOpened?.path ?? "nil", privacy: .private)")
+            } else {
+                Logger.persistence.debug("LastOpened file missing at \(lastOpenedURL.path, privacy: .private)")
+            }
+            
+            if FileManager.default.fileExists(atPath: settingsURL.path) {
+                let data = try Data(contentsOf: settingsURL)
+                let payload = try decoder.decode(ProjectSettingsPayload.self, from: data)
+                loaded.lastSelections = payload.lastSelections
+                Logger.persistence.debug("Loaded settings from \(settingsURL.path, privacy: .private) lastSelections=\(payload.lastSelections.count)")
+            } else {
+                Logger.persistence.debug("Settings file missing at \(settingsURL.path, privacy: .private)")
+            }
+        } catch {
+            Logger.persistence.error("ProjectStore load failed: \(error.localizedDescription, privacy: .public)")
+            let stack = Thread.callStackSymbols.joined(separator: "\n")
+            Logger.persistence.error("Stack:\n\(stack, privacy: .public)")
+            throw error
         }
-
-        return store
+        
+        return ProjectStore(data: loaded, projectsDirectory: projectsDirectory)
     }
     
-    /// Save data to disk
-    /// Throws if save fails - no silent errors
-    private func save() throws {
+    static func makeEmptyStore() throws -> ProjectStore {
+        let projectsDirectory = try ProjectsDirectory()
+        try projectsDirectory.ensureExists()
+        return ProjectStore(data: ProjectData(), projectsDirectory: projectsDirectory)
+    }
+    
+    static func inMemoryFallback() -> ProjectStore {
+        let tempRoot = FileManager.default.temporaryDirectory
+            .appendingPathComponent("entelechia-projects-\(UUID().uuidString)", isDirectory: true)
+        if let directory = try? ProjectsDirectory(rootURL: tempRoot) {
+            return ProjectStore(data: ProjectData(), projectsDirectory: directory)
+        }
+        // Fallback to default application support if temp setup fails
+        let directory = (try? ProjectsDirectory()) ?? (try! ProjectsDirectory())
+        return ProjectStore(data: ProjectData(), projectsDirectory: directory)
+    }
+    
+    // MARK: - Save helpers
+    
+    // Exposed for testing to force flush of all split files.
+    func saveAll() throws {
+        try saveRecent()
+        try saveLastOpened()
+        try saveSettings()
+    }
+    
+    private func saveRecent() throws {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        let data = try encoder.encode(self.data)
-        try data.write(to: storeURL, options: .atomic)
+        let data = try encoder.encode(self.data.recent)
+        let url = projectsDirectory.url(for: .recent)
+        do {
+            try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try data.write(to: url, options: .atomic)
+            logger.info("Saved recent projects to \(url.path, privacy: .private) with \(self.data.recent.count) entries.")
+        } catch {
+            throw ProjectStoreError.saveFailed(url, error)
+        }
+    }
+    
+    private func saveLastOpened() throws {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        let data = try encoder.encode(self.data.lastOpened)
+        let url = projectsDirectory.url(for: .lastOpened)
+        do {
+            try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try data.write(to: url, options: .atomic)
+            logger.info("Saved last opened project to \(url.path, privacy: .private).")
+        } catch {
+            throw ProjectStoreError.saveFailed(url, error)
+        }
+    }
+    
+    private func saveSettings() throws {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        let payload = ProjectSettingsPayload(lastSelections: data.lastSelections)
+        let data = try encoder.encode(payload)
+        let url = projectsDirectory.url(for: .settings)
+        do {
+            try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try data.write(to: url, options: .atomic)
+            logger.info("Saved project settings to \(url.path, privacy: .private).")
+        } catch {
+            throw ProjectStoreError.saveFailed(url, error)
+        }
     }
     
     /// Get last opened project URL (validated)
@@ -110,6 +218,12 @@ final class ProjectStore: ObservableObject {
     var recentProjects: [StoredProject] {
         data.recent.compactMap { stored in resolvedProjectURL(stored).map { _ in stored } }
     }
+
+    /// Access raw stored recents without validation (test-only convenience)
+    var storedRecents: [StoredProject] { data.recent }
+
+    /// Access raw last opened without validation (test-only convenience)
+    var storedLastOpened: StoredProject? { data.lastOpened }
     
     /// Get project name for a URL (source of truth)
     func getName(for url: URL) -> String? {
@@ -143,7 +257,9 @@ final class ProjectStore: ObservableObject {
             data.recent[index].name = name
         }
         
-        try save()
+        try saveRecent()
+        try saveLastOpened()
+        logger.info("Updated project name for \(path, privacy: .private) to \(name, privacy: .private).")
         objectWillChange.send()
         NotificationCenter.default.post(name: NSNotification.Name("ProjectStoreDidChange"), object: nil)
     }
@@ -165,7 +281,8 @@ final class ProjectStore: ObservableObject {
             data.recent = Array(data.recent.prefix(maxRecentProjects))
         }
         
-        try save()
+        try saveRecent()
+        logger.info("Added recent project \(project.path, privacy: .private).")
         objectWillChange.send()
         
         // Notify menu to update
@@ -181,7 +298,8 @@ final class ProjectStore: ObservableObject {
         } else {
             data.lastOpened = nil
         }
-        try save()
+        try saveLastOpened()
+        logger.info("Set last opened project to \(url?.path ?? "nil", privacy: .private).")
         objectWillChange.send()
         
         // Notify menu to update
@@ -203,7 +321,8 @@ final class ProjectStore: ObservableObject {
         } else {
             data.lastSelections.removeValue(forKey: key)
         }
-        try save()
+        try saveSettings()
+        logger.info("Persisted last selection for \(projectRoot.path, privacy: .private) to \(selection?.path ?? "nil", privacy: .private).")
         objectWillChange.send()
         NotificationCenter.default.post(name: NSNotification.Name("ProjectStoreDidChange"), object: nil)
     }
@@ -337,7 +456,9 @@ final class ProjectStore: ObservableObject {
             data.lastOpened = nil
         }
         
-        try save()
+        try saveRecent()
+        try saveLastOpened()
+        logger.info("Removed recent project \(path, privacy: .private).")
         objectWillChange.send()
         
         // Notify menu to update
@@ -348,10 +469,15 @@ final class ProjectStore: ObservableObject {
     /// Throws if save fails
     func clearRecentProjects() throws {
         data.recent.removeAll()
-        try save()
+        try saveRecent()
+        logger.info("Cleared all recent projects.")
         objectWillChange.send()
         
         // Notify menu to update
         NotificationCenter.default.post(name: NSNotification.Name("ProjectStoreDidChange"), object: nil)
     }
+}
+
+private struct ProjectSettingsPayload: Codable {
+    var lastSelections: [String: String]
 }

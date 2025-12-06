@@ -14,28 +14,58 @@
 import Foundation
 import UniformTypeIdentifiers
 
+enum WorkspaceFileSystemError: LocalizedError {
+    case missingRoot(URL)
+    case invalidRoot(URL)
+
+    var errorDescription: String? {
+        switch self {
+        case .missingRoot(let url):
+            return "Project folder missing at \(url.path)"
+        case .invalidRoot(let url):
+            return "Project folder is invalid at \(url.path)"
+        }
+    }
+
+    var failureReason: String? {
+        switch self {
+        case .missingRoot(let url):
+            return "No file system entity was found at \(url.path)."
+        case .invalidRoot(let url):
+            return "The directory at \(url.path) could not be represented."
+        }
+    }
+}
+
 /// Service for workspace file system operations
 final class WorkspaceFileSystemService {
-    static let shared = WorkspaceFileSystemService()
+    private static var _shared = WorkspaceFileSystemService()
+    static var shared: WorkspaceFileSystemService { _shared }
     
-    private init() {}
+    static func configureShared(fileManager: FileManager) {
+        _shared = WorkspaceFileSystemService(fileManager: fileManager)
+    }
+    
+    private let fileManager: FileManager
+    
+    init(fileManager: FileManager = .default) {
+        self.fileManager = fileManager
+    }
     
     /// Build a complete file tree for a given root URL
-    /// Returns nil if root URL cannot be accessed or is invalid
-    /// Throws fatal error if directory exists but cannot be read
-    func buildTree(for rootURL: URL) -> FileNode? {
+    /// Returns a fully materialized file tree or throws when invalid.
+    func buildTree(for rootURL: URL) throws -> FileNode {
         // Validate that URL exists and is accessible
-        guard FileManager.default.fileExists(atPath: rootURL.path) else {
-            return nil
+        guard fileManager.fileExists(atPath: rootURL.path) else {
+            throw WorkspaceFileSystemError.missingRoot(rootURL)
         }
         
         // Create root node - if this fails, return nil
         guard let root = FileNode.from(url: rootURL, includeParent: false) else {
-            return nil
+            throw WorkspaceFileSystemError.invalidRoot(rootURL)
         }
         
-        // Load tree recursively - if this fails silently, we'll catch it in validation
-        root.loadRecursively(projectRoot: rootURL)
+        try root.loadRecursively(projectRoot: rootURL)
         
         return root
     }

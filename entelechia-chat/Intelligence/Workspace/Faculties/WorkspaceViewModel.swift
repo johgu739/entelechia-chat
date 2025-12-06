@@ -16,6 +16,40 @@ import SwiftUI
 import Combine
 import UniformTypeIdentifiers
 import CoreServices
+import os.log
+
+enum WorkspaceViewModelError: LocalizedError {
+    case invalidProjectPath(String)
+    case unreadableProject(String)
+    case emptyProject(String)
+    case selectionPersistenceFailed(Error)
+    case conversationEnsureFailed(Error)
+
+    var errorDescription: String? {
+        switch self {
+        case .invalidProjectPath(let path):
+            return "Project path is invalid: \(path)"
+        case .unreadableProject(let path):
+            return "Project directory could not be read: \(path)"
+        case .emptyProject(let path):
+            return "Project directory is empty: \(path)"
+        case .selectionPersistenceFailed:
+            return "Failed to remember the last selected file."
+        case .conversationEnsureFailed:
+            return "Failed to prepare the conversation for the selected file."
+        }
+    }
+
+    var failureReason: String? {
+        switch self {
+        case .selectionPersistenceFailed(let error),
+            .conversationEnsureFailed(let error):
+            return error.localizedDescription
+        default:
+            return errorDescription
+        }
+    }
+}
 
 // ProjectTodos is defined in Intelligence/Projects/Models/ProjectTodos.swift
 // Since it's in the same app target, no explicit import needed, but ensure file is in target
@@ -63,6 +97,8 @@ class WorkspaceViewModel: ObservableObject {
     @Published var rootFileNode: FileNode?
     @Published var projectTodos: ProjectTodos = .empty
     @Published var todosError: String?
+    @Published private var streamingMessages: [UUID: String] = [:]
+    @Published private(set) var lastContextResult: ContextBuildResult?
     
     // MARK: - Dependencies (Services)
     
@@ -71,7 +107,13 @@ class WorkspaceViewModel: ObservableObject {
     private var conversationService: ConversationService?
     var conversationStore: ConversationStore!
     private var projectStore: ProjectStore?
+    private var preferencesStore: PreferencesStore?
+    private var contextPreferencesStore: ContextPreferencesStore?
     private var eventStream: FSEventStreamRef?
+    private var alertCenter: AlertCenter?
+    private let logger = Logger.persistence
+    private let sentinelDirectoryPath = URL(fileURLWithPath: "/").path
+    private let lastSelectionPreferenceKey = "workspace.lastSelection.path"
     
     // MARK: - Private State
     
@@ -83,10 +125,12 @@ class WorkspaceViewModel: ObservableObject {
     init(
         fileSystemService: WorkspaceFileSystemService,
         assistant: CodeAssistant,
-        conversationStore: ConversationStore? = nil
+        conversationStore: ConversationStore? = nil,
+        alertCenter: AlertCenter? = nil
     ) {
         self.fileSystemService = fileSystemService
         self.assistant = assistant
+        self.alertCenter = alertCenter
         
         // FIX 3: Use sentinel value that does NOT trigger file tree loading
         // Root directory will be set when a real project is opened
@@ -95,19 +139,7 @@ class WorkspaceViewModel: ObservableObject {
         
         // Set conversation store if provided
         if let store = conversationStore {
-            self.conversationStore = store
-            // Load conversations - if database is corrupted, crash
-            do {
-                try store.loadAll()
-            } catch {
-                fatalError("❌ Failed to load conversations: \(error.localizedDescription). This is a fatal error - database must be valid.")
-            }
-            // Initialize conversation service with dependencies
-            self.conversationService = ConversationService(
-                assistant: assistant,
-                conversationStore: store,
-                fileContentService: FileContentService.shared
-            )
+            setConversationStore(store)
         }
     }
     
@@ -116,11 +148,12 @@ class WorkspaceViewModel: ObservableObject {
         guard conversationStore == nil else { return }
         self.conversationStore = store
         
-        // Load conversations - if database is corrupted, crash
         do {
             try store.loadAll()
         } catch {
-            fatalError("❌ Failed to load conversations: \(error.localizedDescription). This is a fatal error - database must be valid.")
+            logger.error("Failed to load conversations: \(error.localizedDescription, privacy: .public)")
+            alertCenter?.publish(error, fallbackTitle: "Failed to Load Conversations")
+            return
         }
         
         // Initialize conversation service with existing assistant
@@ -137,6 +170,21 @@ class WorkspaceViewModel: ObservableObject {
         projectStore = store
     }
     
+    func setPreferencesStore(_ store: PreferencesStore) {
+        guard preferencesStore == nil else { return }
+        preferencesStore = store
+    }
+    
+    func setContextPreferencesStore(_ store: ContextPreferencesStore) {
+        guard contextPreferencesStore == nil else { return }
+        contextPreferencesStore = store
+    }
+
+    func setAlertCenter(_ center: AlertCenter) {
+        guard alertCenter == nil else { return }
+        alertCenter = center
+    }
+    
     // MARK: - Public Methods (State Mutations)
     
     func setRootDirectory(_ url: URL) {
@@ -147,14 +195,32 @@ class WorkspaceViewModel: ObservableObject {
         selectedURL = url
         persistSelection()
     }
+
+    func streamingText(for conversationID: UUID) -> String {
+        streamingMessages[conversationID] ?? ""
+    }
+
+    func publishFileBrowserError(_ error: Error) {
+        handleFileSystemError(error, fallbackTitle: "Failed to Read Folder")
+    }
     
     // MARK: - Private State Management
     
     private func handleRootDirectoryChange() {
         stopWatchingRoot()
+        guard rootDirectory.path != sentinelDirectoryPath else {
+            projectTodos = .empty
+            todosError = nil
+            rootFileNode = nil
+            selectedURL = nil
+            selectedNode = nil
+            return
+        }
+
         loadProjectTodos()
-        loadFileTree(preserveSelection: false)
-        startWatchingRoot()
+        if loadFileTree(preserveSelection: false) {
+            startWatchingRoot()
+        }
     }
     
     private func updateSelectedNode() {
@@ -174,60 +240,46 @@ class WorkspaceViewModel: ObservableObject {
     }
 
     /// Rebuild file tree; optionally preserve current selection.
-    private func loadFileTree(preserveSelection: Bool) {
-        // Do not load file tree for sentinel value
-        let sentinelPath = URL(fileURLWithPath: "/").path
-        guard rootDirectory.path != sentinelPath else {
-            print("📁 Workspace skipping sentinel path: \(rootDirectory.path)")
+    @discardableResult
+    private func loadFileTree(preserveSelection: Bool) -> Bool {
+        guard rootDirectory.path != sentinelDirectoryPath else {
             stopWatchingRoot()
-            return
+            return false
         }
 
         let previousSelection = preserveSelection ? selectedURL : nil
-
-        print("📁 Workspace loading for: \(rootDirectory.path) (preserveSelection=\(preserveSelection))")
         if !preserveSelection {
             selectedURL = nil
             selectedNode = nil
             expandedURLs.removeAll()
         }
 
-        // Build tree - if this fails, crash with clear error
-        guard let tree = fileSystemService.buildTree(for: rootDirectory) else {
-            fatalError("❌ Failed to build file tree for project at \(rootDirectory.path). The directory may not exist, be inaccessible, or be corrupted. This is a fatal error - project must be valid.")
+        do {
+            logger.debug("Loading workspace tree for \(self.rootDirectory.path, privacy: .private)")
+            let tree = try fileSystemService.buildTree(for: self.rootDirectory)
+            rootFileNode = tree
+        } catch {
+            handleFileSystemError(error, fallbackTitle: "Failed to Load Project")
+            rootFileNode = nil
+            return false
         }
 
-        // Validate that tree has content - if directory is empty or inaccessible, crash
-        if tree.isDirectory {
-            // For directories, we must have children (even if empty array)
-            // If children is nil, it means loading failed
-            guard let children = tree.children else {
-                fatalError("❌ Failed to load directory contents for project at \(rootDirectory.path). The directory may be inaccessible or corrupted. This is a fatal error - project must be readable.")
-            }
-
-            // If directory exists but has no children, that's also suspicious for a project root
-            if children.isEmpty {
-                fatalError("❌ Project directory at \(rootDirectory.path) is empty. A project must contain at least one file or folder. This is a fatal error - project must have content.")
-            }
-
-            print("📁 Workspace root node children count: \(children.count)")
-        } else {
-            // If root is a file (not a directory), that's also invalid for a project
-            fatalError("❌ Project path at \(rootDirectory.path) is a file, not a directory. A project must be a directory. This is a fatal error - project must be a directory.")
-        }
-
-        rootFileNode = tree
-
-        // Restore last selection if preserving and still valid
-        if preserveSelection, let saved = previousSelection, FileManager.default.fileExists(atPath: saved.path) {
+        if preserveSelection,
+           let saved = previousSelection,
+           FileManager.default.fileExists(atPath: saved.path) {
             selectedURL = saved
         }
 
-        // Restore last persisted selection when opening project
-        if !preserveSelection, let saved = projectStore?.lastSelection(for: rootDirectory) {
-            print("📁 Restoring last selection: \(saved.path)")
-            selectedURL = saved
+        if !preserveSelection {
+            if let saved = lastSelectionFromPreferences(for: rootDirectory) {
+                selectedURL = saved
+            } else if let saved = projectStore?.lastSelection(for: rootDirectory) {
+                // Fallback to legacy storage to avoid data loss during transition
+                selectedURL = saved
+            }
         }
+
+        return true
     }
 
     deinit {
@@ -238,8 +290,7 @@ class WorkspaceViewModel: ObservableObject {
 
     private func startWatchingRoot() {
         stopWatchingRoot()
-        let sentinelPath = URL(fileURLWithPath: "/").path
-        guard rootDirectory.path != sentinelPath else { return }
+        guard rootDirectory.path != sentinelDirectoryPath else { return }
 
         var context = FSEventStreamContext(
             version: 0,
@@ -290,15 +341,78 @@ class WorkspaceViewModel: ObservableObject {
     }
     /// Persist last selection per project when available.
     private func persistSelection() {
-        guard let store = projectStore else { return }
         guard let selected = selectedURL else { return }
-        let sentinelPath = URL(fileURLWithPath: "/").path
-        guard rootDirectory.path != sentinelPath else { return }
+        guard rootDirectory.path != sentinelDirectoryPath else { return }
         do {
-            try store.setLastSelection(selected, for: rootDirectory)
+            if let preferencesStore {
+                _ = try preferencesStore.update(for: rootDirectory) { preferences in
+                    preferences[lastSelectionPreferenceKey] = .string(selected.path)
+                }
+            } else if let store = projectStore {
+                try store.setLastSelection(selected, for: rootDirectory)
+            }
         } catch {
-            fatalError("❌ Failed to persist last selection: \(error.localizedDescription). This is a fatal error - project store must be writable.")
+            let wrapped = WorkspaceViewModelError.selectionPersistenceFailed(error)
+            logger.error("Failed to persist last selection: \(error.localizedDescription, privacy: .public)")
+            alertCenter?.publish(wrapped, fallbackTitle: "Failed to Save Selection")
         }
+    }
+    
+    private func lastSelectionFromPreferences(for root: URL) -> URL? {
+        guard let preferencesStore else { return nil }
+        let preferences = (try? preferencesStore.load(for: root, strict: false)) ?? .empty
+        guard
+            let value = preferences[lastSelectionPreferenceKey],
+            case let .string(path) = value
+        else { return nil }
+        let url = URL(fileURLWithPath: path)
+        guard FileManager.default.fileExists(atPath: url.path) else { return nil }
+        return url
+    }
+    
+    // MARK: - Context Preferences
+    
+    func isPathIncludedInContext(_ url: URL) -> Bool {
+        guard let contextPreferencesStore, rootDirectory.path != sentinelDirectoryPath else { return true }
+        let preferences = (try? contextPreferencesStore.load(for: rootDirectory, strict: false)) ?? .empty
+        let path = url.path
+        
+        if preferences.excludedPaths.contains(path) {
+            return false
+        }
+        if preferences.includedPaths.isEmpty {
+            return true
+        }
+        return preferences.includedPaths.contains(path)
+    }
+    
+    func setContextInclusion(_ include: Bool, for url: URL) {
+        guard let contextPreferencesStore, rootDirectory.path != sentinelDirectoryPath else { return }
+        var preferences = (try? contextPreferencesStore.load(for: rootDirectory, strict: false)) ?? .empty
+        let path = url.path
+        
+        if include {
+            preferences.excludedPaths.remove(path)
+            preferences.includedPaths.insert(path)
+            preferences.lastFocusedFilePath = path
+        } else {
+            preferences.includedPaths.remove(path)
+            preferences.excludedPaths.insert(path)
+            preferences.lastFocusedFilePath = path
+        }
+        
+        do {
+            try contextPreferencesStore.save(preferences, for: rootDirectory)
+        } catch {
+            let wrapped = WorkspaceViewModelError.selectionPersistenceFailed(error)
+            logger.error("Failed to persist context preferences: \(error.localizedDescription, privacy: .public)")
+            alertCenter?.publish(wrapped, fallbackTitle: "Failed to Save Context Preferences")
+        }
+    }
+    
+    private func currentContextPreferences() -> ContextPreferences? {
+        guard let contextPreferencesStore, rootDirectory.path != sentinelDirectoryPath else { return nil }
+        return try? contextPreferencesStore.load(for: rootDirectory, strict: false)
     }
     
     // MARK: - UI State Methods
@@ -353,37 +467,56 @@ class WorkspaceViewModel: ObservableObject {
     /// Ensure conversation exists (side-effecting - must be called from async context)
     /// This should be called when a conversation is actually needed, not during view rendering
     @MainActor
-    func ensureConversation(for url: URL) async throws -> Conversation {
+    func ensureConversation(for url: URL) async {
         guard let service = conversationService else {
-            // No service - return temporary
-            return Conversation(contextFilePaths: [url.path])
-        }
-        
-        // Service returns updated mapping - update our stored property
-        let (conversation, updatedMapping) = try await service.ensureConversation(for: url, urlToConversationId: urlToConversationId)
-        urlToConversationId = updatedMapping
-        return conversation
-    }
-    
-    func sendMessage(_ text: String, for conversation: Conversation) async {
-        guard let service = conversationService else {
-            print("Error: ConversationService not initialized")
             return
         }
         
+        do {
+            let (_, updatedMapping) = try await service.ensureConversation(for: url, urlToConversationId: urlToConversationId)
+            urlToConversationId = updatedMapping
+        } catch {
+            let wrapped = WorkspaceViewModelError.conversationEnsureFailed(error)
+            logger.error("Failed to ensure conversation: \(error.localizedDescription, privacy: .public)")
+            alertCenter?.publish(wrapped, fallbackTitle: "Conversation Error")
+        }
+    }
+    
+    func sendMessage(_ text: String, for conversation: Conversation) async {
+        guard let service = conversationService else { return }
+        
         isLoading = true
-        defer { isLoading = false }
+        streamingMessages[conversation.id] = ""
+        defer {
+            isLoading = false
+            streamingMessages[conversation.id] = nil
+        }
         
         do {
-            // Service returns updated conversation (struct - value type)
-            let updatedConversation = try await service.sendMessage(text, in: conversation, contextNode: selectedNode)
+            let (updatedConversation, contextResult) = try await service.sendMessage(
+                text,
+                in: conversation,
+                contextNode: selectedNode,
+                preferences: currentContextPreferences(),
+                onStreamEvent: { [weak self] chunk in
+                    guard let self = self else { return }
+                    Task { @MainActor in
+                        switch chunk {
+                        case .token(let token):
+                            let current = self.streamingMessages[conversation.id] ?? ""
+                            self.streamingMessages[conversation.id] = current + token
+                        case .output, .done:
+                            self.streamingMessages[conversation.id] = ""
+                        }
+                    }
+                }
+            )
             
-            // Update URL mapping with updated conversation
             if let url = updatedConversation.contextURL {
                 urlToConversationId[url] = updatedConversation.id
             }
+            lastContextResult = contextResult
             
-            // Update conversation store asynchronously
             await MainActor.run {
                 if let store = conversationStore,
                    let index = store.conversations.firstIndex(where: { $0.id == updatedConversation.id }) {
@@ -391,15 +524,17 @@ class WorkspaceViewModel: ObservableObject {
                 }
             }
         } catch {
-            print("Error sending message: \(error.localizedDescription)")
+            let wrapped = WorkspaceViewModelError.conversationEnsureFailed(error)
+            logger.error("Failed to send message: \(error.localizedDescription, privacy: .public)")
+            alertCenter?.publish(wrapped, fallbackTitle: "Conversation Error")
+            lastContextResult = nil
         }
     }
 
     // MARK: - Ontology Todos Loading
     
     private func loadProjectTodos() {
-        let sentinelPath = URL(fileURLWithPath: "/").path
-        guard rootDirectory.path != sentinelPath else {
+        guard rootDirectory.path != sentinelDirectoryPath else {
             projectTodos = .empty
             todosError = nil
             return
@@ -421,5 +556,10 @@ class WorkspaceViewModel: ObservableObject {
             projectTodos = .empty
             todosError = "Failed to load ProjectTodos.ent.json: \(error.localizedDescription)"
         }
+    }
+
+    private func handleFileSystemError(_ error: Error, fallbackTitle: String) {
+        logger.error("Workspace error: \(error.localizedDescription, privacy: .public)")
+        alertCenter?.publish(error, fallbackTitle: fallbackTitle)
     }
 }

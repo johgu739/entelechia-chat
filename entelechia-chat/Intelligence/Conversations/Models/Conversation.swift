@@ -50,7 +50,7 @@ struct Conversation: Identifiable, Codable, Equatable {
         self.contextFilePaths = contextFilePaths
     }
     
-    required init(from decoder: Decoder) throws {
+    init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
         title = try container.decode(String.self, forKey: .title)

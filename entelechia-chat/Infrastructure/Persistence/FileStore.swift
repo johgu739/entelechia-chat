@@ -12,17 +12,37 @@
 // @EntelechiaHeaderEnd
 
 import Foundation
+import os.log
 
 /// Low-level file read/write abstraction with atomic writes and defensive error handling
 final class FileStore {
-    static let shared = FileStore()
+    private static var _shared = FileStore()
+    static var shared: FileStore { _shared }
     
-    private init() {}
+    private let logger = Logger.persistence
+    private let baseURL: URL
+    
+    /// Configure the shared instance for tests with an explicit root path.
+    /// This avoids ProcessInfo.environment snapshot issues.
+    static func configureShared(forRoot root: URL) {
+        _shared = FileStore(baseURL: root)
+    }
+    
+    init(baseURL: URL? = nil) {
+        if let baseURL = baseURL {
+            self.baseURL = baseURL
+        } else if let override = ProcessInfo.processInfo.environment["ENTELECHIA_APP_SUPPORT"] {
+            self.baseURL = URL(fileURLWithPath: override, isDirectory: true)
+                .appendingPathComponent("Entelechia", isDirectory: true)
+        } else {
+            let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+            self.baseURL = appSupport.appendingPathComponent("Entelechia", isDirectory: true)
+        }
+    }
     
     /// Resolve the base database directory
     func resolveDatabasePath() -> URL {
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        return appSupport.appendingPathComponent("Entelechia", isDirectory: true)
+        baseURL
     }
     
     /// Resolve conversations directory
@@ -30,8 +50,13 @@ final class FileStore {
         resolveDatabasePath().appendingPathComponent("Conversations", isDirectory: true)
     }
     
-    /// Resolve index file path
+    /// Resolve canonical index file path (inside Conversations directory)
     func resolveIndexPath() -> URL {
+        resolveConversationsDirectory().appendingPathComponent("index.json", isDirectory: false)
+    }
+
+    /// Resolve legacy index path (pre-migration location)
+    func resolveLegacyIndexPath() -> URL {
         resolveDatabasePath().appendingPathComponent("index.json", isDirectory: false)
     }
     
@@ -39,7 +64,13 @@ final class FileStore {
     /// Throws if directory creation fails
     func ensureDirectoryExists() throws {
         let conversationsDir = resolveConversationsDirectory()
-        try FileManager.default.createDirectory(at: conversationsDir, withIntermediateDirectories: true)
+        do {
+            try FileManager.default.createDirectory(at: conversationsDir, withIntermediateDirectories: true)
+            logger.debug("Ensured conversations directory exists at \(conversationsDir.path, privacy: .private)")
+        } catch {
+            logger.error("Failed to create conversations directory at \(conversationsDir.path, privacy: .private): \(error.localizedDescription, privacy: .public)")
+            throw error
+        }
     }
     
     /// Load a Codable type from a URL
@@ -71,12 +102,14 @@ final class FileStore {
         
         // Atomic write
         try data.write(to: url, options: .atomic)
+        logger.debug("Saved file at \(url.path, privacy: .private)")
     }
     
     /// Delete a file if it exists
     func delete(at url: URL) throws {
         if FileManager.default.fileExists(atPath: url.path) {
             try FileManager.default.removeItem(at: url)
+            logger.debug("Deleted file at \(url.path, privacy: .private)")
         }
     }
     

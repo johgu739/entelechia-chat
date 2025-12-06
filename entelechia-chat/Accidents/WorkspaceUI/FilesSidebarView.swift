@@ -21,6 +21,20 @@ struct FilesSidebarView: View {
     @State private var previewFile: LoadedFile?
     @State private var selectedFileID: UUID?
     
+    private let byteFormatter: ByteCountFormatter = {
+        let formatter = ByteCountFormatter()
+        formatter.allowedUnits = [.useKB, .useMB]
+        formatter.countStyle = .file
+        return formatter
+    }()
+    
+    private let tokenFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.groupingSeparator = " "
+        return formatter
+    }()
+    
     var body: some View {
         VStack(spacing: 0) {
             // Inspector-header
@@ -56,6 +70,17 @@ struct FilesSidebarView: View {
             .padding(.vertical, 8)
             .background(AppTheme.windowBackground)
             .overlay(Divider(), alignment: .bottom)
+            
+            ContextBudgetSummaryView(
+                includedCount: fileViewModel.includedFiles.count,
+                includedBytes: fileViewModel.includedByteCount,
+                includedTokens: fileViewModel.includedTokenCount,
+                budget: fileViewModel.budget,
+                byteFormatter: byteFormatter,
+                tokenFormatter: tokenFormatter
+            )
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
             
             // Error message display
             if let errorMessage = fileViewModel.errorMessage {
@@ -101,7 +126,12 @@ struct FilesSidebarView: View {
             } else {
                 List(selection: $selectedFileID) {
                     ForEach(fileViewModel.loadedFiles) { file in
-                        FileRow(file: file, fileViewModel: fileViewModel, onPreview: {
+                        FileRow(
+                            file: file,
+                            fileViewModel: fileViewModel,
+                            byteFormatter: byteFormatter,
+                            tokenFormatter: tokenFormatter,
+                            onPreview: {
                             previewFile = file
                         })
                         .tag(file.id)
@@ -134,13 +164,11 @@ struct FilesSidebarView: View {
                     } catch {
                         // Show user-friendly error
                         fileViewModel.errorMessage = "Failed to load \(url.lastPathComponent): \(error.localizedDescription)"
-                        print("Failed to load file \(url.path): \(error)")
                     }
                 }
             }
         case .failure(let error):
             fileViewModel.errorMessage = "File selection failed: \(error.localizedDescription)"
-            print("File selection failed: \(error)")
         }
     }
     
@@ -164,7 +192,6 @@ struct FilesSidebarView: View {
                                 await MainActor.run {
                                     fileViewModel.errorMessage = "Failed to load \(url.lastPathComponent): \(error.localizedDescription)"
                                 }
-                                print("Failed to load dropped file \(url.path): \(error)")
                             }
                         }
                     }
@@ -178,6 +205,8 @@ struct FilesSidebarView: View {
 struct FileRow: View {
     let file: LoadedFile
     @ObservedObject var fileViewModel: FileViewModel
+    let byteFormatter: ByteCountFormatter
+    let tokenFormatter: NumberFormatter
     let onPreview: () -> Void
     
     var body: some View {
@@ -188,9 +217,21 @@ struct FileRow: View {
                         .font(.system(size: 12, weight: .medium))
                         .lineLimit(1)
                     
-                    Text("\(file.content.count) characters")
+                    Text("\(byteFormatter.string(fromByteCount: Int64(file.byteCount))) · ~\(formattedTokens) tokens")
                         .font(.system(size: 10))
                         .foregroundColor(.secondary)
+                    
+                    if let note = file.contextNote {
+                        Text(note)
+                            .font(.system(size: 9))
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    if let reason = file.exclusionReason {
+                        Label(reasonMessage(for: reason), systemImage: "exclamationmark.triangle.fill")
+                            .font(.system(size: 9))
+                            .foregroundColor(.orange)
+                    }
                 }
             } icon: {
                 Image(systemName: file.iconName)
@@ -207,7 +248,7 @@ struct FileRow: View {
                 set: { _ in fileViewModel.toggleFileInclusion(file) }
             ))
             .toggleStyle(.checkbox)
-            .help("Include in context")
+            .help("Include in Codex context (limits enforced automatically)")
             
             Button(action: onPreview) {
                 Image(systemName: "eye")
@@ -222,6 +263,23 @@ struct FileRow: View {
         .contentShape(Rectangle())
         .onTapGesture {
             onPreview()
+        }
+    }
+    
+    private var formattedTokens: String {
+        tokenFormatter.string(from: NSNumber(value: file.tokenEstimate)) ?? "\(file.tokenEstimate)"
+    }
+    
+    private func reasonMessage(for reason: ContextExclusionReason) -> String {
+        switch reason {
+        case .exceedsPerFileBytes(let limit):
+            return "Trimmed: over \(byteFormatter.string(fromByteCount: Int64(limit)))"
+        case .exceedsPerFileTokens(let limit):
+            return "Trimmed: over ~\(limit) tokens"
+        case .exceedsTotalBytes(let limit):
+            return "Excluded: request already at \(byteFormatter.string(fromByteCount: Int64(limit)))"
+        case .exceedsTotalTokens(let limit):
+            return "Excluded: request already at ~\(limit) tokens"
         }
     }
 }
@@ -255,5 +313,80 @@ struct FilePreviewView: View {
             }
         }
         .frame(minWidth: 600, minHeight: 400)
+    }
+}
+
+private struct ContextBudgetSummaryView: View {
+    let includedCount: Int
+    let includedBytes: Int
+    let includedTokens: Int
+    let budget: ContextBudget
+    let byteFormatter: ByteCountFormatter
+    let tokenFormatter: NumberFormatter
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text("\(includedCount) file\(includedCount == 1 ? "" : "s") included")
+                    .font(.system(size: 11, weight: .semibold))
+                Spacer()
+            }
+            
+            BudgetRow(
+                label: "Bytes",
+                value: includedBytes,
+                limit: budget.maxTotalBytes,
+                formattedValue: byteFormatter.string(fromByteCount: Int64(includedBytes)),
+                formattedLimit: byteFormatter.string(fromByteCount: Int64(budget.maxTotalBytes))
+            )
+            
+            BudgetRow(
+                label: "Tokens",
+                value: includedTokens,
+                limit: budget.maxTotalTokens,
+                formattedValue: "~\(formatTokens(includedTokens))",
+                formattedLimit: "~\(formatTokens(budget.maxTotalTokens))"
+            )
+        }
+    }
+    
+    private func formatTokens(_ value: Int) -> String {
+        tokenFormatter.string(from: NSNumber(value: value)) ?? "\(value)"
+    }
+}
+
+private struct BudgetRow: View {
+    let label: String
+    let value: Int
+    let limit: Int
+    let formattedValue: String
+    let formattedLimit: String
+    
+    private var progressColor: Color {
+        guard limit > 0 else { return .accentColor }
+        let ratio = Double(value) / Double(limit)
+        if ratio >= 1 {
+            return .red
+        } else if ratio >= 0.85 {
+            return .orange
+        } else {
+            return .accentColor
+        }
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack {
+                Text(label.uppercased())
+                    .font(.system(size: 9))
+                    .foregroundColor(.secondary)
+                Spacer()
+                Text("\(formattedValue) / \(formattedLimit)")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(progressColor)
+            }
+            ProgressView(value: Double(min(value, limit)), total: Double(limit))
+                .tint(progressColor)
+        }
     }
 }

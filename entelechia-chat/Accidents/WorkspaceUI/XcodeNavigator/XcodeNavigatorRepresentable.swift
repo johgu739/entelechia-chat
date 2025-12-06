@@ -177,36 +177,28 @@ class NavigatorDataSource: NSObject, NSOutlineViewDataSource, NSOutlineViewDeleg
     // MARK: - NSOutlineViewDataSource
 
     func outlineView(_ outlineView: NSOutlineView, numberOfChildrenOfItem item: Any?) -> Int {
-        // Rotnivå
         if item == nil {
             guard let rootNode = rootNode else { return 0 }
-            rootNode.loadChildrenIfNeeded(projectRoot: workspaceViewModel?.rootDirectory)
-            return rootNode.children?.count ?? 0
+            return loadChildren(for: rootNode)?.count ?? 0
         }
 
-        // Barnnivå
         if let node = item as? FileNode {
-            node.loadChildrenIfNeeded(projectRoot: workspaceViewModel?.rootDirectory)
-            return node.children?.count ?? 0
+            return loadChildren(for: node)?.count ?? 0
         }
 
         return 0
     }
 
     func outlineView(_ outlineView: NSOutlineView, child index: Int, ofItem item: Any?) -> Any {
-        // Rotnivå
         if item == nil {
             guard let rootNode = rootNode else {
                 return NSObject()
             }
-            rootNode.loadChildrenIfNeeded(projectRoot: workspaceViewModel?.rootDirectory)
-            return rootNode.children?[index] ?? rootNode
+            return loadChildren(for: rootNode)?[index] ?? rootNode
         }
 
-        // Barnnivå
         if let node = item as? FileNode {
-            node.loadChildrenIfNeeded(projectRoot: workspaceViewModel?.rootDirectory)
-            return node.children?[index] ?? node
+            return loadChildren(for: node)?[index] ?? node
         }
 
         return NSObject()
@@ -435,6 +427,19 @@ class NavigatorDataSource: NSObject, NSOutlineViewDataSource, NSOutlineViewDeleg
             }
         }
         return nil
+    }
+}
+
+private extension NavigatorDataSource {
+    func loadChildren(for node: FileNode) -> [FileNode]? {
+        do {
+            try node.loadChildrenIfNeeded(projectRoot: workspaceViewModel?.rootDirectory)
+        } catch {
+            Task { @MainActor [weak workspaceViewModel] in
+                workspaceViewModel?.publishFileBrowserError(error)
+            }
+        }
+        return node.children
     }
 }
 

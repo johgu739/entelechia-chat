@@ -35,6 +35,7 @@ class FileMetadataViewModel: ObservableObject {
         let totalFolders: Int
         let totalSize: Int64
         let totalLines: Int
+        let totalTokens: Int
     }
     
     func lineCount(for url: URL) async -> Int? {
@@ -128,7 +129,8 @@ class FileMetadataViewModel: ObservableObject {
             totalFiles: totalFiles,
             totalFolders: totalFolders,
             totalSize: totalSize,
-            totalLines: totalLines
+            totalLines: totalLines,
+            totalTokens: TokenEstimator.estimateTokens(forByteCount: Int(totalSize))
         )
     }
     

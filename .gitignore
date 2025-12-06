@@ -15,6 +15,9 @@ tmp/
 node_modules/
 Pods/
 
+# Local secrets
+entelechia-chat/Configuration/CodexSecrets.plist
+
 # Local caches for sandboxed runs
 .swift_module_cache/
 .tmp_home/

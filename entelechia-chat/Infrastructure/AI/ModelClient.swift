@@ -379,7 +379,7 @@ class APIClient {
     
     func request<T: Decodable>(_ endpoint: String) async throws -> T {
         // Implementation here
-        fatalError("Not implemented")
+        throw APIClientError.notImplemented
     }
 }
 ```

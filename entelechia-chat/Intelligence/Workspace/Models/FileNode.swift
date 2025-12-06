@@ -15,11 +15,42 @@ import Foundation
 import SwiftUI
 import UniformTypeIdentifiers
 import AppKit
+import os.log
+
+enum FileNodeError: LocalizedError {
+    case childCreationFailed(URL)
+    case directoryReadFailed(URL, underlying: Error)
+    case emptyProject(URL)
+
+    var errorDescription: String? {
+        switch self {
+        case .childCreationFailed(let url):
+            return "Could not represent \(url.lastPathComponent)"
+        case .directoryReadFailed(let url, _):
+            return "Could not read directory \(url.lastPathComponent)"
+        case .emptyProject(let url):
+            return "Project at \(url.lastPathComponent) contains no files"
+        }
+    }
+
+    var failureReason: String? {
+        switch self {
+        case .childCreationFailed(let url):
+            return "The item at \(url.path) could not be represented in the navigator."
+        case .directoryReadFailed(_, let underlying):
+            return underlying.localizedDescription
+        case .emptyProject:
+            return "Select a folder that contains source files and directories."
+        }
+    }
+}
 
 /// Unified file tree node used throughout the application
 /// Can be used in both SwiftUI (OutlineGroup) and AppKit (NSOutlineView)
 /// This is a value/entity type, not a view model, so it does not conform to ObservableObject
 final class FileNode: Identifiable {
+    private static let logger = Logger.persistence
+
     let id: UUID
     let name: String
     let path: URL
@@ -76,8 +107,7 @@ final class FileNode: Identifiable {
             let resourceValues = try url.resourceValues(forKeys: [.isDirectoryKey])
             isDirectory = resourceValues.isDirectory == true
         } catch {
-            // If we can't determine, assume it's a file
-            print("Warning: Could not determine resource values for \(url.path): \(error.localizedDescription)")
+            FileNode.logger.error("Could not read resource values for \(url.path, privacy: .private): \(error.localizedDescription, privacy: .public)")
             isDirectory = false
         }
         
@@ -115,7 +145,7 @@ final class FileNode: Identifiable {
     
     /// Load children lazily when expanded.
     /// Skolboksexempel: lista bara verkliga undermappar/filer under `path`.
-    func loadChildrenIfNeeded(projectRoot: URL? = nil) {
+    func loadChildrenIfNeeded(projectRoot: URL? = nil) throws {
         // Early return if already loaded or not a directory
         guard !childrenLoaded else { return }
         guard isDirectory else { return }
@@ -138,7 +168,7 @@ final class FileNode: Identifiable {
             let contents = try FileManager.default.contentsOfDirectory(
                 at: path,
                 includingPropertiesForKeys: [.isDirectoryKey, .isPackageKey, .contentTypeKey],
-                options: [] // NO OPTIONS - show everything including hidden files and packages
+                options: []
             )
             
             // Sort: directories first, then files, both alphabetically
@@ -167,13 +197,11 @@ final class FileNode: Identifiable {
                 if let childNode = FileNode.from(url: childURL, includeParent: false, isParentDir: false) {
                     directoryChildren.append(childNode)
                 } else {
-                    // If FileNode.from returns nil, crash with clear error - this should never happen
-                    fatalError("❌ Failed to create FileNode for \(childURL.path). This is a fatal error - all directory items must be representable.")
+                    throw FileNodeError.childCreationFailed(childURL)
                 }
             }
         } catch {
-            // If loading fails, crash with clear error - no silent failures
-            fatalError("❌ Failed to load directory contents for \(path.path): \(error.localizedDescription). This is a fatal error - directory must be readable.")
+            throw FileNodeError.directoryReadFailed(path, underlying: error)
         }
         
         // If directory listing succeeded but we got no children:
@@ -181,7 +209,7 @@ final class FileNode: Identifiable {
         // - Other directories may legitimately be empty
         if directoryChildren.isEmpty {
             if let projectRoot, projectRoot == path {
-                fatalError("❌ Project directory at \(path.path) is empty. A project must contain at least one file or folder. This is a fatal error - project must have content.")
+                throw FileNodeError.emptyProject(projectRoot)
             } else {
                 children = []
                 return
@@ -192,11 +220,11 @@ final class FileNode: Identifiable {
     }
     
     /// Ladda hela trädstrukturen under denna nod rekursivt.
-    func loadRecursively(projectRoot: URL? = nil) {
-        loadChildrenIfNeeded(projectRoot: projectRoot)
+    func loadRecursively(projectRoot: URL? = nil) throws {
+        try loadChildrenIfNeeded(projectRoot: projectRoot)
         for child in children ?? [] {
             if child.isDirectory {
-                child.loadRecursively(projectRoot: projectRoot)
+                try child.loadRecursively(projectRoot: projectRoot)
             }
         }
     }

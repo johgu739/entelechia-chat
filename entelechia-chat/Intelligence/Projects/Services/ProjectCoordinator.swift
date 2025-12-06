@@ -12,37 +12,52 @@
 // @EntelechiaHeaderEnd
 
 import Foundation
-import AppKit
-import SwiftUI
 import Combine
+import os.log
+
+enum ProjectCoordinatorError: LocalizedError {
+    case emptyName
+    case directoryResolutionFailed(String)
+    case missingPath(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .emptyName:
+            return "Project name is required."
+        case .directoryResolutionFailed(let path):
+            return "Could not resolve a project directory for \(path)."
+        case .missingPath(let path):
+            return "Project path does not exist: \(path)."
+        }
+    }
+
+    var failureReason: String? { errorDescription }
+}
+
+protocol ProjectSessioning: AnyObject {
+    func open(_ url: URL, name: String?, bookmarkData: Data?)
+    func close()
+}
 
 /// Coordinator for project operations (menu commands, file selection)
 @MainActor
 final class ProjectCoordinator: ObservableObject {
     let projectStore: ProjectStore
-    private let projectSession: ProjectSession
-    /// Helper to build security-scoped bookmarks with explicit access lifecycle.
-    private func makeBookmark(for url: URL) throws -> Data {
-        let started = url.startAccessingSecurityScopedResource()
-        defer {
-            if started {
-                url.stopAccessingSecurityScopedResource()
-            }
-        }
-
-        return try url.bookmarkData(
-            options: [.withSecurityScope],
-            includingResourceValuesForKeys: nil,
-            relativeTo: nil
-        )
-    }
+    private let projectSession: ProjectSessioning
+    private let alertCenter: AlertCenter
+    private let logger = Logger.persistence
+    private let securityScopeHandler: SecurityScopeHandling
     
     init(
         projectStore: ProjectStore,
-        projectSession: ProjectSession
+        projectSession: ProjectSessioning,
+        alertCenter: AlertCenter,
+        securityScopeHandler: SecurityScopeHandling
     ) {
         self.projectStore = projectStore
         self.projectSession = projectSession
+        self.alertCenter = alertCenter
+        self.securityScopeHandler = securityScopeHandler
         
         // Observe project store changes to update menu
         NotificationCenter.default.addObserver(
@@ -58,90 +73,112 @@ final class ProjectCoordinator: ObservableObject {
     /// Open project with URL and name (called from onboarding view)
     /// Name is REQUIRED - no optionals, no fallbacks
     func openProject(url: URL, name: String) {
-        // Validate name is not empty
-        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedName.isEmpty else {
-            fatalError("❌ Project name cannot be empty. This is a fatal error - name is required.")
-        }
-        
-        // Resolve URL to directory
-        let resolvedURL: URL
         do {
-            let resourceValues = try url.resourceValues(forKeys: [.isDirectoryKey])
-            resolvedURL = resourceValues.isDirectory == true ? url : url.deletingLastPathComponent()
+            let trimmedName = try validatedName(name)
+            let resolvedURL = try resolveDirectory(for: url)
+            let bookmarkData = try securityScopeHandler.makeBookmark(for: resolvedURL)
+            try persistProject(url: resolvedURL, name: trimmedName, bookmarkData: bookmarkData)
+            projectSession.open(resolvedURL, name: trimmedName, bookmarkData: bookmarkData)
         } catch {
-            fatalError("❌ Failed to resolve project directory for \(url.path): \(error.localizedDescription). This is a fatal error.")
+            logger.error("Failed to open project at \(url.path, privacy: .private): \(error.localizedDescription, privacy: .public)")
+            alertCenter.publish(error, fallbackTitle: "Project Open Failed")
         }
-
-        // Persist security-scoped access so we can reopen the project later
-        let bookmarkData: Data
-        do {
-            bookmarkData = try makeBookmark(for: resolvedURL)
-        } catch {
-            fatalError("❌ Failed to create security-scoped bookmark for \(resolvedURL.path): \(error.localizedDescription). This is a fatal error.")
-        }
-        
-        // Validate directory exists
-        guard FileManager.default.fileExists(atPath: resolvedURL.path) else {
-            fatalError("❌ Project path does not exist: \(resolvedURL.path). This is a fatal error.")
-        }
-        
-        // Save to store - if this fails, crash with clear error
-        do {
-            try projectStore.addRecent(url: resolvedURL, name: trimmedName, bookmarkData: bookmarkData)
-            try projectStore.setLastOpened(url: resolvedURL, name: trimmedName, bookmarkData: bookmarkData)
-        } catch {
-            fatalError("❌ Failed to save project to database: \(error.localizedDescription). This is a fatal error - database must be valid.")
-        }
-        
-        // Open session
-        projectSession.open(resolvedURL, name: trimmedName, bookmarkData: bookmarkData)
     }
     
     /// Close current project
     func closeProject() {
-        // If save fails, crash - no silent errors
         do {
             try projectStore.setLastOpened(url: nil)
         } catch {
-            fatalError("❌ Failed to save project state: \(error.localizedDescription). This is a fatal error - database must be valid.")
+            logger.error("Failed to close project: \(error.localizedDescription, privacy: .public)")
+            alertCenter.publish(error, fallbackTitle: "Close Project Failed")
+            return
         }
         projectSession.close()
     }
     
     /// Open a recent project
     func openRecent(_ project: ProjectStore.StoredProject) {
-        // Validate name is not empty
-        guard !project.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            fatalError("❌ Project name cannot be empty for project at \(project.path). This is a fatal error - name is required.")
-        }
-
-        guard let resolved = projectStore.resolvedProjectURL(project) else {
-            fatalError("❌ Project path does not exist or bookmark is invalid: \(project.path). This is a fatal error.")
-        }
-
-        var bookmarkData = resolved.bookmarkData
-        if bookmarkData == nil {
-            do {
-                bookmarkData = try makeBookmark(for: resolved.url)
-            } catch {
-                fatalError("❌ Failed to create security-scoped bookmark for \(resolved.url.path): \(error.localizedDescription). This is a fatal error.")
-            }
-        }
-        
-        // Save to store - if this fails, crash with clear error
         do {
-            try projectStore.addRecent(url: resolved.url, name: project.name, bookmarkData: bookmarkData)
-            try projectStore.setLastOpened(url: resolved.url, name: project.name, bookmarkData: bookmarkData)
+            let trimmedName = try validatedName(project.name)
+            guard let resolved = projectStore.resolvedProjectURL(project) else {
+                throw ProjectCoordinatorError.missingPath(project.path)
+            }
+
+            var bookmarkData = resolved.bookmarkData
+            if bookmarkData == nil {
+                bookmarkData = try securityScopeHandler.makeBookmark(for: resolved.url)
+            }
+
+            try projectStore.addRecent(url: resolved.url, name: trimmedName, bookmarkData: bookmarkData)
+            try projectStore.setLastOpened(url: resolved.url, name: trimmedName, bookmarkData: bookmarkData)
+            projectSession.open(resolved.url, name: trimmedName, bookmarkData: bookmarkData)
         } catch {
-            fatalError("❌ Failed to save project to database: \(error.localizedDescription). This is a fatal error - database must be valid.")
+            logger.error("Failed to open recent project \(project.path, privacy: .private): \(error.localizedDescription, privacy: .public)")
+            alertCenter.publish(error, fallbackTitle: "Open Recent Failed")
         }
-        
-        projectSession.open(resolved.url, name: project.name, bookmarkData: bookmarkData)
     }
     
     /// Get recent projects for menu
     var recentProjects: [ProjectStore.StoredProject] {
         projectStore.recentProjects
+    }
+
+    // MARK: - Helpers
+
+    private func validatedName(_ name: String) throws -> String {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            throw ProjectCoordinatorError.emptyName
+        }
+        return trimmed
+    }
+
+    private func resolveDirectory(for url: URL) throws -> URL {
+        do {
+            let values = try url.resourceValues(forKeys: [.isDirectoryKey])
+            let directoryURL = values.isDirectory == true ? url : url.deletingLastPathComponent()
+            guard FileManager.default.fileExists(atPath: directoryURL.path) else {
+                throw ProjectCoordinatorError.missingPath(directoryURL.path)
+            }
+            return directoryURL
+        } catch let error as ProjectCoordinatorError {
+            throw error
+        } catch {
+            throw ProjectCoordinatorError.directoryResolutionFailed(url.path)
+        }
+    }
+
+    private func persistProject(url: URL, name: String, bookmarkData: Data?) throws {
+        try projectStore.addRecent(url: url, name: name, bookmarkData: bookmarkData)
+        try projectStore.setLastOpened(url: url, name: name, bookmarkData: bookmarkData)
+    }
+}
+
+// MARK: - Pure helpers for tests (no SwiftUI / security scope)
+struct ProjectCoordinatorLogic {
+    static func openRecentProject(at path: String, store: ProjectStore) -> Result<Void, ProjectCoordinatorError> {
+        do {
+            let url = URL(fileURLWithPath: path)
+            guard FileManager.default.fileExists(atPath: url.path) else {
+                return .failure(.missingPath(path))
+            }
+            let trimmedName = store.getName(for: url) ?? url.lastPathComponent
+            try store.addRecent(url: url, name: trimmedName, bookmarkData: nil)
+            try store.setLastOpened(url: url, name: trimmedName, bookmarkData: nil)
+            return .success(())
+        } catch let error as ProjectCoordinatorError {
+            return .failure(error)
+        } catch {
+            return .failure(.directoryResolutionFailed(path))
+        }
+    }
+}
+
+extension ProjectCoordinator {
+    /// Pure helper to update recents without invoking UI/session side effects.
+    /// Avoids security-scoped bookmark creation for headless test environments.
+    func openRecentProject(at path: String) -> Result<Void, ProjectCoordinatorError> {
+        ProjectCoordinatorLogic.openRecentProject(at: path, store: projectStore)
     }
 }

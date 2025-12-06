@@ -11,6 +11,7 @@
 // CausalityType: Formal
 // @EntelechiaHeaderEnd
 
+import Combine
 import SwiftUI
 
 // Note: @main removed - this app shares the module with EntelechiaChatApp

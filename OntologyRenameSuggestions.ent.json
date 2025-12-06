@@ -295,7 +295,7 @@
       "confidence" : "HIGH",
       "currentName" : "Conversation",
       "currentPath" : "\/Users\/johangunnarsson\/Developer\/entelechia-chat\/entelechia-chat\/Intelligence\/Conversations\/Models\/Conversation.swift",
-      "differentia" : "Captures dialogue plus context paths",
+      "differentia" : "Value-type struct that captures dialogue plus context paths",
       "genus" : "Conversation entity",
       "proposedName" : "Conversation__Conversationentity__Capturesdialoguepluscontextpaths.swift",
       "reason" : "All required fields present",

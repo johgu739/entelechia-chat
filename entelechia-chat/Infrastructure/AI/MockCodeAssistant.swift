@@ -15,7 +15,7 @@ import Foundation
 
 /// Protocol for code assistant services
 protocol CodeAssistant {
-    func send(messages: [Message], contextFiles: [LoadedFile]) async throws -> AsyncStream<StreamChunk>
+    func send(messages: [Message], contextFiles: [LoadedFile]) async throws -> AsyncThrowingStream<StreamChunk, Error>
 }
 
 /// Core output types from the assistant
@@ -43,11 +43,11 @@ final class MockCodeAssistant: CodeAssistant {
     
     var mode: Mode = .mixedRandom
     
-    func send(messages: [Message], contextFiles: [LoadedFile]) async throws -> AsyncStream<StreamChunk> {
+    func send(messages: [Message], contextFiles: [LoadedFile]) async throws -> AsyncThrowingStream<StreamChunk, Error> {
         // Copy mode value before entering detached task
         let currentMode = mode
         
-        return AsyncStream { continuation in
+        return AsyncThrowingStream { continuation in
             Task.detached {
                 let tokens = ["Analyzing… ", "Computing… ", "Refactoring… "]
                 

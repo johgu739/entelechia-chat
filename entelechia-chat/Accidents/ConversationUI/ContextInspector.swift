@@ -48,6 +48,14 @@ struct ContextInspector: View {
                     if let node = workspaceViewModel.selectedNode {
                         ScrollView {
                             VStack(alignment: .leading, spacing: 0) {
+                                if let diagnostics = workspaceViewModel.lastContextResult {
+                                    ContextBudgetDiagnosticsView(
+                                        diagnostics: diagnostics,
+                                        formatFileSize: formatFileSize,
+                                        formatNumber: formatNumber
+                                    )
+                                    InspectorDivider()
+                                }
                                 // Bestäm fil vs mapp utifrån `isDirectory`.
                                 if node.isDirectory {
                                     folderMetadata(for: node)
@@ -140,9 +148,25 @@ struct ContextInspector: View {
                 AsyncFileStatsRowView(
                     url: node.path,
                     metadataViewModel: metadataViewModel,
-                    formatFileSize: formatFileSize
+                    formatFileSize: formatFileSize,
+                    formatNumber: formatNumber
                 )
             }
+        }
+        
+        InspectorDivider()
+        
+        InspectorSection(title: "CONTEXT") {
+            Toggle(isOn: inclusionBinding(for: node.path)) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Include in Codex context")
+                        .font(.system(size: 12, weight: .semibold))
+                    Text("Persists in .entelechia/context_preferences.json")
+                        .font(.system(size: 10))
+                        .foregroundColor(.secondary)
+                }
+            }
+            .toggleStyle(.switch)
         }
         
         InspectorDivider()
@@ -181,6 +205,21 @@ struct ContextInspector: View {
         
         InspectorDivider()
         
+        InspectorSection(title: "CONTEXT") {
+            Toggle(isOn: inclusionBinding(for: node.path)) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Include in Codex context")
+                        .font(.system(size: 12, weight: .semibold))
+                    Text("Persists in .entelechia/context_preferences.json")
+                        .font(.system(size: 10))
+                        .foregroundColor(.secondary)
+                }
+            }
+            .toggleStyle(.switch)
+        }
+        
+        InspectorDivider()
+        
         // Contents
         InspectorSection(title: "CONTENTS") {
             let children = node.children ?? []
@@ -203,6 +242,15 @@ struct ContextInspector: View {
                 formatNumber: formatNumber
             )
         }
+    }
+    
+    private func inclusionBinding(for url: URL) -> Binding<Bool> {
+        Binding(
+            get: { workspaceViewModel.isPathIncludedInContext(url) },
+            set: { include in
+                workspaceViewModel.setContextInclusion(include, for: url)
+            }
+        )
     }
     
     private func formatFileSize(_ bytes: Int64) -> String {
@@ -305,8 +353,10 @@ private struct AsyncFileStatsRowView: View {
     let url: URL
     @ObservedObject var metadataViewModel: FileMetadataViewModel
     let formatFileSize: (Int64) -> String
+    let formatNumber: (Int) -> String
     @State private var size: Int64?
     @State private var lineCount: Int?
+    @State private var tokenEstimate: Int?
     @State private var isLoading = true
     
     var body: some View {
@@ -316,22 +366,23 @@ private struct AsyncFileStatsRowView: View {
                     .font(.system(size: 13))
                     .foregroundColor(.secondary)
             } else {
-                if let size = size {
-                    let sizeText = formatFileSize(size)
-                    if let lineCount = lineCount {
-                        Text("\(sizeText) · \(lineCount) lines")
-                            .font(.system(size: 13))
-                    } else {
-                        Text(sizeText)
+                VStack(alignment: .leading, spacing: 2) {
+                    if let size = size {
+                        Text("\(formatFileSize(size)) · ~\(formatTokens(tokenEstimate)) tokens")
                             .font(.system(size: 13))
                     }
-                } else if let lineCount = lineCount {
-                    Text("\(lineCount) lines")
-                        .font(.system(size: 13))
-                } else {
-                    Text("Unknown")
-                        .font(.system(size: 13))
-                        .foregroundColor(.secondary)
+
+                    if let lineCount = lineCount {
+                        Text("\(lineCount) lines")
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+                    }
+
+                    if size == nil && lineCount == nil {
+                        Text("Unknown")
+                            .font(.system(size: 13))
+                            .foregroundColor(.secondary)
+                    }
                 }
             }
         }
@@ -339,15 +390,24 @@ private struct AsyncFileStatsRowView: View {
             isLoading = true
             size = nil
             lineCount = nil
+            tokenEstimate = nil
             do {
                 let resourceValues = try url.resourceValues(forKeys: [.fileSizeKey])
                 size = resourceValues.fileSize.map(Int64.init)
+                if let fileSize = resourceValues.fileSize {
+                    tokenEstimate = TokenEstimator.estimateTokens(forByteCount: fileSize)
+                }
             } catch {
                 print("Failed to get file size: \(error.localizedDescription)")
             }
             lineCount = await metadataViewModel.lineCount(for: url)
             isLoading = false
         }
+    }
+    
+    private func formatTokens(_ tokens: Int?) -> String {
+        guard let tokens else { return "0" }
+        return formatNumber(tokens)
     }
 }
 
@@ -370,6 +430,11 @@ private struct AsyncFolderStatsView: View {
             } else if let stats = stats {
                 InspectorSection(title: "TOTAL SIZE") {
                     Text(formatFileSize(stats.totalSize))
+                        .font(.system(size: 13))
+                }
+                
+                InspectorSection(title: "TOKENS") {
+                    Text("~\(formatNumber(stats.totalTokens)) tokens")
                         .font(.system(size: 13))
                 }
                 
@@ -488,6 +553,106 @@ private struct AsyncFilePreviewView: View {
             case .notATextFile:
                 return "Not a text file"
             }
+        }
+    }
+}
+
+private struct ContextBudgetDiagnosticsView: View {
+    let diagnostics: ContextBuildResult
+    let formatFileSize: (Int64) -> String
+    let formatNumber: (Int) -> String
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            InspectorSection(title: "CONTEXT BUDGET") {
+                budgetRow(
+                    label: "Bytes",
+                    value: diagnostics.totalBytes,
+                    limit: diagnostics.budget.maxTotalBytes,
+                    formattedValue: formatFileSize(Int64(diagnostics.totalBytes)),
+                    formattedLimit: formatFileSize(Int64(diagnostics.budget.maxTotalBytes))
+                )
+                
+                budgetRow(
+                    label: "Tokens",
+                    value: diagnostics.totalTokens,
+                    limit: diagnostics.budget.maxTotalTokens,
+                    formattedValue: "~\(formatNumber(diagnostics.totalTokens))",
+                    formattedLimit: "~\(formatNumber(diagnostics.budget.maxTotalTokens))"
+                )
+            }
+            
+            if !diagnostics.truncatedFiles.isEmpty {
+                InspectorDivider()
+                InspectorSection(title: "TRIMMED FILES") {
+                    ForEach(diagnostics.truncatedFiles) { file in
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(file.name)
+                                .font(.system(size: 12, weight: .semibold))
+                            Text(file.contextNote ?? "Trimmed to respect per-file limits.")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.vertical, 2)
+                    }
+                }
+            }
+            
+            if !diagnostics.excludedFiles.isEmpty {
+                InspectorDivider()
+                InspectorSection(title: "EXCLUDED FILES") {
+                    ForEach(diagnostics.excludedFiles) { exclusion in
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(exclusion.file.name)
+                                .font(.system(size: 12, weight: .semibold))
+                            Text(exclusionMessage(for: exclusion.reason))
+                                .font(.system(size: 11))
+                                .foregroundColor(.orange)
+                        }
+                        .padding(.vertical, 2)
+                    }
+                }
+            }
+        }
+    }
+    
+    private func budgetRow(label: String, value: Int, limit: Int, formattedValue: String, formattedLimit: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack {
+                Text(label)
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+                Spacer()
+                Text("\(formattedValue) / \(formattedLimit)")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(progressColor(value: value, limit: limit))
+            }
+            ProgressView(value: Double(min(value, limit)), total: Double(limit))
+                .tint(progressColor(value: value, limit: limit))
+        }
+    }
+    
+    private func progressColor(value: Int, limit: Int) -> Color {
+        let ratio = Double(value) / Double(limit)
+        if ratio >= 1 {
+            return .red
+        } else if ratio >= 0.85 {
+            return .orange
+        } else {
+            return .accentColor
+        }
+    }
+    
+    private func exclusionMessage(for reason: ContextExclusionReason) -> String {
+        switch reason {
+        case .exceedsPerFileBytes(let limit):
+            return "Removed because it exceeded \(formatFileSize(Int64(limit)))."
+        case .exceedsPerFileTokens(let limit):
+            return "Removed because it exceeded ~\(formatNumber(limit)) tokens."
+        case .exceedsTotalBytes(let limit):
+            return "Skipped because total byte budget (\(formatFileSize(Int64(limit)))) was reached."
+        case .exceedsTotalTokens(let limit):
+            return "Skipped because total token budget (~\(formatNumber(limit))) was reached."
         }
     }
 }

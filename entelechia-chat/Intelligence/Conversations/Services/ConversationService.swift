@@ -12,6 +12,7 @@
 // @EntelechiaHeaderEnd
 
 import Foundation
+import os.log
 
 /// Service for conversation business logic
 @MainActor
@@ -19,15 +20,38 @@ final class ConversationService {
     private let assistant: CodeAssistant
     private let conversationStore: ConversationStore
     private let fileContentService: FileContentService
+    private let contextBuilder: ContextBuilder
+    private let logger = Logger.persistence
+    
+    func applyPreferences(_ preferences: ContextPreferences, to files: [LoadedFile]) -> [LoadedFile] {
+        // If no explicit includes, treat excluded paths as opt-out; otherwise opt-in list wins
+        let includes = preferences.includedPaths
+        let excludes = preferences.excludedPaths
+        
+        return files.map { file in
+            let path = file.url.path
+            var updated = file
+            
+            if excludes.contains(path) {
+                updated.isIncludedInContext = false
+            } else if !includes.isEmpty {
+                updated.isIncludedInContext = includes.contains(path)
+            }
+            
+            return updated
+        }
+    }
     
     init(
         assistant: CodeAssistant,
         conversationStore: ConversationStore,
-        fileContentService: FileContentService
+        fileContentService: FileContentService,
+        contextBuilder: ContextBuilder? = nil
     ) {
         self.assistant = assistant
         self.conversationStore = conversationStore
         self.fileContentService = fileContentService
+        self.contextBuilder = contextBuilder ?? ContextBuilder()
     }
     
     /// Send a message in a conversation with context files
@@ -35,24 +59,30 @@ final class ConversationService {
     func sendMessage(
         _ text: String,
         in conversation: Conversation,
-        contextNode: FileNode?
-    ) async throws -> Conversation {
+        contextNode: FileNode?,
+        preferences: ContextPreferences? = nil,
+        onStreamEvent: ((StreamChunk) -> Void)? = nil
+    ) async throws -> (Conversation, ContextBuildResult) {
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw ConversationServiceError.emptyMessage
         }
         
         // Load context files if node is provided
-        let contextFiles: [LoadedFile]
+        var contextFiles: [LoadedFile]
         if let node = contextNode {
             do {
                 contextFiles = try await fileContentService.collectFiles(from: node)
             } catch {
-                // Log error but continue without context files
-                print("Warning: Failed to load context files: \(error.localizedDescription)")
+                logger.error("Failed to load context files: \(error.localizedDescription, privacy: .public)")
                 contextFiles = []
             }
         } else {
             contextFiles = []
+        }
+        
+        // Apply persisted preferences if available
+        if let preferences {
+            contextFiles = applyPreferences(preferences, to: contextFiles)
         }
         
         // Create user message and update conversation (struct - create new instance)
@@ -66,17 +96,18 @@ final class ConversationService {
             updatedConversation.title = updatedConversation.summaryTitle
         }
         
-        // Get included files
-        let includedFiles = contextFiles.filter { $0.isIncludedInContext }
+        // Enforce budgeting before hitting Codex
+        let contextResult = contextBuilder.build(from: contextFiles)
         
         // Send to assistant and stream response
         var streamingText = ""
         var finalMessage: Message?
         
         do {
-            let stream = try await assistant.send(messages: updatedConversation.messages, contextFiles: includedFiles)
+            let stream = try await assistant.send(messages: updatedConversation.messages, contextFiles: contextResult.attachments)
             
-            for await chunk in stream {
+            for try await chunk in stream {
+                onStreamEvent?(chunk)
                 switch chunk {
                 case .token(let t):
                     streamingText += t
@@ -118,7 +149,7 @@ final class ConversationService {
         // Persist the conversation
         try conversationStore.save(updatedConversation)
         
-        return updatedConversation
+        return (updatedConversation, contextResult)
     }
     
     /// Get conversation for a URL (pure accessor - never mutates)

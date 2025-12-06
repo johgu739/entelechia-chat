@@ -14,6 +14,27 @@
 import Foundation
 import SwiftUI
 import Combine
+import os.log
+
+enum ConversationStoreError: LocalizedError {
+    case storageUnavailable
+    case directoryCreationFailed(Error)
+    case indexCorrupted(URL, Error)
+    case conversationCorrupted(URL, Error)
+
+    var errorDescription: String? {
+        switch self {
+        case .storageUnavailable:
+            return "Unable to access conversation storage."
+        case .directoryCreationFailed(let error):
+            return "Failed to create conversation directory: \(error.localizedDescription)"
+        case .indexCorrupted(let url, _):
+            return "Conversation index at \(url.path) is corrupted."
+        case .conversationCorrupted(let url, _):
+            return "Conversation file at \(url.path) is corrupted."
+        }
+    }
+}
 
 /// High-level conversation persistence API
 @MainActor
@@ -21,28 +42,29 @@ final class ConversationStore: ObservableObject {
     @Published var conversations: [Conversation] = []
     @Published var selectedConversation: Conversation?
     
-    private let fileStore = FileStore.shared
+    private let fileStore: FileStore
     private var loadedConversationIds: Set<UUID> = []
-    
-    init() {
-        // Ensure directory exists - if this fails, app should crash
-        do {
-            try fileStore.ensureDirectoryExists()
-        } catch {
-            fatalError("❌ Failed to create conversation storage directory: \(error.localizedDescription)")
-        }
+    private let logger = Logger.persistence
+
+    init(fileStore: FileStore) {
+        self.fileStore = fileStore
     }
     
     /// Load all conversations from disk
     /// Throws if index file exists but is corrupted
     func loadAll() throws {
+        do {
+            try fileStore.ensureDirectoryExists()
+        } catch {
+            throw ConversationStoreError.directoryCreationFailed(error)
+        }
+
         // Load index first
         let index: ConversationIndex?
         do {
             index = try fileStore.load(ConversationIndex.self, from: fileStore.resolveIndexPath())
         } catch {
-            // Index file exists but is corrupted - FAIL LOUDLY
-            fatalError("❌ Conversation index file exists but is corrupted at \(fileStore.resolveIndexPath().path). Error: \(error.localizedDescription). Delete the file manually if you want to start fresh.")
+            throw ConversationStoreError.indexCorrupted(fileStore.resolveIndexPath(), error)
         }
         
         guard let index = index else {
@@ -66,11 +88,10 @@ final class ConversationStore: ObservableObject {
                     loadedConversationIds.insert(conversation.id)
                 } else {
                     // File doesn't exist - index is stale, skip this entry
-                    print("⚠️ Index references missing conversation file: \(entry.id)")
+                    logger.warning("Index references missing conversation file: \(entry.id.uuidString, privacy: .public)")
                 }
             } catch {
-                // File exists but is corrupted - FAIL LOUDLY
-                fatalError("❌ Conversation file exists but is corrupted at \(conversationURL.path). Error: \(error.localizedDescription). Delete the file manually if you want to start fresh.")
+                throw ConversationStoreError.conversationCorrupted(conversationURL, error)
             }
         }
         
@@ -114,7 +135,6 @@ final class ConversationStore: ObservableObject {
                 continue
             }
             
-            // If file exists but decode fails, it's corrupted - throw
             if let conversation = try fileStore.load(Conversation.self, from: fileURL) {
                 imported.append(conversation)
                 loadedConversationIds.insert(conversation.id)

@@ -14,14 +14,34 @@
 import SwiftUI
 
 struct MainWorkspaceView: View {
+    private let assistant: CodeAssistant
+    private let workspaceFileSystemService: WorkspaceFileSystemService
+    private let preferencesStore: PreferencesStore
+    private let contextPreferencesStore: ContextPreferencesStore
     @EnvironmentObject var conversationStore: ConversationStore
     @EnvironmentObject var projectSession: ProjectSession
     @EnvironmentObject var store: ProjectStore
-    @StateObject private var workspaceViewModel = WorkspaceViewModel(
-        fileSystemService: WorkspaceFileSystemService.shared,
-        assistant: MockCodeAssistant()
-    )
+    @EnvironmentObject var alertCenter: AlertCenter
+    @StateObject private var workspaceViewModel: WorkspaceViewModel
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
+
+    init(
+        assistant: CodeAssistant,
+        workspaceFileSystemService: WorkspaceFileSystemService,
+        preferencesStore: PreferencesStore,
+        contextPreferencesStore: ContextPreferencesStore
+    ) {
+        self.assistant = assistant
+        self.workspaceFileSystemService = workspaceFileSystemService
+        self.preferencesStore = preferencesStore
+        self.contextPreferencesStore = contextPreferencesStore
+        _workspaceViewModel = StateObject(
+            wrappedValue: WorkspaceViewModel(
+                fileSystemService: workspaceFileSystemService,
+                assistant: assistant
+            )
+        )
+    }
     
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
@@ -43,11 +63,7 @@ struct MainWorkspaceView: View {
                             // The conversation returned by workspaceViewModel.conversation(for:) will
                             // automatically reflect updates from ConversationStore since it reads from
                             // the @Published conversations array
-                            do {
-                                _ = try await workspaceViewModel.ensureConversation(for: selectedNode.path)
-                            } catch {
-                                print("Warning: Failed to ensure conversation: \(error.localizedDescription)")
-                            }
+                            await workspaceViewModel.ensureConversation(for: selectedNode.path)
                         }
                 } else {
                     NoFileSelectedView()
@@ -88,14 +104,16 @@ struct MainWorkspaceView: View {
         .onAppear {
             workspaceViewModel.setConversationStore(conversationStore)
             workspaceViewModel.setProjectStore(store)
+            workspaceViewModel.setPreferencesStore(preferencesStore)
+            workspaceViewModel.setContextPreferencesStore(contextPreferencesStore)
+            workspaceViewModel.setAlertCenter(alertCenter)
+            projectSession.setAlertCenter(alertCenter)
             if let url = projectSession.activeProjectURL {
-                print("🧩 MainWorkspaceView.onAppear — setting rootDirectory to: \(url.path)")
                 workspaceViewModel.setRootDirectory(url)
             }
         }
         .onChange(of: projectSession.activeProjectURL) { _, newValue in
             if let url = newValue {
-                print("🧩 MainWorkspaceView.onChange(activeProjectURL) — setting rootDirectory to: \(url.path)")
                 workspaceViewModel.setRootDirectory(url)
             }
         }

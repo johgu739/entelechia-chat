@@ -12,57 +12,104 @@
 // @EntelechiaHeaderEnd
 
 import SwiftUI
+import os.log
 
 @main
 struct EntelechiaChatApp: App {
     @StateObject private var store: ProjectStore
-    @StateObject private var conversationStore = ConversationStore()
+    @StateObject private var conversationStore: ConversationStore
     @StateObject private var projectSession: ProjectSession
     @StateObject private var projectCoordinator: ProjectCoordinator
+    @StateObject private var appEnvironment: AppEnvironment
+    @StateObject private var alertCenter: AlertCenter
+    private let container: DependencyContainer
     
     init() {
-        // Load ProjectStore from disk BEFORE SwiftUI initializes
-        // If database is corrupted, app will crash with clear error message
-        let loadedStore: ProjectStore
-        do {
-            loadedStore = try ProjectStore.loadFromDisk()
-            print("✅ Loaded ProjectStore at launch")
-        } catch {
-            fatalError("❌ Failed to load ProjectStore: \(error.localizedDescription). This is a fatal error - database must be valid.")
+        // Short-circuit for unit tests to avoid launching full app graph.
+        if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
+            let testContainer = TestContainer(root: FileManager.default.temporaryDirectory)
+            self.container = testContainer
+            let alertCenter = testContainer.alertCenter
+            _alertCenter = StateObject(wrappedValue: alertCenter)
+
+            let testStore = testContainer.projectStore
+            _store = StateObject(wrappedValue: testStore)
+            
+            let testSession = ProjectSession(
+                projectStore: testStore,
+                fileSystemService: testContainer.workspaceFileSystemService,
+                securityScopeHandler: testContainer.securityScopeHandler
+            )
+            _projectSession = StateObject(wrappedValue: testSession)
+            
+            _projectCoordinator = StateObject(wrappedValue: ProjectCoordinator(
+                projectStore: testStore,
+                projectSession: testSession,
+                alertCenter: alertCenter,
+                securityScopeHandler: testContainer.securityScopeHandler
+            ))
+            
+            _conversationStore = StateObject(wrappedValue: testContainer.conversationStore)
+            _appEnvironment = StateObject(wrappedValue: AppEnvironment(container: testContainer))
+            return
         }
         
-        _store = StateObject(wrappedValue: loadedStore)
+        do {
+            try PersistenceMigrator().runMigrations()
+        } catch {
+            let tempAlert = AlertCenter()
+            Logger.persistence.error("Migration failed at startup: \(error.localizedDescription, privacy: .public)")
+            tempAlert.publish(error, fallbackTitle: "Failed to Run Migrations")
+        }
         
-        // Create session with loaded store
+        let container = DefaultContainer()
+        self.container = container
+        let alertCenter = container.alertCenter
+        _alertCenter = StateObject(wrappedValue: alertCenter)
+        
+        _store = StateObject(wrappedValue: container.projectStore)
+        
         let session = ProjectSession(
-            projectStore: loadedStore,
-            fileSystemService: WorkspaceFileSystemService.shared
+            projectStore: container.projectStore,
+            fileSystemService: container.workspaceFileSystemService,
+            securityScopeHandler: container.securityScopeHandler
         )
         _projectSession = StateObject(wrappedValue: session)
         
-        // Create coordinator
         _projectCoordinator = StateObject(wrappedValue: ProjectCoordinator(
-            projectStore: loadedStore,
-            projectSession: session
+            projectStore: container.projectStore,
+            projectSession: session,
+            alertCenter: alertCenter,
+            securityScopeHandler: container.securityScopeHandler
         ))
+        
+        _conversationStore = StateObject(wrappedValue: container.conversationStore)
+        _appEnvironment = StateObject(wrappedValue: AppEnvironment(container: container))
         
         // No auto-open - user must manually select a project
     }
     
     var body: some Scene {
         WindowGroup {
-            RootView()
+            RootView(
+                assistant: appEnvironment.assistant,
+                workspaceFileSystemService: container.workspaceFileSystemService,
+                preferencesStore: container.preferencesStore,
+                contextPreferencesStore: container.contextPreferencesStore
+            )
                 .environmentObject(store)
                 .environmentObject(conversationStore)
                 .environmentObject(projectSession)
                 .environmentObject(projectCoordinator)
+                .environmentObject(appEnvironment)
+                .environmentObject(alertCenter)
                 .frame(minWidth: 1000, minHeight: 700)
                 .task {
                     // Load conversations on startup - if database is corrupted, app will crash
                     do {
                         try conversationStore.loadAll()
                     } catch {
-                        fatalError("❌ Failed to load conversations: \(error.localizedDescription). This is a fatal error - database must be valid.")
+                        alertCenter.publish(error, fallbackTitle: "Failed to Load Conversations")
                     }
                 }
         }
@@ -99,11 +146,10 @@ struct EntelechiaChatApp: App {
                         Divider()
                         
                         Button("Clear Menu") {
-                            // If save fails, crash - no silent errors
                             do {
                                 try projectCoordinator.projectStore.clearRecentProjects()
                             } catch {
-                                fatalError("❌ Failed to clear recent projects: \(error.localizedDescription). This is a fatal error - database must be valid.")
+                                alertCenter.publish(error, fallbackTitle: "Failed to Clear Recent Projects")
                             }
                         }
                     }
@@ -118,4 +164,11 @@ struct EntelechiaChatApp: App {
             }
         }
     }
+}
+
+// MARK: - Test-only helpers
+private struct TestSecurityScopeHandler: SecurityScopeHandling {
+    func makeBookmark(for url: URL) throws -> Data { Data() }
+    func startAccessing(_ url: URL) -> Bool { false }
+    func stopAccessing(_ url: URL) {}
 }
