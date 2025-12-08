@@ -3,7 +3,7 @@ import XCTest
 import CoreEngine
 import UIConnections
 
-private final class StubWorkspaceEngine: WorkspaceEngine {
+private final class StubWorkspaceEngine: WorkspaceEngine, @unchecked Sendable {
     private var snapshot: WorkspaceSnapshot
     private let projection: WorkspaceTreeProjection
     private let stream: AsyncStream<WorkspaceUpdate>
@@ -69,7 +69,12 @@ private final class StubWorkspaceEngine: WorkspaceEngine {
             prefs.excludedPaths.insert(path)
         }
         let did = snapshot.descriptorPaths.first?.key
-        let updatedInclusions = [did: included ? ContextInclusionState.included : .excluded].compactMapValues { $0 }
+        let updatedInclusions: [FileID: ContextInclusionState]
+        if let did {
+            updatedInclusions = [did: included ? .included : .excluded]
+        } else {
+            updatedInclusions = [:]
+        }
         snapshot = WorkspaceSnapshot(
             rootPath: snapshot.rootPath,
             selectedPath: snapshot.selectedPath,
@@ -94,7 +99,7 @@ private final class StubConversationEngine: ConversationStreaming {
     func conversation(forDescriptorIDs ids: [FileID]) async -> Conversation? { Conversation(contextDescriptorIDs: ids) }
     func ensureConversation(for url: URL) async throws -> Conversation { Conversation(contextFilePaths: [url.path]) }
     func ensureConversation(forDescriptorIDs ids: [FileID], pathResolver: (FileID) -> String?) async throws -> Conversation {
-        Conversation(contextDescriptorIDs: ids, contextFilePaths: ids.compactMap { pathResolver($0) })
+        Conversation(contextFilePaths: ids.compactMap { pathResolver($0) }, contextDescriptorIDs: ids)
     }
     func updateContextDescriptors(for conversationID: UUID, descriptorIDs: [FileID]?) async throws {}
     func sendMessage(_ text: String, in conversation: Conversation, context: ConversationContextRequest?, onStream: ((ConversationDelta) -> Void)?) async throws -> (Conversation, ContextBuildResult) {
@@ -111,31 +116,40 @@ final class WorkspaceViewModelIntegrationTests: XCTestCase {
     func testWorkspaceViewModelReceivesUpdatesAndSelection() async throws {
         let workspaceEngine = StubWorkspaceEngine()
         let conversationEngine = StubConversationEngine()
-        let vm = WorkspaceViewModel(
-            workspaceEngine: workspaceEngine,
-            conversationEngine: conversationEngine,
-            projectTodosLoader: StubTodosLoader(),
-            alertCenter: AlertCenter()
-        )
+        let vm = await MainActor.run {
+            WorkspaceViewModel(
+                workspaceEngine: workspaceEngine,
+                conversationEngine: conversationEngine,
+                projectTodosLoader: StubTodosLoader(),
+                alertCenter: AlertCenter()
+            )
+        }
 
-        // Wait for initial update
         try await Task.sleep(nanoseconds: 50_000_000)
-        XCTAssertEqual(vm.rootDirectory?.path, "/root")
-        XCTAssertNil(vm.selectedDescriptorID)
+        await MainActor.run {
+            XCTAssertEqual(vm.rootDirectory?.path, "/root")
+            XCTAssertNil(vm.selectedDescriptorID)
+        }
 
         // Select descriptor ID
-        let did = vm.workspaceSnapshot.descriptorPaths.first?.key
-        vm.setSelectedDescriptorID(did)
+        let did = await workspaceEngine.snapshot().descriptorPaths.first?.key
+        await MainActor.run {
+            vm.setSelectedDescriptorID(did)
+        }
         try await Task.sleep(nanoseconds: 50_000_000)
-        XCTAssertEqual(vm.selectedDescriptorID, did)
-        XCTAssertEqual(vm.selectedNode?.path.path, "/root/file.swift")
+        await MainActor.run {
+            XCTAssertEqual(vm.selectedDescriptorID, did)
+            XCTAssertEqual(vm.selectedNode?.path.path, "/root/file.swift")
+        }
 
         // Include in context and expect inclusion state to reflect
-        if let url = vm.selectedNode?.path {
-            vm.setContextInclusion(true, for: url)
+        let selectedURL: URL? = await MainActor.run { vm.selectedNode?.path }
+        if let url = selectedURL {
+            await MainActor.run { vm.setContextInclusion(true, for: url) }
             try await Task.sleep(nanoseconds: 50_000_000)
             if let did = did {
-                XCTAssertEqual(vm.workspaceSnapshot.contextInclusions[did], .included)
+                let ctx = await workspaceEngine.snapshot().contextInclusions[did]
+                XCTAssertEqual(ctx, .included)
             }
         }
     }

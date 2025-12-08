@@ -15,14 +15,11 @@ final class WorkspaceViewModelContextErrorTests: XCTestCase {
         
         let alertCenter = AlertCenter()
         let workspaceEngine = FakeWorkspaceEngine()
-        let conversationEngine = ConversationEngineLive(
-            client: AnyCodexClient.stub(),
-            persistence: FileStoreConversationPersistence(baseURL: temp),
-            fileLoader: ThrowingFileLoader()
-        )
+        let conversationEngine = FailingConversationEngine()
         let vm = WorkspaceViewModel(
             workspaceEngine: workspaceEngine,
             conversationEngine: conversationEngine,
+            projectTodosLoader: StubTodosLoader(),
             alertCenter: alertCenter
         )
         
@@ -121,6 +118,21 @@ private final class ThrowingCodexClient: CodexClient, @unchecked Sendable {
             continuation.yield(.done)
             continuation.finish()
         }
+    }
+}
+
+private struct StubTodosLoader: ProjectTodosLoading {
+    func loadTodos(for root: URL) throws -> ProjectTodos { .empty }
+}
+
+private struct FailingConversationEngine: ConversationStreaming {
+    func conversation(for url: URL) async -> Conversation? { nil }
+    func conversation(forDescriptorIDs ids: [FileID]) async -> Conversation? { nil }
+    func ensureConversation(for url: URL) async throws -> Conversation { Conversation() }
+    func ensureConversation(forDescriptorIDs ids: [FileID], pathResolver: (FileID) -> String?) async throws -> Conversation { Conversation() }
+    func updateContextDescriptors(for conversationID: UUID, descriptorIDs: [FileID]?) async throws {}
+    func sendMessage(_ text: String, in conversation: Conversation, context: ConversationContextRequest?, onStream: ((ConversationDelta) -> Void)?) async throws -> (Conversation, ContextBuildResult) {
+        throw EngineError.contextLoadFailed("mock failure")
     }
 }
 

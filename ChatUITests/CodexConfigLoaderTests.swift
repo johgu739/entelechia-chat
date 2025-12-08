@@ -23,7 +23,7 @@ final class CodexConfigLoaderTests: XCTestCase {
         switch result {
         case .success(let cfg):
             XCTAssertEqual(cfg.apiKey, "env-key")
-            XCTAssertEqual(cfg.baseURL?.absoluteString, "https://env.example")
+            XCTAssertEqual(cfg.baseURL.absoluteString, "https://env.example")
             XCTAssertEqual(cfg.organization, "env-org")
         case .failure(let err):
             XCTFail("Expected success, got \(err)")
@@ -32,7 +32,7 @@ final class CodexConfigLoaderTests: XCTestCase {
 
     func testKeychainUsedWhenEnvMissing() throws {
         let keychain = InMemoryKeychain()
-        try keychain.savePassword("kc-key", service: "chat.entelechia.codex", account: "CODEX_API_KEY")
+        try keychain.savePassword("kc-key", for: .codexAPIKey)
         let loader = CodexConfigLoader(keychain: keychain)
 
         let result = loader.loadConfig()
@@ -45,13 +45,14 @@ final class CodexConfigLoaderTests: XCTestCase {
     }
 
     func testFailureWhenNoSources() {
-        let loader = CodexConfigLoader(keychain: InMemoryKeychain(), plistLoader: { _ in nil })
+        let loader = CodexConfigLoader(keychain: InMemoryKeychain())
         let result = loader.loadConfig()
-        switch result {
-        case .success:
-            XCTFail("Expected failure with missing credentials")
-        case .failure(let err):
-            XCTAssertEqual(err, .missingAPIKey)
+        guard case .failure(let err) = result else {
+            return XCTFail("Expected failure with missing credentials")
+        }
+        switch err {
+        case .missingCredentials: break
+        default: XCTFail("Unexpected error \(err)")
         }
     }
 }
@@ -61,17 +62,21 @@ final class CodexConfigLoaderTests: XCTestCase {
 private final class InMemoryKeychain: KeychainServicing {
     private var store: [String: Data] = [:]
 
-    func savePassword(_ password: String, service: String, account: String) throws {
-        store["\(service)|\(account)"] = password.data(using: .utf8)
-    }
-
-    func loadPassword(service: String, account: String) throws -> String? {
-        guard let data = store["\(service)|\(account)"] else { return nil }
+    func loadPassword(for credential: KeychainCredential) throws -> String? {
+        guard let data = store[key(credential)] else { return nil }
         return String(data: data, encoding: .utf8)
     }
 
-    func deletePassword(service: String, account: String) throws {
-        store.removeValue(forKey: "\(service)|\(account)")
+    func savePassword(_ password: String, for credential: KeychainCredential) throws {
+        store[key(credential)] = password.data(using: .utf8)
+    }
+
+    func deletePassword(for credential: KeychainCredential) throws {
+        store.removeValue(forKey: key(credential))
+    }
+
+    private func key(_ credential: KeychainCredential) -> String {
+        "\(credential.service)|\(credential.account)"
     }
 }
 

@@ -2,17 +2,21 @@ import XCTest
 @testable import ChatUI
 import CoreEngine
 
-private final class StubSecurityScope: SecurityScopeHandling {
-    private(set) var started: URL?
-    private(set) var stopped: URL?
+private final class StubSecurityScope: SecurityScopeHandling, @unchecked Sendable {
+    private(set) var startedURL: URL?
+    private(set) var stoppedURL: URL?
 
     func createBookmark(for url: URL) throws -> Data { Data([0x01]) }
     func resolveBookmark(_ data: Data) throws -> URL { URL(fileURLWithPath: "/resolved") }
-    func startAccessing(_ url: URL) -> Bool { started = url; return true }
-    func stopAccessing(_ url: URL) { stopped = url }
+    func startAccessing(_ url: URL) -> Bool { startedURL = url; return true }
+    func stopAccessing(_ url: URL) { stoppedURL = url }
 }
 
 private final class StubProjectEngine: ProjectEngine {
+    func openProject(at url: URL) throws -> ProjectRepresentation {
+        ProjectRepresentation(rootPath: url.path, name: url.lastPathComponent)
+    }
+
     func validateProject(at url: URL) throws -> ProjectRepresentation {
         ProjectRepresentation(rootPath: url.path, name: url.lastPathComponent)
     }
@@ -23,19 +27,29 @@ private final class StubProjectEngine: ProjectEngine {
 private final class StubProjectSession: ProjectSessioning {
     private(set) var activeProjectURL: URL?
     private(set) var securityScopeActive = false
-    func openProject(at url: URL) {
+    func open(_ url: URL, name: String?, bookmarkData: Data?) {
         activeProjectURL = url
+        securityScopeActive = bookmarkData != nil
     }
-    func startSecurityScope(for url: URL) {
-        securityScopeActive = true
-        activeProjectURL = url
+    func close() {
+        activeProjectURL = nil
+        securityScopeActive = false
     }
-    func stopSecurityScope() { securityScopeActive = false }
+    func reloadSnapshot() async -> WorkspaceSnapshot { .empty }
 }
 
+private struct StubProjectMetadataHandler: ProjectMetadataHandling {
+    func metadata(for bookmarkData: Data?, lastSelection: String?, isLastOpened: Bool) -> [String : String] { [:] }
+    func bookmarkData(from metadata: [String : String]) -> Data? { nil }
+    func withMetadata(_ metadata: [String : String], appliedTo representation: ProjectRepresentation) -> ProjectRepresentation {
+        representation
+    }
+}
+
+@MainActor
 final class ProjectCoordinatorSessionTests: XCTestCase {
 
-    func testBookmarkStartStopPairedOnOpenRecent() {
+    func testBookmarkStartStopPairedOnOpenRecent() async {
         let sec = StubSecurityScope()
         let session = StubProjectSession()
         let coordinator = ProjectCoordinator(
@@ -43,17 +57,20 @@ final class ProjectCoordinatorSessionTests: XCTestCase {
             projectSession: session,
             alertCenter: AlertCenter(),
             securityScopeHandler: sec,
-            metadataHandler: ProjectMetadataHandler()
+            projectMetadataHandler: StubProjectMetadataHandler()
         )
 
-        coordinator.openRecentProject(at: URL(fileURLWithPath: "/tmp/project"), bookmarkData: Data([0xAA]))
+        coordinator.openRecent(RecentProject(
+            representation: ProjectRepresentation(rootPath: "/tmp/project", name: "project"),
+            bookmarkData: Data([0xAA])
+        ))
 
         XCTAssertTrue(session.securityScopeActive)
-        XCTAssertEqual(sec.started, URL(fileURLWithPath: "/resolved"))
+        XCTAssertEqual(session.activeProjectURL?.path, "/tmp/project")
 
         coordinator.closeProject()
         XCTAssertFalse(session.securityScopeActive)
-        XCTAssertEqual(sec.stopped, URL(fileURLWithPath: "/resolved"))
+        XCTAssertNil(session.activeProjectURL)
     }
 }
 
