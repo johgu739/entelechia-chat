@@ -15,7 +15,7 @@ import SwiftUI
 import CoreEngine
 import os.log
 
-@main
+/// Package-level bootstrap (non-@main) retained for reuse in tests and previews.
 struct EntelechiaChatApp: App {
     @StateObject private var projectSession: ProjectSession
     @StateObject private var projectCoordinator: ProjectCoordinator

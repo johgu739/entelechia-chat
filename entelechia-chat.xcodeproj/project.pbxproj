@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		5B86B96B2EE739F400482C26 /* ChatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 5B86B96A2EE739F400482C26 /* ChatUI */; };
+		5B86B9802EE741B600482C26 /* ChatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 5B86B97F2EE741B600482C26 /* ChatUI */; };
 		5C5C5C5C2EE4000100000003 /* UIConnections in Frameworks */ = {isa = PBXBuildFile; productRef = 5C5C5C5C2EE4000100000002 /* UIConnections */; };
 		5C5C5C5C2EE4000100000004 /* UIConnections in Frameworks */ = {isa = PBXBuildFile; productRef = 5C5C5C5C2EE4000100000002 /* UIConnections */; };
 		EEEEE111FACEBEEF00000001 /* CoreEngine in Frameworks */ = {isa = PBXBuildFile; productRef = EEEEE115FACEBEEF00000005 /* CoreEngine */; };
@@ -27,13 +28,107 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		5B86B9732EE7413C00482C26 /* EntelechiaChat.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = EntelechiaChat.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B86E5452EE19FAD00482C26 /* ChatUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ChatUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B86FEAA2EE3201F00482C26 /* ChatUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ChatUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		5B86B96E2EE73C0800482C26 /* Exceptions for "ChatUI" folder in "ChatUI" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Sources/ChatUI/AppComposition/Folder.ent,
+				Sources/ChatUI/AppComposition/Folder.topology.json,
+				Sources/ChatUI/Assets/Assets.xcassets,
+				Sources/ChatUI/Support/AI/Folder.ent,
+				Sources/ChatUI/Support/AI/Folder.topology.json,
+				Sources/ChatUI/Support/Configuration/CodexSecrets.example.plist,
+				Sources/ChatUI/Support/Folder.ent,
+				Sources/ChatUI/Support/Folder.topology.json,
+				Sources/ChatUI/Support/Persistence/Folder.ent,
+				Sources/ChatUI/Support/Persistence/Folder.topology.json,
+				Sources/ChatUI/Support/Rendering/Folder.ent,
+				Sources/ChatUI/Support/Rendering/Folder.topology.json,
+				Sources/ChatUI/Tools/Folder.ent,
+				Sources/ChatUI/Tools/Folder.topology.json,
+				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Folder.ent,
+				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Folder.topology.json,
+				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/App/Folder.ent,
+				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/App/Folder.topology.json,
+				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/App/Toolbar/Folder.ent,
+				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/App/Toolbar/Folder.topology.json,
+				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Editor/Folder.ent,
+				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Editor/Folder.topology.json,
+				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Folder.ent,
+				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Folder.topology.json,
+				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Inspector/Folder.ent,
+				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Inspector/Folder.topology.json,
+				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Navigation/Folder.ent,
+				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Navigation/Folder.topology.json,
+				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Systems/Codex/Folder.ent,
+				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Systems/Codex/Folder.topology.json,
+				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Systems/Daemon/Folder.ent,
+				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Systems/Daemon/Folder.topology.json,
+				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Systems/FileSystem/Folder.ent,
+				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Systems/FileSystem/Folder.topology.json,
+				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Systems/Folder.ent,
+				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Systems/Folder.topology.json,
+				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Systems/PatchEngine/Folder.ent,
+				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Systems/PatchEngine/Folder.topology.json,
+				Sources/ChatUI/Tools/Operator/Folder.ent,
+				Sources/ChatUI/Tools/Operator/Folder.topology.json,
+				Sources/ChatUI/UI/ConversationUI/Folder.ent,
+				Sources/ChatUI/UI/ConversationUI/Folder.topology.json,
+				Sources/ChatUI/UI/Folder.ent,
+				Sources/ChatUI/UI/Folder.topology.json,
+				Sources/ChatUI/UI/Shell/Folder.ent,
+				Sources/ChatUI/UI/Shell/Folder.topology.json,
+				Sources/ChatUI/UI/Theme/Folder.ent,
+				Sources/ChatUI/UI/Theme/Folder.topology.json,
+				Sources/ChatUI/UI/WorkspaceUI/Folder.ent,
+				Sources/ChatUI/UI/WorkspaceUI/Folder.topology.json,
+				Sources/ChatUI/UI/WorkspaceUI/XcodeNavigator/Folder.ent,
+				Sources/ChatUI/UI/WorkspaceUI/XcodeNavigator/Folder.topology.json,
+				Sources/ChatUI/ViewModels/Conversations/Faculties/Folder.ent,
+				Sources/ChatUI/ViewModels/Conversations/Faculties/Folder.topology.json,
+				Sources/ChatUI/ViewModels/Conversations/Folder.ent,
+				Sources/ChatUI/ViewModels/Conversations/Folder.topology.json,
+				Sources/ChatUI/ViewModels/Conversations/Models/Folder.ent,
+				Sources/ChatUI/ViewModels/Conversations/Models/Folder.topology.json,
+				Sources/ChatUI/ViewModels/Conversations/Services/Folder.ent,
+				Sources/ChatUI/ViewModels/Conversations/Services/Folder.topology.json,
+				Sources/ChatUI/ViewModels/Folder.ent,
+				Sources/ChatUI/ViewModels/Folder.topology.json,
+				Sources/ChatUI/ViewModels/Projects/Folder.ent,
+				Sources/ChatUI/ViewModels/Projects/Folder.topology.json,
+				Sources/ChatUI/ViewModels/Projects/Models/Folder.ent,
+				Sources/ChatUI/ViewModels/Projects/Models/Folder.topology.json,
+				Sources/ChatUI/ViewModels/Projects/Services/Folder.ent,
+				Sources/ChatUI/ViewModels/Projects/Services/Folder.topology.json,
+				Sources/ChatUI/ViewModels/Workspace/Faculties/Folder.ent,
+				Sources/ChatUI/ViewModels/Workspace/Faculties/Folder.topology.json,
+				Sources/ChatUI/ViewModels/Workspace/Folder.ent,
+				Sources/ChatUI/ViewModels/Workspace/Folder.topology.json,
+				Sources/ChatUI/ViewModels/Workspace/Models/Folder.ent,
+				Sources/ChatUI/ViewModels/Workspace/Models/Folder.topology.json,
+				Sources/ChatUI/ViewModels/Workspace/Services/Folder.ent,
+				Sources/ChatUI/ViewModels/Workspace/Services/Folder.topology.json,
+			);
+			target = 5B86E5442EE19FAD00482C26 /* ChatUI */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		5B86B9742EE7413C00482C26 /* EntelechiaChat */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = EntelechiaChat;
+			sourceTree = "<group>";
+		};
 		5B86E5472EE19FAD00482C26 /* ChatUI */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				5B86B96E2EE73C0800482C26 /* Exceptions for "ChatUI" folder in "ChatUI" target */,
+			);
 			path = ChatUI;
 			sourceTree = "<group>";
 		};
@@ -45,6 +140,14 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		5B86B9702EE7413C00482C26 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5B86B9802EE741B600482C26 /* ChatUI in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		5B86E5422EE19FAD00482C26 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -69,11 +172,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		5B86B97E2EE741B600482C26 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		5B86E53C2EE19FAD00482C26 = {
 			isa = PBXGroup;
 			children = (
 				5B86E5472EE19FAD00482C26 /* ChatUI */,
 				5B86FEAB2EE3201F00482C26 /* ChatUITests */,
+				5B86B9742EE7413C00482C26 /* EntelechiaChat */,
+				5B86B97E2EE741B600482C26 /* Frameworks */,
 				5B86E5462EE19FAD00482C26 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -83,6 +195,7 @@
 			children = (
 				5B86E5452EE19FAD00482C26 /* ChatUI.app */,
 				5B86FEAA2EE3201F00482C26 /* ChatUITests.xctest */,
+				5B86B9732EE7413C00482C26 /* EntelechiaChat.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -90,11 +203,33 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		5B86B9722EE7413C00482C26 /* EntelechiaChat */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5B86B97B2EE7413F00482C26 /* Build configuration list for PBXNativeTarget "EntelechiaChat" */;
+			buildPhases = (
+				5B86B96F2EE7413C00482C26 /* Sources */,
+				5B86B9702EE7413C00482C26 /* Frameworks */,
+				5B86B9712EE7413C00482C26 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				5B86B9742EE7413C00482C26 /* EntelechiaChat */,
+			);
+			name = EntelechiaChat;
+			packageProductDependencies = (
+				5B86B97F2EE741B600482C26 /* ChatUI */,
+			);
+			productName = EntelechiaChat;
+			productReference = 5B86B9732EE7413C00482C26 /* EntelechiaChat.app */;
+			productType = "com.apple.product-type.application";
+		};
 		5B86E5442EE19FAD00482C26 /* ChatUI */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 5B86E5502EE19FAF00482C26 /* Build configuration list for PBXNativeTarget "ChatUI" */;
 			buildPhases = (
-				5B86E5412EE19FAD00482C26 /* Sources */,
 				5B86E5422EE19FAD00482C26 /* Frameworks */,
 				5B86E5432EE19FAD00482C26 /* Resources */,
 			);
@@ -152,6 +287,9 @@
 				LastSwiftUpdateCheck = 2610;
 				LastUpgradeCheck = 2610;
 				TargetAttributes = {
+					5B86B9722EE7413C00482C26 = {
+						CreatedOnToolsVersion = 26.1.1;
+					};
 					5B86E5442EE19FAD00482C26 = {
 						CreatedOnToolsVersion = 26.1.1;
 					};
@@ -183,11 +321,19 @@
 			targets = (
 				5B86E5442EE19FAD00482C26 /* ChatUI */,
 				5B86FEA92EE3201F00482C26 /* ChatUITests */,
+				5B86B9722EE7413C00482C26 /* EntelechiaChat */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		5B86B9712EE7413C00482C26 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		5B86E5432EE19FAD00482C26 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -205,7 +351,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		5B86E5412EE19FAD00482C26 /* Sources */ = {
+		5B86B96F2EE7413C00482C26 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -230,6 +376,66 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		5B86B97C2EE7413F00482C26 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = cath.EntelechiaChat;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		5B86B97D2EE7413F00482C26 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = cath.EntelechiaChat;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 		5B86E54E2EE19FAF00482C26 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -459,6 +665,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		5B86B97B2EE7413F00482C26 /* Build configuration list for PBXNativeTarget "EntelechiaChat" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5B86B97C2EE7413F00482C26 /* Debug */,
+				5B86B97D2EE7413F00482C26 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		5B86E5402EE19FAD00482C26 /* Build configuration list for PBXProject "entelechia-chat" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -510,6 +725,11 @@
 /* Begin XCSwiftPackageProductDependency section */
 		5B86B96A2EE739F400482C26 /* ChatUI */ = {
 			isa = XCSwiftPackageProductDependency;
+			productName = ChatUI;
+		};
+		5B86B97F2EE741B600482C26 /* ChatUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5B86B9692EE739F400482C26 /* XCLocalSwiftPackageReference "ChatUI" */;
 			productName = ChatUI;
 		};
 		5C5C5C5C2EE4000100000002 /* UIConnections */ = {
