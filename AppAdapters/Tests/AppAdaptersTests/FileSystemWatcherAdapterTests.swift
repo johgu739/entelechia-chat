@@ -85,6 +85,31 @@ final class FileSystemWatcherAdapterTests: XCTestCase {
         XCTAssertEqual(received, currentCount, "No events should arrive after cancellation")
     }
 
+    func testXcodeUserStateChurnDoesNotCrash() async throws {
+        let temp = try makeTemporaryDirectory()
+        let watcher = FileSystemWatcherAdapter()
+        let stream = watcher.watch(rootPath: temp.path)
+        var iterator = stream.makeAsyncIterator()
+
+        let observed = expectation(description: "Received at least one event")
+        let consumer = Task {
+            while let _ = await iterator.next() {
+                observed.fulfill()
+            }
+        }
+
+        let userState = temp.appendingPathComponent("UserInterfaceState.xcuserstate")
+        for i in 0..<50 {
+            let data = Data("state-\(i)".utf8)
+            FileManager.default.createFile(atPath: userState.path, contents: data)
+            try await Task.sleep(nanoseconds: 10_000_000)
+            try? FileManager.default.removeItem(at: userState)
+        }
+
+        await fulfillment(of: [observed], timeout: 5.0)
+        consumer.cancel()
+    }
+
     // MARK: - Helpers
     private func makeTemporaryDirectory() throws -> URL {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
