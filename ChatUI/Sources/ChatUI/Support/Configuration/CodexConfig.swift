@@ -41,15 +41,15 @@ enum CodexConfigError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .missingCredentials:
-            return "No Codex credentials were found in environment variables, the Keychain, or CodexSecrets.plist."
+            return "No Codex credentials were found in environment variables, the Keychain, or CodexSecrets."
         case .missingAPIKey:
             return "Codex API key is missing."
         case .invalidBaseURL:
             return "Codex base URL is invalid."
         case .secretsFileMissing:
-            return "CodexSecrets.plist was not found in the application bundle."
+            return "CodexSecrets plist was not found in the ChatUI module bundle."
         case .secretsDecodingFailed:
-            return "CodexSecrets.plist could not be decoded."
+            return "CodexSecrets plist could not be decoded."
         case .keychainFailure(let status):
             return "Keychain error (status \(status))."
         case .keychainService(let serviceError):
@@ -64,6 +64,7 @@ protocol CodexConfigLoading {
 
 struct CodexConfigLoader: CodexConfigLoading {
     private let keychain: KeychainServicing
+    static var secretsBundle: Bundle = .module
     private let logger = Logger.security
 
     init(keychain: KeychainServicing = KeychainService.shared) {
@@ -73,7 +74,7 @@ struct CodexConfigLoader: CodexConfigLoading {
     /// Credential precedence:
     /// 1) Environment variables (CODEX_API_KEY / CODEX_BASE_URL / CODEX_ORG)
     /// 2) Keychain entry (service: chat.entelechia.codex, account: CODEX_API_KEY) with env overrides for baseURL/org
-    /// 3) Bundle CodexSecrets.plist
+    /// 3) Module CodexSecrets.plist (or CodexSecrets.example.plist)
     func loadConfig() -> Result<CodexConfig, CodexConfigError> {
         if let envConfig = loadFromEnvironment() {
             return .success(envConfig)
@@ -132,8 +133,10 @@ struct CodexConfigLoader: CodexConfigLoading {
     }
 
     private func loadFromSecretsFile() -> Result<CodexConfig, CodexConfigError>? {
-        guard let url = Bundle.main.url(forResource: "CodexSecrets", withExtension: "plist") else {
-            return nil
+        let bundle = Self.secretsBundle
+        let names = ["CodexSecrets", "CodexSecrets.example"]
+        guard let url = names.compactMap({ bundle.url(forResource: $0, withExtension: "plist") }).first else {
+            return .failure(.secretsFileMissing)
         }
 
         do {
@@ -154,9 +157,6 @@ struct CodexConfigLoader: CodexConfigLoading {
                 source: .secretsFile
             )
             return .success(config)
-        } catch let decodingError as DecodingError {
-            print("CodexConfigLoader decoding error: \(decodingError)")
-            return .failure(.secretsDecodingFailed)
         } catch {
             return .failure(.secretsDecodingFailed)
         }

@@ -45,15 +45,40 @@ final class CodexConfigLoaderTests: XCTestCase {
     }
 
     func testFailureWhenNoSources() {
+        let originalBundle = CodexConfigLoader.secretsBundle
+        defer { CodexConfigLoader.secretsBundle = originalBundle }
+        CodexConfigLoader.secretsBundle = Bundle.main
+
         let loader = CodexConfigLoader(keychain: InMemoryKeychain())
         let result = loader.loadConfig()
         guard case .failure(let err) = result else {
             return XCTFail("Expected failure with missing credentials")
         }
         switch err {
-        case .missingCredentials: break
+        case .secretsFileMissing: break
         default: XCTFail("Unexpected error \(err)")
         }
+    }
+
+    func testModuleResourceFallbackLoadsExample() {
+        let loader = CodexConfigLoader(keychain: InMemoryKeychain())
+        unsetenv("CODEX_API_KEY")
+        unsetenv("CODEX_BASE_URL")
+        unsetenv("CODEX_ORG")
+
+        let result = loader.loadConfig()
+        guard case .success(let cfg) = result else {
+            return XCTFail("Expected success from module CodexSecrets.example")
+        }
+        XCTAssertEqual(cfg.apiKey, "example-api-key")
+        XCTAssertEqual(cfg.baseURL.absoluteString, "https://example.invalid/v1")
+        XCTAssertEqual(cfg.organization, "example-org")
+        XCTAssertEqual(cfg.source, .secretsFile)
+    }
+
+    func testSecretsBundleIsModuleNotMain() {
+        XCTAssertNotEqual(CodexConfigLoader.secretsBundle, Bundle.main)
+        XCTAssertEqual(CodexConfigLoader.secretsBundle, Bundle.module)
     }
 }
 

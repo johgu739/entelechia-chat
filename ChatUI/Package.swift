@@ -28,7 +28,6 @@ let package = Package(
             exclude: [
                 "AppComposition/Folder.ent",
                 "AppComposition/Folder.topology.json",
-                "AppComposition/EntelechiaChatApp.swift",
                 "Support/Folder.ent",
                 "Support/Folder.topology.json",
                 "Support/AI/Folder.ent",
