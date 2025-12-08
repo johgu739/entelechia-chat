@@ -110,6 +110,32 @@ final class FileSystemWatcherAdapterTests: XCTestCase {
         consumer.cancel()
     }
 
+    func testXcodeUserStateChurnWhileCancellingDoesNotCrash() async throws {
+        let temp = try makeTemporaryDirectory()
+        let watcher = FileSystemWatcherAdapter()
+        let stream = watcher.watch(rootPath: temp.path)
+
+        let consumer = Task {
+            for await _ in stream {
+                // Intentionally do nothing; we are stressing termination.
+            }
+        }
+
+        let userState = temp.appendingPathComponent("UserInterfaceState.xcuserstate")
+        for i in 0..<50 {
+            let data = Data("state-\(i)".utf8)
+            FileManager.default.createFile(atPath: userState.path, contents: data)
+            try await Task.sleep(nanoseconds: 5_000_000)
+            try? FileManager.default.removeItem(at: userState)
+            if i == 10 {
+                consumer.cancel()
+            }
+        }
+
+        // Allow any late callbacks to flush; absence of crash is success.
+        try await Task.sleep(nanoseconds: 300_000_000)
+    }
+
     // MARK: - Helpers
     private func makeTemporaryDirectory() throws -> URL {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)

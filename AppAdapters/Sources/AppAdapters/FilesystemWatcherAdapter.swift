@@ -49,11 +49,21 @@ public final class FileSystemWatcherAdapter: FileSystemWatching, @unchecked Send
             let box = ContinuationBox {
                 pending = true
             }
+            let boxPtr = Unmanaged.passRetained(box)
             var context = FSEventStreamContext(
                 version: 0,
-                info: Unmanaged.passUnretained(box).toOpaque(),
-                retain: nil,
-                release: nil,
+                info: boxPtr.toOpaque(),
+                retain: { infoPointer in
+                    guard let infoPointer else { return nil }
+                    let unmanaged = Unmanaged<ContinuationBox>.fromOpaque(infoPointer)
+                    _ = unmanaged.retain()
+                    return UnsafeRawPointer(unmanaged.toOpaque())
+                },
+                release: { infoPointer in
+                    guard let infoPointer else { return }
+                    let unmanaged = Unmanaged<ContinuationBox>.fromOpaque(infoPointer)
+                    unmanaged.release()
+                },
                 copyDescription: nil
             )
 
@@ -85,6 +95,7 @@ public final class FileSystemWatcherAdapter: FileSystemWatching, @unchecked Send
                     FSEventStreamInvalidate(ref)
                     FSEventStreamRelease(ref)
                 }
+                boxPtr.release()
             }
         }
     }
