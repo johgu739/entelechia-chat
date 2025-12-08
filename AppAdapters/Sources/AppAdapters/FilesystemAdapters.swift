@@ -5,9 +5,10 @@ import os
 
 /// File system adapter using Foundation's FileManager, producing pure FileDescriptors.
 ///
-/// Concurrency: internal path/ID maps are guarded by `OSAllocatedUnfairLock`; uses FileManager which is
-/// thread-safe for these calls. Marked `@unchecked Sendable` because `FileManager` and the lock wrapper
-/// are not statically Sendable.
+/// Invariant: path→ID and ID→path mappings remain stable across listings for the same filesystem entries.
+/// Concurrency: internal maps are guarded by `OSAllocatedUnfairLock`; uses FileManager which is thread-safe
+/// for these calls. Marked `@unchecked Sendable` because `FileManager` and the lock wrapper are not statically
+/// Sendable.
 public final class FileSystemAccessAdapter: FileSystemAccess, @unchecked Sendable {
     private let state = FileIDState()
 

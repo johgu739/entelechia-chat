@@ -218,14 +218,17 @@ final class WorkspaceEngineImplTests: XCTestCase {
         let engine = makeEngine(fs: fs)
         _ = try await engine.openWorkspace(rootPath: "/root")
 
-        await withTaskGroup(of: Void.self) { group in
-            group.addTask {
-                _ = try? await engine.refresh()
-            }
-            group.addTask {
-                _ = try? await engine.setContextInclusion(path: "/root/a.txt", included: true)
-            }
-        }
+        async let refreshed: Void? = {
+            _ = try? await engine.refresh()
+            return nil
+        }()
+
+        async let included: Void? = {
+            _ = try? await engine.setContextInclusion(path: "/root/a.txt", included: true)
+            return nil
+        }()
+
+        _ = await (refreshed, included)
 
         let snap = await engine.snapshot()
         XCTAssertTrue(snap.contextPreferences.includedPaths.contains("/root/a.txt"))
@@ -246,6 +249,35 @@ final class WorkspaceEngineImplTests: XCTestCase {
         await XCTAssertThrowsErrorAsync {
             _ = try await engine.setContextInclusion(path: "/root/a.txt", included: true)
         }
+    }
+
+    func testUpdateStreamSerialWithWatcher() async throws {
+        let fs = FakeFileSystem(tree: [
+            "/root": ["a.txt"]
+        ])
+        let watcher = DoubleTickWatcher()
+        let engine = WorkspaceEngineImpl(
+            fileSystem: fs,
+            preferences: InMemoryWorkspacePrefs(),
+            contextPreferences: InMemoryContextPrefs(),
+            watcher: watcher
+        )
+        registry.register(engine)
+
+        var iterator = engine.updates().makeAsyncIterator()
+        _ = try await engine.openWorkspace(rootPath: "/root")
+
+        let first = await iterator.next()
+        let second = await iterator.next()
+        let third = await iterator.next()
+
+        XCTAssertNotNil(first)
+        XCTAssertNotNil(second)
+        XCTAssertNotNil(third)
+
+        await engine.shutdown()
+        let terminated = await iterator.next()
+        XCTAssertNil(terminated)
     }
 
     // MARK: - Helpers
@@ -459,6 +491,19 @@ private final class PreloadedContextPrefs: ContextPreferencesDriver, @unchecked 
 
     func saveContextPreferences(_ preferences: WorkspaceContextPreferencesState, for project: URL) throws {
         storage = preferences
+    }
+}
+
+private final class DoubleTickWatcher: FileSystemWatching {
+    func watch(rootPath: String) -> AsyncStream<Void> {
+        AsyncStream { continuation in
+            continuation.yield(())
+            Task.detached {
+                try? await Task.sleep(nanoseconds: 50_000_000)
+                continuation.yield(())
+                continuation.finish()
+            }
+        }
     }
 }
 

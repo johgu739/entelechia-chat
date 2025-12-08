@@ -3,16 +3,13 @@ import Foundation
 /// Workspace engine using FileDescriptor + FileID only.
 ///
 /// Invariants (concurrency & behavior):
-/// - `updateContinuation` is created once during init and is only touched from methods on `WorkspaceEngineImpl`
-///   plus the single watcher task spawned by `startWatcher`. No other threads mutate it; all yields go via
-///   `emitUpdate`.
+/// - Update stream continuation is owned by a private actor (`UpdateStreamBox`); only that actor touches it,
+///   guaranteeing a single executor for yields/finish.
 /// - State mutation lives inside `WorkspaceStateActor`; non-actor fields are read-only after init.
 /// - Selection operations require the path to exist in `pathIndex`; missing paths throw `invalidSelection`.
 /// - Context inclusions derive from stored preferences; exclusions remove selection and persist resets.
 /// - Watcher termination yields `watcherUnavailable`; refresh failures surface as `refreshFailed` in updates.
-/// Because `AsyncStream.Continuation` is not statically Sendable, conformance is marked `@unchecked Sendable`
-/// under these documented constraints.
-public final class WorkspaceEngineImpl<PrefDriver: PreferencesDriver, CtxDriver: ContextPreferencesDriver>: WorkspaceEngine, @unchecked Sendable
+public final class WorkspaceEngineImpl<PrefDriver: PreferencesDriver, CtxDriver: ContextPreferencesDriver>: WorkspaceEngine, Sendable
 where PrefDriver.Preferences == WorkspacePreferences,
       CtxDriver.ContextPreferences == WorkspaceContextPreferencesState {
 
@@ -21,41 +18,13 @@ where PrefDriver.Preferences == WorkspacePreferences,
     private let contextPreferencesDriver: CtxDriver
     private let watcher: FileSystemWatching
     private let state = WorkspaceStateActor()
-    private let updateStream: AsyncStream<WorkspaceUpdate>
-    private let updateContinuation: AsyncStream<WorkspaceUpdate>.Continuation
-    private let shutdownState = ShutdownStateActor()
-
-    private actor ShutdownStateActor {
-        private var didShutdown: Bool = false
-        private var didFinishUpdates: Bool = false
-
-        func markShutdown() -> Bool {
-            if didShutdown { return true }
-            didShutdown = true
-            return false
-        }
-
-        func markFinished() -> Bool {
-            if didFinishUpdates { return false }
-            didFinishUpdates = true
-            return true
-        }
-
-        func shouldEmit() -> Bool {
-            !(didShutdown || didFinishUpdates)
-        }
-    }
+    private let updateStreamBox = UpdateStreamBox()
 
     public init(fileSystem: FileSystemAccess, preferences: PrefDriver, contextPreferences: CtxDriver, watcher: FileSystemWatching) {
         self.fileSystem = fileSystem
         self.preferencesDriver = preferences
         self.contextPreferencesDriver = contextPreferences
         self.watcher = watcher
-        var continuation: AsyncStream<WorkspaceUpdate>.Continuation!
-        self.updateStream = AsyncStream { cont in
-            continuation = cont
-        }
-        self.updateContinuation = continuation
     }
 
     public func openWorkspace(rootPath: String) async throws -> WorkspaceSnapshot {
@@ -245,7 +214,7 @@ where PrefDriver.Preferences == WorkspacePreferences,
     }
 
     public func updates() -> AsyncStream<WorkspaceUpdate> {
-        updateStream
+        updateStreamBox.stream
     }
 
     private func mergeContextPreferences(
@@ -263,11 +232,8 @@ where PrefDriver.Preferences == WorkspacePreferences,
 
     /// Cancels watcher and closes update stream; call in teardown to avoid dangling tasks.
     public func shutdown() async {
-        let already = await shutdownState.markShutdown()
-        if already { return }
-
         await state.cancelWatcher()
-        await finishUpdates()
+        await updateStreamBox.finish()
     }
 
     // MARK: - Internal
@@ -434,17 +400,9 @@ where PrefDriver.Preferences == WorkspacePreferences,
         await state.replaceWatcher(task: task)
     }
 
-    private func finishUpdates() async {
-        let shouldFinish = await shutdownState.markFinished()
-        if shouldFinish {
-            updateContinuation.finish()
-        }
-    }
-
     private func emitUpdate(snapshot: WorkspaceSnapshot, error: WorkspaceUpdateError? = nil) async {
-        guard await shutdownState.shouldEmit() else { return }
         let projection = projection(from: snapshot)
-        updateContinuation.yield(WorkspaceUpdate(snapshot: snapshot, projection: projection, error: error))
+        await updateStreamBox.yield(WorkspaceUpdate(snapshot: snapshot, projection: projection, error: error))
     }
 }
 
