@@ -1,0 +1,16 @@
+{
+  "source": "/Users/johangunnarsson/Developer/entelechia-chat/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Navigation/NavigatorSidebar.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "No items yet",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 51
+        }
+      }
+    ]
+  },
+  "version": 1
+}

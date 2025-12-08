@@ -14,6 +14,7 @@
 import SwiftUI
 import AppKit
 import UniformTypeIdentifiers
+import CoreEngine
 
 @MainActor
 struct XcodeNavigatorRepresentable: NSViewRepresentable {
@@ -122,16 +123,16 @@ struct XcodeNavigatorRepresentable: NSViewRepresentable {
         }
 
         // Keep selection in sync with view model
-        let currentSelection = workspaceViewModel.selectedURL
-        if context.coordinator.lastSelectedURL != currentSelection {
-            context.coordinator.lastSelectedURL = currentSelection
-            dataSource.applySelection(currentSelection, in: outlineView)
+        let currentSelectionID = workspaceViewModel.selectedDescriptorID
+        if context.coordinator.lastSelectedDescriptorID != currentSelectionID {
+            context.coordinator.lastSelectedDescriptorID = currentSelectionID
+            dataSource.applySelection(descriptorID: currentSelectionID, in: outlineView)
         }
 
         // Keep expansion in sync with view model
-        let currentExpanded = workspaceViewModel.expandedURLs
-        if context.coordinator.lastExpandedURLs != currentExpanded {
-            context.coordinator.lastExpandedURLs = currentExpanded
+        let currentExpanded = workspaceViewModel.expandedDescriptorIDs
+        if context.coordinator.lastExpandedDescriptorIDs != currentExpanded {
+            context.coordinator.lastExpandedDescriptorIDs = currentExpanded
             dataSource.applyExpansionState(currentExpanded, in: outlineView)
         }
     }
@@ -146,8 +147,8 @@ struct XcodeNavigatorRepresentable: NSViewRepresentable {
         var outlineView: NSOutlineView?
         var lastFilterText: String = ""
         var lastRootURL: URL?
-        var lastSelectedURL: URL?
-        var lastExpandedURLs: Set<URL> = []
+        var lastSelectedDescriptorID: FileID?
+        var lastExpandedDescriptorIDs: Set<FileID> = []
     }
 }
 
@@ -160,7 +161,7 @@ class NavigatorDataSource: NSObject, NSOutlineViewDataSource, NSOutlineViewDeleg
     /// Rotnod för trädstrukturen (motsvarar vald `rootDirectory`).
     var rootNode: FileNode?
     /// Cache to avoid recomputing paths repeatedly.
-    private var pathCache: [URL: [FileNode]] = [:]
+    private var descriptorPathCache: [FileID: [FileNode]] = [:]
 
     override init() {
         super.init()
@@ -175,7 +176,7 @@ class NavigatorDataSource: NSObject, NSOutlineViewDataSource, NSOutlineViewDeleg
         }
         // Återanvänd det förinlästa trädet från WorkspaceViewModel.
         rootNode = root
-        pathCache.removeAll()
+        descriptorPathCache.removeAll()
     }
 
     // MARK: - NSOutlineViewDataSource
@@ -247,9 +248,14 @@ class NavigatorDataSource: NSObject, NSOutlineViewDataSource, NSOutlineViewDeleg
                    // Just expand/collapse to navigate
                    return
                }
-                self.workspaceViewModel?.setSelectedURL(node.path)
+                if let descriptorID = node.descriptorID {
+                    self.workspaceViewModel?.setSelectedDescriptorID(descriptorID)
+                } else {
+                    // Nodes without descriptor IDs are not part of the canonical engine projection.
+                    self.workspaceViewModel?.setSelectedDescriptorID(nil)
+                }
             } else {
-                self.workspaceViewModel?.setSelectedURL(nil)
+                self.workspaceViewModel?.setSelectedDescriptorID(nil)
             }
         }
     }
@@ -257,14 +263,18 @@ class NavigatorDataSource: NSObject, NSOutlineViewDataSource, NSOutlineViewDeleg
     func outlineViewItemDidExpand(_ notification: Notification) {
         guard let node = notification.userInfo?["NSObject"] as? FileNode else { return }
         Task { @MainActor [weak self] in
-            self?.workspaceViewModel?.expandedURLs.insert(node.path)
+            if let descriptorID = node.descriptorID {
+                self?.workspaceViewModel?.expandedDescriptorIDs.insert(descriptorID)
+            }
         }
     }
 
     func outlineViewItemDidCollapse(_ notification: Notification) {
         guard let node = notification.userInfo?["NSObject"] as? FileNode else { return }
         Task { @MainActor [weak self] in
-            self?.workspaceViewModel?.expandedURLs.remove(node.path)
+            if let descriptorID = node.descriptorID {
+                self?.workspaceViewModel?.expandedDescriptorIDs.remove(descriptorID)
+            }
         }
     }
     
@@ -322,16 +332,18 @@ class NavigatorDataSource: NSObject, NSOutlineViewDataSource, NSOutlineViewDeleg
             reconcile(node: oldRoot, with: newRoot, parentItem: nil, in: outlineView)
             outlineView.endUpdates()
         }
-        // Root node was mutated in-place to match new tree
-        pathCache.removeAll()
     }
 
     /// Reconcile a subtree by removing/adding children in place.
     private func reconcile(node oldNode: FileNode, with newNode: FileNode, parentItem: Any?, in outlineView: NSOutlineView) {
-        // Only reconcile nodes that represent the same path
-        guard oldNode.path == newNode.path else {
-            return
-        }
+        // Prefer descriptor identity; fall back to path when missing.
+        let sameIdentity: Bool = {
+            if let lhs = oldNode.descriptorID, let rhs = newNode.descriptorID {
+                return lhs == rhs
+            }
+            return oldNode.path == newNode.path
+        }()
+        guard sameIdentity else { return }
 
         let oldChildren = oldNode.children ?? []
         let newChildren = newNode.children ?? []
@@ -340,20 +352,30 @@ class NavigatorDataSource: NSObject, NSOutlineViewDataSource, NSOutlineViewDeleg
         var removals: [Int] = []
         var insertions: [(Int, FileNode)] = []
 
-        var oldByPath: [URL: (Int, FileNode)] = [:]
+        var oldByIdentity: [AnyHashable: (Int, FileNode)] = [:]
         for (idx, child) in oldChildren.enumerated() {
-            oldByPath[child.path] = (idx, child)
+            if let did = child.descriptorID {
+                oldByIdentity[AnyHashable(did)] = (idx, child)
+            } else {
+                oldByIdentity[AnyHashable(child.path)] = (idx, child)
+            }
         }
 
         // Determine removals
-        let newPaths = Set(newChildren.map { $0.path })
-        for (idx, child) in oldChildren.enumerated() where !newPaths.contains(child.path) {
-            removals.append(idx)
+        let newKeys: Set<AnyHashable> = Set(newChildren.map { child in
+            child.descriptorID.map { AnyHashable($0) } ?? AnyHashable(child.path)
+        })
+        for (idx, child) in oldChildren.enumerated() {
+            let key: AnyHashable = child.descriptorID.map { AnyHashable($0) } ?? AnyHashable(child.path)
+            if !newKeys.contains(key) {
+                removals.append(idx)
+            }
         }
 
         // Determine updated ordering and insertions
         for (newIndex, newChild) in newChildren.enumerated() {
-            if let (_, existing) = oldByPath[newChild.path] {
+            let key: AnyHashable = newChild.descriptorID.map { AnyHashable($0) } ?? AnyHashable(newChild.path)
+            if let (_, existing) = oldByIdentity[key] {
                 updatedChildren.append(existing)
             } else {
                 updatedChildren.append(newChild)
@@ -378,22 +400,36 @@ class NavigatorDataSource: NSObject, NSOutlineViewDataSource, NSOutlineViewDeleg
 
         // Recurse into matched children
         for newChild in newChildren {
-            if let existing = oldByPath[newChild.path]?.1 {
+            let key: AnyHashable = newChild.descriptorID.map { AnyHashable($0) } ?? AnyHashable(newChild.path)
+            if let existing = oldByIdentity[key]?.1 {
                 reconcile(node: existing, with: newChild, parentItem: existing, in: outlineView)
             }
         }
     }
 
-    /// Expand tree to the provided URL and select it.
-    func applySelection(_ url: URL?, in outlineView: NSOutlineView) {
-        guard let url else { return }
+    /// Expand tree to the provided descriptor ID (preferred) or URL (fallback) and select it.
+    func applySelection(descriptorID: FileID?, in outlineView: NSOutlineView) {
         guard let rootNode else { return }
-        guard let path = findPath(to: url, in: rootNode) else { return }
+        if let did = descriptorID, let path = findPath(descriptorID: did, in: rootNode) {
+            expandAndSelect(path: path, in: outlineView)
+        }
+    }
 
+    /// Expand nodes that correspond to provided descriptor IDs.
+    func applyExpansionState(_ expanded: Set<FileID>, in outlineView: NSOutlineView) {
+        guard let rootNode else { return }
+        for did in expanded {
+            guard let path = findPath(descriptorID: did, in: rootNode) else { continue }
+            for node in path {
+                outlineView.expandItem(node)
+            }
+        }
+    }
+
+    private func expandAndSelect(path: [FileNode], in outlineView: NSOutlineView) {
         for ancestor in path.dropLast() {
             outlineView.expandItem(ancestor)
         }
-
         if let node = path.last {
             let row = outlineView.row(forItem: node)
             if row >= 0 {
@@ -403,47 +439,30 @@ class NavigatorDataSource: NSObject, NSOutlineViewDataSource, NSOutlineViewDeleg
         }
     }
 
-    /// Expand nodes that correspond to provided URLs.
-    func applyExpansionState(_ expanded: Set<URL>, in outlineView: NSOutlineView) {
-        guard let rootNode else { return }
-        for url in expanded {
-            guard let path = findPath(to: url, in: rootNode) else { continue }
-            for node in path {
-                outlineView.expandItem(node)
-            }
-        }
-    }
-
-    /// Find path from root to node with URL (with simple caching).
-    private func findPath(to url: URL, in node: FileNode) -> [FileNode]? {
-        if let cached = pathCache[url] { return cached }
-        if node.path == url {
+    /// Find path from root to node by descriptor ID (cached).
+    private func findPath(descriptorID: FileID, in node: FileNode) -> [FileNode]? {
+        if let cached = descriptorPathCache[descriptorID] { return cached }
+        if let current = node.descriptorID, current == descriptorID {
             let path = [node]
-            pathCache[url] = path
+            descriptorPathCache[descriptorID] = path
             return path
         }
         guard let children = node.children else { return nil }
         for child in children {
-            if let path = findPath(to: url, in: child) {
+            if let path = findPath(descriptorID: descriptorID, in: child) {
                 let fullPath = [node] + path
-                pathCache[url] = fullPath
+                descriptorPathCache[descriptorID] = fullPath
                 return fullPath
             }
         }
         return nil
     }
+
 }
 
 private extension NavigatorDataSource {
     @MainActor
     func loadChildren(for node: FileNode) -> [FileNode]? {
-        do {
-            try node.loadChildrenIfNeeded(projectRoot: workspaceViewModel?.rootDirectory)
-        } catch {
-            Task { @MainActor [weak workspaceViewModel] in
-                workspaceViewModel?.publishFileBrowserError(error)
-            }
-        }
         return node.children
     }
 }

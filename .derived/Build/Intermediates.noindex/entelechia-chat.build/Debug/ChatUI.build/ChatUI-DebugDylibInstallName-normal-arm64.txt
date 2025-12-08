@@ -1,0 +1,1 @@
+@rpath/ChatUI.debug.dylib

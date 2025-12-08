@@ -54,7 +54,7 @@ class FileViewModel: ObservableObject {
         let name = url.lastPathComponent
         
         // Load content async with proper encoding
-        let content = try await Task.detached(priority: .userInitiated) {
+        let loadTask = Task(priority: .userInitiated) {
             // Try UTF-8 first
             if let data = try? Data(contentsOf: url),
                let text = String(data: data, encoding: .utf8) {
@@ -62,7 +62,8 @@ class FileViewModel: ObservableObject {
             }
             // Fallback to system encoding
             return try String(contentsOf: url, encoding: .utf8)
-        }.value
+        }
+        let content = try await loadTask.value
         
         let fileType = UTType(filenameExtension: url.pathExtension)
         

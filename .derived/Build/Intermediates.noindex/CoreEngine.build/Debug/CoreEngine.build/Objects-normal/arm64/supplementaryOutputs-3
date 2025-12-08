@@ -1,0 +1,44 @@
+{
+  "/Users/johangunnarsson/Developer/entelechia-chat/CoreEngine/Sources/CoreEngine/Domain/Conversations/ModelResponse.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/ModelResponse.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/ModelResponse.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/ModelResponse.dia",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/ModelResponse.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/ModelResponse.swiftdeps"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/CoreEngine/Sources/CoreEngine/Domain/ModelsPlaceholder.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/ModelsPlaceholder.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/ModelsPlaceholder.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/ModelsPlaceholder.dia",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/ModelsPlaceholder.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/ModelsPlaceholder.swiftdeps"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/CoreEngine/Sources/CoreEngine/Domain/Projects/ProjectRepresentation.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/ProjectRepresentation.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/ProjectRepresentation.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/ProjectRepresentation.dia",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/ProjectRepresentation.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/ProjectRepresentation.swiftdeps"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/CoreEngine/Sources/CoreEngine/Domain/Projects/ProjectTodos.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/ProjectTodos.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/ProjectTodos.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/ProjectTodos.dia",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/ProjectTodos.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/ProjectTodos.swiftdeps"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/CoreEngine/Sources/CoreEngine/Domain/Workspace/FileDescriptor.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/FileDescriptor.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/FileDescriptor.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/FileDescriptor.dia",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/FileDescriptor.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/FileDescriptor.swiftdeps"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/CoreEngine/Sources/CoreEngine/Domain/Workspace/FileExclusion.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/FileExclusion.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/FileExclusion.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/FileExclusion.dia",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/FileExclusion.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/FileExclusion.swiftdeps"
+  }
+}

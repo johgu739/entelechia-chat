@@ -6,39 +6,35 @@ All structural fixes have been applied to eliminate mutations during view update
 
 ---
 
-## I. PURIFIED ACCESSORS
+## I. PURIFIED ACCESSORS (UPDATED)
 
-### Pure Accessors (Safe During View Rendering)
+### Async Accessors (Safe, actor-backed)
 
-1. **`ConversationService.conversation(for:urlToConversationId:)`**
+1. **`ConversationEngineLive.conversation(for:)`** (actor, async)
    - Returns: `Conversation?`
-   - Purity: ✅ Pure - only reads from `conversationStore.conversations`
-   - No mutations, no I/O, no side effects
-   - Safe to call synchronously from view rendering
+   - Purity: ✅ Reads actor-isolated cache
+   - Safe: Must be awaited; no mutation during view rendering
 
-2. **`WorkspaceViewModel.conversation(for:)`**
+2. **`WorkspaceViewModel.conversation(for:)`** (async, engine-backed + cached)
    - Returns: `Conversation`
-   - Purity: ✅ Pure - delegates to service or reads from store
-   - Returns temporary placeholder if not found (immutable struct)
-   - Safe to call synchronously from view rendering
+   - Purity: ✅ Reads engine actor, hydrates local cache; no synchronous mutation
+   - Safe: Callers await in `.task` before binding to UI state
 
-3. **`ConversationStore.loadConversationIfNeeded(_:)`**
-   - Returns: `Conversation`
-   - Purity: ✅ Pure accessor - returns value immediately
-   - Store updates happen asynchronously in `Task { @MainActor in }`
-   - Safe to call synchronously from view rendering
+3. **`ConversationService.conversation(for:)`** (async wrapper)
+   - Returns: `Conversation?`
+   - Purity: ✅ Delegates to engine actor
+   - Safe: Await required
 
 ### Accessor Call Chain (View → Accessor)
 
 ```
-MainView.body (view rendering)
-  → WorkspaceViewModel.conversation(for:) [PURE]
-    → ConversationService.conversation(for:urlToConversationId:) [PURE]
-      → ConversationStore.conversations.first(where:) [PURE READ]
-        → Returns: Conversation (struct - immutable value) ✅
+MainView.task / ChatView.task (async)
+  → WorkspaceViewModel.conversation(for:) [await, async]
+    → ConversationEngineLive.conversation(for:) [actor, await]
+      → Actor cache read (immutable value) ✅
 ```
 
-**Result**: No mutation possible during view rendering.
+**Result**: No synchronous access; all conversation lookups are awaited and actor-isolated.
 
 ---
 

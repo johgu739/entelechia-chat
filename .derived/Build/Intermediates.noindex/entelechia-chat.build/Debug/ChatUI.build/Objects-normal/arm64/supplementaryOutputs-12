@@ -1,0 +1,51 @@
+{
+  "/Users/johangunnarsson/Developer/entelechia-chat/ChatUI/Tools/Operator/EntelechiaOperator/Sources/App/EntelechiaOperatorApp.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/EntelechiaOperatorApp.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/EntelechiaOperatorApp.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/EntelechiaOperatorApp.dia",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/EntelechiaOperatorApp.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/EntelechiaOperatorApp.swiftdeps"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/ChatUI/Tools/Operator/EntelechiaOperator/Sources/App/RootLayout.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/RootLayout.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/RootLayout.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/RootLayout.dia",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/RootLayout.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/RootLayout.swiftdeps"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Editor/CodeView.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/CodeView.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/CodeView.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/CodeView.dia",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/CodeView.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/CodeView.swiftdeps"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Editor/EditorSurface.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/EditorSurface.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/EditorSurface.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/EditorSurface.dia",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/EditorSurface.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/EditorSurface.swiftdeps"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Editor/MarkdownView.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/MarkdownView.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/MarkdownView.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/MarkdownView.dia",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/MarkdownView.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/MarkdownView.swiftdeps"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Editor/OperatorChatView.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/OperatorChatView.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/OperatorChatView.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/OperatorChatView.dia",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/OperatorChatView.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/OperatorChatView.swiftdeps"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Editor/PatchDiffView.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/PatchDiffView.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/PatchDiffView.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/PatchDiffView.dia",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/PatchDiffView.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/entelechia-chat.build/Debug/ChatUI.build/Objects-normal/arm64/PatchDiffView.swiftdeps"
+  }
+}

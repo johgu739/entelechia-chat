@@ -3,17 +3,77 @@ import CoreEngine
 @preconcurrency import os.log
 
 /// Disk-backed conversation persistence adapter wrapping existing FileStore logic.
+///
+/// Concurrency: serialized via private DispatchQueue; file IO confined to that queue. Marked
+/// `@unchecked Sendable` because DispatchQueue and FileManager handles are not statically Sendable.
 public final class FileStoreConversationPersistence: ConversationPersistenceDriver, @unchecked Sendable {
     public typealias ConversationType = Conversation
 
     private let fileStore: FileStore
     private let logger = Logger(subsystem: "chat.entelechia.uiconnections", category: "FileStoreConversation")
+    private let queue = DispatchQueue(label: "FileStoreConversationPersistence.queue")
 
     public init(baseURL: URL? = nil) {
         self.fileStore = FileStore(baseURL: baseURL)
     }
 
     public func loadAllConversations() throws -> [Conversation] {
+        try queue.sync {
+            try loadAllConversationsOnQueue()
+        }
+    }
+
+    public func saveConversation(_ conversation: Conversation) throws {
+        try queue.sync {
+            try fileStore.ensureDirectoryExists()
+            let conversationURL = fileStore.resolveConversationsDirectory()
+                .appendingPathComponent("\(conversation.id.uuidString).json")
+            try fileStore.save(conversation, to: conversationURL)
+
+            // Sync index
+            try syncIndexOnQueue(with: [conversation])
+        }
+    }
+
+    public func deleteConversation(_ conversation: Conversation) throws {
+        try queue.sync {
+            let conversationURL = fileStore.resolveConversationsDirectory()
+                .appendingPathComponent("\(conversation.id.uuidString).json")
+            try fileStore.delete(at: conversationURL)
+            try syncIndexOnQueue(without: conversation.id)
+        }
+    }
+
+    private func syncIndexOnQueue(with conversations: [Conversation]) throws {
+        // For simplicity, rewrite full index using all on-disk conversations.
+        let all = try loadAllConversationsOnQueue()
+        let entries = all.map { entry in
+            ConversationIndexEntry(
+                id: entry.id,
+                title: entry.title,
+                updatedAt: entry.updatedAt,
+                path: "\(entry.id.uuidString).json"
+            )
+        }
+        let index = ConversationIndex(version: 1, conversations: entries)
+        try fileStore.save(index, to: fileStore.resolveIndexPath())
+    }
+
+    private func syncIndexOnQueue(without id: UUID) throws {
+        let all = try loadAllConversationsOnQueue().filter { $0.id != id }
+        let entries = all.map { entry in
+            ConversationIndexEntry(
+                id: entry.id,
+                title: entry.title,
+                updatedAt: entry.updatedAt,
+                path: "\(entry.id.uuidString).json"
+            )
+        }
+        let index = ConversationIndex(version: 1, conversations: entries)
+        try fileStore.save(index, to: fileStore.resolveIndexPath())
+    }
+
+    private func loadAllConversationsOnQueue() throws -> [Conversation] {
         try fileStore.ensureDirectoryExists()
 
         let indexURL = fileStore.resolveIndexPath()
@@ -48,57 +108,11 @@ public final class FileStoreConversationPersistence: ConversationPersistenceDriv
         // Sort
         return loaded.sorted { $0.updatedAt > $1.updatedAt }
     }
-
-    public func saveConversation(_ conversation: Conversation) throws {
-        try fileStore.ensureDirectoryExists()
-        let conversationURL = fileStore.resolveConversationsDirectory()
-            .appendingPathComponent("\(conversation.id.uuidString).json")
-        try fileStore.save(conversation, to: conversationURL)
-
-        // Sync index
-        try syncIndex(with: [conversation])
-    }
-
-    public func deleteConversation(_ conversation: Conversation) throws {
-        let conversationURL = fileStore.resolveConversationsDirectory()
-            .appendingPathComponent("\(conversation.id.uuidString).json")
-        try fileStore.delete(at: conversationURL)
-        try syncIndex(without: conversation.id)
-    }
-
-    private func syncIndex(with conversations: [Conversation]) throws {
-        // For simplicity, rewrite full index using all on-disk conversations.
-        let all = try loadAllConversations()
-        let entries = all.map { entry in
-            ConversationIndexEntry(
-                id: entry.id,
-                title: entry.title,
-                updatedAt: entry.updatedAt,
-                path: "\(entry.id.uuidString).json"
-            )
-        }
-        let index = ConversationIndex(version: 1, conversations: entries)
-        try fileStore.save(index, to: fileStore.resolveIndexPath())
-    }
-
-    private func syncIndex(without id: UUID) throws {
-        let all = try loadAllConversations().filter { $0.id != id }
-        let entries = all.map { entry in
-            ConversationIndexEntry(
-                id: entry.id,
-                title: entry.title,
-                updatedAt: entry.updatedAt,
-                path: "\(entry.id.uuidString).json"
-            )
-        }
-        let index = ConversationIndex(version: 1, conversations: entries)
-        try fileStore.save(index, to: fileStore.resolveIndexPath())
-    }
 }
 
 // MARK: - Internal FileStore wrapper (copied/trimmed for adapter use)
 
-final class FileStore {
+final class FileStore: @unchecked Sendable {
     private let logger = Logger(subsystem: "chat.entelechia.uiconnections", category: "FileStore")
     private let baseURL: URL
 

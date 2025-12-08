@@ -13,27 +13,31 @@
 
 import SwiftUI
 import CoreEngine
-import AppAdapters
-import AppAdapters
 
 struct MainWorkspaceView: View {
     private let workspaceEngine: WorkspaceEngine
-    private let conversationEngine: ConversationEngineLive<AnyCodexClient, FileStoreConversationPersistence>
+    private let conversationEngine: ConversationStreaming
+    private let projectTodosLoader: ProjectTodosLoading
     @EnvironmentObject var projectSession: ProjectSession
     @EnvironmentObject var alertCenter: AlertCenter
+    @EnvironmentObject var codexStatusModel: CodexStatusModel
     @StateObject private var workspaceViewModel: WorkspaceViewModel
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
+    @State private var conversation: Conversation = Conversation(contextFilePaths: [])
 
     init(
         workspaceEngine: WorkspaceEngine,
-        conversationEngine: ConversationEngineLive<AnyCodexClient, FileStoreConversationPersistence>
+        conversationEngine: ConversationStreaming,
+        projectTodosLoader: ProjectTodosLoading
     ) {
         self.workspaceEngine = workspaceEngine
         self.conversationEngine = conversationEngine
+        self.projectTodosLoader = projectTodosLoader
         _workspaceViewModel = StateObject(
             wrappedValue: WorkspaceViewModel(
                 workspaceEngine: workspaceEngine,
-                conversationEngine: conversationEngine
+                conversationEngine: conversationEngine,
+                projectTodosLoader: projectTodosLoader
             )
         )
     }
@@ -45,32 +49,20 @@ struct MainWorkspaceView: View {
                 .environmentObject(workspaceViewModel)
                 .navigationSplitViewColumnWidth(min: 200, ideal: 240, max: 320)
         } content: {
-            // CENTER: Chat or No File Selected
-            Group {
-                if let selectedNode = workspaceViewModel.selectedNode {
-                    // Use a computed property to get the latest conversation from store
-                    let currentConversation = workspaceViewModel.conversation(for: selectedNode.path)
-                    ChatView(conversation: currentConversation)
-                        .environmentObject(workspaceViewModel)
-                        .navigationTitle(selectedNode.name)
-                        .task(id: selectedNode.path) {
-                            // Ensure conversation exists asynchronously (outside view rendering)
-                            // The conversation returned by workspaceViewModel.conversation(for:) will
-                            // automatically reflect updates from ConversationStore since it reads from
-                            // the @Published conversations array
-                            await workspaceViewModel.ensureConversation(for: selectedNode.path)
-                        }
-                } else {
-                    NoFileSelectedView()
-                        .navigationTitle(projectSession.projectName.isEmpty ? "No Selection" : projectSession.projectName)
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            chatContent
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         } detail: {
             // RIGHT: Inspector
             ContextInspector()
                 .environmentObject(workspaceViewModel)
                 .navigationSplitViewColumnWidth(min: 220, ideal: 260, max: 320)
+        }
+        .overlay(alignment: .top) {
+            CodexStatusBanner()
+                .environmentObject(codexStatusModel)
+                .environmentObject(workspaceViewModel)
+                .padding(.horizontal, 12)
+                .padding(.top, 8)
         }
         .toolbar {
             // File Explorer toggle
@@ -131,6 +123,29 @@ struct MainWorkspaceView: View {
             columnVisibility = .doubleColumn
         } else {
             columnVisibility = .all
+        }
+    }
+
+    @ViewBuilder
+    private var chatContent: some View {
+        if let selectedNode = workspaceViewModel.selectedNode {
+            ChatView(conversation: conversation)
+                .environmentObject(workspaceViewModel)
+                .navigationTitle(selectedNode.name)
+                .task(id: selectedNode.path) {
+                    if let descriptorID = selectedNode.descriptorID {
+                        await workspaceViewModel.ensureConversation(forDescriptorID: descriptorID)
+                        if let convo = await workspaceViewModel.conversation(forDescriptorID: descriptorID) {
+                            conversation = convo
+                        }
+                    } else {
+                        await workspaceViewModel.ensureConversation(for: selectedNode.path)
+                        conversation = await workspaceViewModel.conversation(for: selectedNode.path)
+                    }
+                }
+        } else {
+            NoFileSelectedView()
+                .navigationTitle(projectSession.projectName.isEmpty ? "No Selection" : projectSession.projectName)
         }
     }
 }

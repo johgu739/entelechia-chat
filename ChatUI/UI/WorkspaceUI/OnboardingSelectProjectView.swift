@@ -104,7 +104,7 @@ struct OnboardingSelectProjectView: View {
                     
                     ScrollView {
                         VStack(spacing: 8) {
-                            ForEach(coordinator.recentProjects.prefix(10), id: \.path) { project in
+                            ForEach(Array(coordinator.recentProjects.prefix(10)), id: \.representation.rootPath) { project in
                                 RecentProjectRow(project: project) {
                                     coordinator.openRecent(project)
                                 }
@@ -149,7 +149,7 @@ struct RecentProjectRow: View {
     @State private var isHovered = false
     
     private var url: URL {
-        URL(fileURLWithPath: project.path)
+        URL(fileURLWithPath: project.representation.rootPath)
     }
     
     var body: some View {
@@ -161,7 +161,7 @@ struct RecentProjectRow: View {
                     .frame(width: 20)
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(project.name)
+                    Text(project.representation.name)
                         .font(.system(size: 14, weight: .medium))
                         .foregroundColor(.primary)
                         .lineLimit(1)

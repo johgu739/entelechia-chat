@@ -18,7 +18,7 @@ import UniformTypeIdentifiers
 import CoreServices
 import os.log
 import CoreEngine
-import AppAdapters
+import UIConnections
 
 enum WorkspaceViewModelError: LocalizedError {
     case invalidProjectPath(String)
@@ -82,55 +82,62 @@ class WorkspaceViewModel: ObservableObject {
     // MARK: - Published State (UI State Only)
     
     @Published var selectedNode: FileNode?
-    @Published var selectedURL: URL? {
-        didSet {
-            updateSelectedNode()
-        }
-    }
-    @Published var rootDirectory: URL {
-        didSet {
-            handleRootDirectoryChange()
-        }
-    }
+    @Published var rootFileNode: FileNode?
+    @Published var isLoading: Bool = false
     @Published var filterText: String = ""
     @Published var activeNavigator: NavigatorMode = .project
-    @Published var expandedURLs: Set<URL> = []
-    @Published var isLoading: Bool = false
-    @Published var rootFileNode: FileNode?
+    @Published var expandedDescriptorIDs: Set<FileID> = []
     @Published var projectTodos: ProjectTodos = .empty
     @Published var todosError: String?
     @Published private var streamingMessages: [UUID: String] = [:]
     @Published private(set) var lastContextResult: ContextBuildResult?
+    @Published private(set) var selectedDescriptorID: FileID?
+    @Published private var workspaceState: WorkspaceViewState = WorkspaceViewState(
+        rootPath: nil,
+        selectedDescriptorID: nil,
+        selectedPath: nil,
+        projection: nil,
+        contextInclusions: [:],
+        watcherError: nil
+    )
+    @Published var watcherError: String?
+    private var updatesTask: Task<Void, Never>?
     
     // MARK: - Dependencies (Services)
     
     private let workspaceEngine: WorkspaceEngine
-    private let conversationEngine: ConversationEngineLive<AnyCodexClient, FileStoreConversationPersistence>
-    private var eventStream: FSEventStreamRef?
+    private let conversationEngine: ConversationStreaming
+    private let projectTodosLoader: ProjectTodosLoading
     private var alertCenter: AlertCenter?
     private let logger = Logger.persistence
-    private let sentinelDirectoryPath = URL(fileURLWithPath: "/").path
+    private let contextErrorSubject = PassthroughSubject<String, Never>()
+    
+    // MARK: - Derived State
+    
+    var rootDirectory: URL? {
+        workspaceSnapshot.rootPath.map { URL(fileURLWithPath: $0, isDirectory: true) }
+    }
+    
+    private var descriptorPaths: [FileID: String] {
+        workspaceState.projection?.flattenedPaths ?? [:]
+    }
     
     // MARK: - Private State
-    
-    private var urlToConversationId: [URL: UUID] = [:]
-    private var isReloadingFromWatcher = false
+    private var workspaceSnapshot: WorkspaceSnapshot = .empty
     
     // MARK: - Initialization
     
     init(
         workspaceEngine: WorkspaceEngine,
-        conversationEngine: ConversationEngineLive<AnyCodexClient, FileStoreConversationPersistence>,
+        conversationEngine: ConversationStreaming,
+        projectTodosLoader: ProjectTodosLoading,
         alertCenter: AlertCenter? = nil
     ) {
         self.workspaceEngine = workspaceEngine
         self.conversationEngine = conversationEngine
+        self.projectTodosLoader = projectTodosLoader
         self.alertCenter = alertCenter
-        
-        // FIX 3: Use sentinel value that does NOT trigger file tree loading
-        // Root directory will be set when a real project is opened
-        self.rootDirectory = URL(fileURLWithPath: "/")
-        self.rootFileNode = nil
+        subscribeToUpdates()
     }
     
 
@@ -142,16 +149,45 @@ class WorkspaceViewModel: ObservableObject {
     // MARK: - Public Methods (State Mutations)
     
     func setRootDirectory(_ url: URL) {
-        rootDirectory = url
+        Task { await openWorkspace(at: url) }
     }
     
     func setSelectedURL(_ url: URL?) {
-        selectedURL = url
-        Task { try? await workspaceEngine.select(path: url?.path) }
+        guard let url else {
+            Task { await selectPath(nil) }
+            return
+        }
+        // Prefer descriptor-based selection when possible.
+        if let descriptorID = descriptorPaths.first(where: { $0.value == url.path })?.key {
+            setSelectedDescriptorID(descriptorID)
+            return
+        }
+        Task { await selectPath(url) }
+    }
+    
+    /// Preferred selection API: selects by engine descriptor ID.
+    func setSelectedDescriptorID(_ id: FileID?) {
+        guard let id else {
+            Task { await selectPath(nil) }
+            return
+        }
+        if let path = descriptorPaths[id] {
+            Task { await selectPath(URL(fileURLWithPath: path)) }
+        }
     }
 
     func streamingText(for conversationID: UUID) -> String {
         streamingMessages[conversationID] ?? ""
+    }
+
+    
+    var contextErrorPublisher: AnyPublisher<String, Never> {
+        contextErrorSubject.eraseToAnyPublisher()
+    }
+    
+    /// Lookup the URL associated with an engine descriptor ID (if known).
+    func url(for descriptorID: FileID) -> URL? {
+        descriptorPaths[descriptorID].map { URL(fileURLWithPath: $0) }
     }
 
     func publishFileBrowserError(_ error: Error) {
@@ -160,197 +196,142 @@ class WorkspaceViewModel: ObservableObject {
     
     // MARK: - Private State Management
     
-    private func handleRootDirectoryChange() {
-        stopWatchingRoot()
-        guard rootDirectory.path != sentinelDirectoryPath else {
-            projectTodos = .empty
-            todosError = nil
-            rootFileNode = nil
-            selectedURL = nil
-            selectedNode = nil
-            return
-        }
-
-        loadProjectTodos()
-
-        Task { @MainActor [weak self] in
-            guard let self else { return }
-            isLoading = true
-            defer { isLoading = false }
-            do {
-                _ = try await workspaceEngine.openWorkspace(rootPath: rootDirectory.path)
-                let loaded = await loadFileTree(preserveSelection: false)
-                if loaded {
-                    startWatchingRoot()
-                }
-            } catch {
-                handleFileSystemError(error, fallbackTitle: "Failed to Load Project")
-                rootFileNode = nil
+    private func openWorkspace(at url: URL) async {
+        isLoading = true
+        defer { isLoading = false }
+        do {
+            let snapshot = try await withTimeout(seconds: 30) { [self] in
+                try await workspaceEngine.openWorkspace(rootPath: url.path)
             }
+            applyUpdate(WorkspaceUpdate(snapshot: snapshot, projection: await workspaceEngine.treeProjection(), error: nil))
+            loadProjectTodos(for: url)
+        } catch let timeout as TimeoutError {
+            handleFileSystemError(timeout, fallbackTitle: "Load Timed Out")
+            applyUpdate(WorkspaceUpdate(snapshot: .empty, projection: nil, error: nil))
+            rootFileNode = nil
+        } catch {
+            handleFileSystemError(error, fallbackTitle: "Failed to Load Project")
+            applyUpdate(WorkspaceUpdate(snapshot: .empty, projection: nil, error: nil))
+            rootFileNode = nil
         }
     }
     
+    private func selectPath(_ url: URL?) async {
+        do {
+            let snapshot = try await withTimeout(seconds: 10) { [self] in
+                try await workspaceEngine.select(path: url?.path)
+            }
+            applyUpdate(WorkspaceUpdate(snapshot: snapshot, projection: await workspaceEngine.treeProjection(), error: nil))
+        } catch let timeout as TimeoutError {
+            handleFileSystemError(timeout, fallbackTitle: "Selection Timed Out")
+        } catch {
+            handleFileSystemError(error, fallbackTitle: "Failed to Select File")
+        }
+    }
+    
+    private func applyUpdate(_ update: WorkspaceUpdate) {
+        workspaceSnapshot = update.snapshot
+        let previousRoot = workspaceState.rootPath
+        let notice: WorkspaceErrorNotice? = {
+            guard let err = update.error else { return nil }
+            switch err {
+            case .watcherUnavailable: return .watcherUnavailable
+            case .refreshFailed(let message): return .refreshFailed(message)
+            }
+        }()
+        let mapped = WorkspaceViewStateMapper.map(update: update, watcherError: notice)
+        workspaceState = mapped
+        if previousRoot != mapped.rootPath {
+            expandedDescriptorIDs.removeAll()
+            selectedNode = nil
+            selectedDescriptorID = nil
+        }
+        selectedDescriptorID = mapped.selectedDescriptorID
+        if let selectedDescriptorID,
+           let projection = mapped.projection,
+           let node = FileNode.fromProjection(projection).findNode(withDescriptorID: selectedDescriptorID) {
+            selectedNode = node
+        } else {
+            updateSelectedNode()
+        }
+        if let projection = mapped.projection {
+            rootFileNode = FileNode.fromProjection(projection)
+        }
+        watcherError = mapped.watcherError
+    }
+
+    private func applySnapshot(_ snapshot: WorkspaceSnapshot, projection: WorkspaceTreeProjection?) {
+        let update = WorkspaceUpdate(snapshot: snapshot, projection: projection, error: nil)
+        applyUpdate(update)
+    }
+
+    private func subscribeToUpdates() {
+        updatesTask?.cancel()
+        updatesTask = Task { [weak self] in
+            guard let self else { return }
+            for await update in self.workspaceEngine.updates() {
+                await MainActor.run {
+                    self.applyUpdate(update)
+                }
+            }
+        }
+    }
+
     private func updateSelectedNode() {
-        guard let url = selectedURL else {
+        guard let descriptorID = selectedDescriptorID else {
             selectedNode = nil
             return
         }
-
-        // Try to find node in loaded tree
-        if let root = rootFileNode,
-           let node = root.findNode(withURL: url) {
+        if let node = rootFileNode?.findNode(withDescriptorID: descriptorID) {
             selectedNode = node
         } else {
-            // Fallback: create standalone node
-            selectedNode = FileNode.from(url: url, includeParent: false)
-        }
-    }
-
-    /// Rebuild file tree; optionally preserve current selection.
-    @discardableResult
-    private func loadFileTree(preserveSelection: Bool) async -> Bool {
-        guard rootDirectory.path != sentinelDirectoryPath else {
-            stopWatchingRoot()
-            return false
-        }
-
-        let previousSelection = preserveSelection ? selectedURL : nil
-        if !preserveSelection {
-            selectedURL = nil
             selectedNode = nil
-            expandedURLs.removeAll()
         }
-
-        do {
-            logger.debug("Loading workspace tree for \(self.rootDirectory.path, privacy: .private)")
-            let descriptors = try await workspaceEngine.refresh()
-            guard let tree = FileNode.fromDescriptors(descriptors, rootPath: rootDirectory.path) else {
-                throw WorkspaceViewModelError.unreadableProject(rootDirectory.path)
-            }
-            rootFileNode = tree
-        } catch {
-            handleFileSystemError(error, fallbackTitle: "Failed to Load Project")
-            rootFileNode = nil
-            return false
-        }
-
-        if preserveSelection,
-           let saved = previousSelection,
-           FileManager.default.fileExists(atPath: saved.path) {
-            selectedURL = saved
-        }
-
-        if !preserveSelection {
-            if let saved = lastSelectionFromPreferences(for: rootDirectory) {
-                selectedURL = saved
-            }
-        }
-
-        return true
-    }
-
-    deinit {
-        Task { @MainActor [weak self] in
-            self?.stopWatchingRoot()
-        }
-    }
-
-    private func startWatchingRoot() {
-        stopWatchingRoot()
-        guard rootDirectory.path != sentinelDirectoryPath else { return }
-
-        var context = FSEventStreamContext(
-            version: 0,
-            info: UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque()),
-            retain: nil,
-            release: nil,
-            copyDescription: nil
-        )
-
-        let pathsToWatch = [rootDirectory.path] as CFArray
-        eventStream = FSEventStreamCreate(
-            kCFAllocatorDefault,
-            { _, info, _, _, _, _ in
-                guard let info else { return }
-                let viewModel = Unmanaged<WorkspaceViewModel>.fromOpaque(info).takeUnretainedValue()
-                viewModel.handleFileSystemEvent()
-            },
-            &context,
-            pathsToWatch,
-            FSEventStreamEventId(kFSEventStreamEventIdSinceNow),
-            0.5,
-            FSEventStreamCreateFlags(kFSEventStreamCreateFlagFileEvents | kFSEventStreamCreateFlagNoDefer | kFSEventStreamCreateFlagUseCFTypes)
-        )
-
-        if let stream = eventStream {
-            FSEventStreamSetDispatchQueue(stream, DispatchQueue.main)
-            FSEventStreamStart(stream)
-        }
-    }
-
-    private func stopWatchingRoot() {
-        if let stream = eventStream {
-            FSEventStreamStop(stream)
-            FSEventStreamInvalidate(stream)
-            FSEventStreamRelease(stream)
-            eventStream = nil
-        }
-    }
-
-    private func handleFileSystemEvent() {
-        Task { @MainActor [weak self] in
-            guard let self else { return }
-            if isReloadingFromWatcher { return }
-            isReloadingFromWatcher = true
-            _ = await loadFileTree(preserveSelection: true)
-            isReloadingFromWatcher = false
-        }
-    }
-
-    /// Selection persistence handled by WorkspaceEngine; lookup helper for UI.
-    private func lastSelectionFromPreferences(for root: URL) -> URL? {
-        workspaceEngine.state().lastPersistedSelection.map { URL(fileURLWithPath: $0) }
     }
     
     // MARK: - Context Preferences
     
     func isPathIncludedInContext(_ url: URL) -> Bool {
-        guard rootDirectory.path != sentinelDirectoryPath else { return true }
-        let prefs = workspaceEngine.state().contextPreferences
+        guard workspaceSnapshot.rootPath != nil else { return true }
         let path = url.path
-        if prefs.excludedPaths.contains(path) { return false }
-        if prefs.includedPaths.isEmpty { return true }
-        return prefs.includedPaths.contains(path)
+        if let descriptorID = workspaceSnapshot.descriptorPaths.first(where: { $0.value == path })?.key,
+           let inclusion = workspaceSnapshot.contextInclusions[descriptorID] {
+            switch inclusion {
+            case .excluded:
+                return false
+            case .included:
+                return true
+            case .neutral:
+                return true
+            }
+        }
+        return true
     }
     
     func setContextInclusion(_ include: Bool, for url: URL) {
-        guard rootDirectory.path != sentinelDirectoryPath else { return }
+        guard workspaceSnapshot.rootPath != nil else { return }
         Task {
-            _ = try? await workspaceEngine.setContextInclusion(path: url.path, included: include)
+            if let snapshot = try? await workspaceEngine.setContextInclusion(path: url.path, included: include) {
+                let projection = await workspaceEngine.treeProjection()
+                await MainActor.run {
+                    applySnapshot(snapshot, projection: projection)
+                }
+            }
         }
-    }
-    
-    private func currentContextPreferences() -> ContextPreferences? {
-        let prefs = workspaceEngine.state().contextPreferences
-        return ContextPreferences(
-            includedPaths: prefs.includedPaths,
-            excludedPaths: prefs.excludedPaths,
-            lastFocusedFilePath: prefs.lastFocusedFilePath
-        )
     }
     
     // MARK: - UI State Methods
     
-    func toggleExpanded(_ url: URL) {
-        if expandedURLs.contains(url) {
-            expandedURLs.remove(url)
+    func toggleExpanded(descriptorID: FileID) {
+        if expandedDescriptorIDs.contains(descriptorID) {
+            expandedDescriptorIDs.remove(descriptorID)
         } else {
-            expandedURLs.insert(url)
+            expandedDescriptorIDs.insert(descriptorID)
         }
     }
     
-    func isExpanded(_ url: URL) -> Bool {
-        expandedURLs.contains(url)
+    func isExpanded(descriptorID: FileID) -> Bool {
+        expandedDescriptorIDs.contains(descriptorID)
     }
 
     
@@ -358,11 +339,22 @@ class WorkspaceViewModel: ObservableObject {
     
     /// Get conversation for URL (pure accessor - safe during view rendering)
     /// Returns existing conversation or temporary placeholder - NEVER mutates
-    func conversation(for url: URL) -> Conversation {
-        if let existing = conversationEngine.conversation(for: url) {
-            return existing
+    func conversation(for url: URL) async -> Conversation {
+        if let engineConvo = await conversationEngine.conversation(for: url) {
+            return engineConvo
         }
         return Conversation(contextFilePaths: [url.path])
+    }
+    
+    /// Preferred accessor: lookup by descriptor ID, falls back to URL if missing.
+    func conversation(forDescriptorID descriptorID: FileID) async -> Conversation? {
+        if let engineConvo = await conversationEngine.conversation(forDescriptorIDs: [descriptorID]) {
+            return engineConvo
+        }
+        if let url = url(for: descriptorID) {
+            return await conversation(for: url)
+        }
+        return nil
     }
     
     /// Ensure conversation exists (side-effecting - must be called from async context)
@@ -370,11 +362,24 @@ class WorkspaceViewModel: ObservableObject {
     @MainActor
     func ensureConversation(for url: URL) async {
         do {
-            let convo = try await conversationEngine.ensureConversation(for: url)
-            urlToConversationId[url] = convo.id
+            _ = try await conversationEngine.ensureConversation(for: url)
         } catch {
             let wrapped = WorkspaceViewModelError.conversationEnsureFailed(error)
             logger.error("Failed to ensure conversation: \(error.localizedDescription, privacy: .public)")
+            alertCenter?.publish(wrapped, fallbackTitle: "Conversation Error")
+        }
+    }
+    
+    /// Preferred side-effecting ensure: lookup by descriptor ID, fallback to URL if missing.
+    @MainActor
+    func ensureConversation(forDescriptorID descriptorID: FileID) async {
+        do {
+            _ = try await conversationEngine.ensureConversation(forDescriptorIDs: [descriptorID]) { [weak self] id in
+                self?.descriptorPaths[id]
+            }
+        } catch {
+            let wrapped = WorkspaceViewModelError.conversationEnsureFailed(error)
+            logger.error("Failed to ensure conversation via descriptor: \(error.localizedDescription, privacy: .public)")
             alertCenter?.publish(wrapped, fallbackTitle: "Conversation Error")
         }
     }
@@ -388,68 +393,85 @@ class WorkspaceViewModel: ObservableObject {
         }
         
         do {
-            let (updatedConversation, contextResult) = try await conversationEngine.sendMessage(
-                text,
-                in: conversation,
-                contextURL: selectedNode?.path,
-                onStream: ({ [weak self] event in
-                    guard let self = self else { return }
-                    Task { @MainActor in
-                        switch event {
-                        case .context(let context):
-                            self.lastContextResult = context
-                        case .model(let chunk):
-                            switch chunk {
-                            case .token(let token):
-                            let current = self.streamingMessages[conversation.id] ?? ""
-                            self.streamingMessages[conversation.id] = current + token
-                            case .output(let response):
-                                self.streamingMessages[conversation.id] = response.content
-                            case .done:
-                                break
+            // Ensure we have some form of context selection before invoking the engine.
+            let hasContextAnchor = !workspaceSnapshot.descriptorPaths.isEmpty
+                || workspaceSnapshot.selectedPath != nil
+                || workspaceSnapshot.contextPreferences.lastFocusedFilePath != nil
+            if !hasContextAnchor {
+                let message = "Context load failed: no selection"
+                alertCenter?.publish(WorkspaceViewModelError.conversationEnsureFailed(EngineError.contextLoadFailed(message)), fallbackTitle: "Context Error")
+                contextErrorSubject.send(message)
+                lastContextResult = nil
+                return
+            }
+
+            var convo = conversation
+            // If we have a selected descriptor ID, persist it with the conversation for ID binding.
+            if let did = selectedDescriptorID {
+                convo.contextDescriptorIDs = [did]
+            }
+            let contextRequest = ConversationContextRequest(
+                snapshot: workspaceSnapshot,
+                preferredDescriptorIDs: convo.contextDescriptorIDs,
+                fallbackContextURL: selectedNode?.path,
+                budget: nil
+            )
+            let (_, contextResult) = try await withTimeout(seconds: 60) { [self] in
+                try await conversationEngine.sendMessage(
+                    text,
+                    in: convo,
+                    context: contextRequest,
+                    onStream: ({ [weak self] event in
+                        guard let self = self else { return }
+                        Task { @MainActor in
+                            switch event {
+                            case .context(let context):
+                                self.lastContextResult = context
+                            case .assistantStreaming(let aggregate):
+                                self.streamingMessages[conversation.id] = aggregate
+                            case .assistantCommitted(_):
+                                self.streamingMessages[conversation.id] = nil
                             }
                         }
-                    }
-                } as ((ConversationStreamEvent) -> Void)?)
-            )
-            
-            if let url = updatedConversation.contextURL ?? updatedConversation.contextFilePaths.first.map({ URL(fileURLWithPath: $0) }) {
-                urlToConversationId[url] = updatedConversation.id
+                    } as ((ConversationDelta) -> Void)?)
+                )
             }
             lastContextResult = contextResult
             
         } catch {
             let wrapped = WorkspaceViewModelError.conversationEnsureFailed(error)
             logger.error("Failed to send message: \(error.localizedDescription, privacy: .public)")
-            alertCenter?.publish(wrapped, fallbackTitle: "Conversation Error")
+            if case EngineError.contextLoadFailed(let message) = error {
+                alertCenter?.publish(WorkspaceViewModelError.conversationEnsureFailed(error), fallbackTitle: "Context Load Failed: \(message)")
+                contextErrorSubject.send("Context load failed: \(message)")
+            } else {
+                alertCenter?.publish(wrapped, fallbackTitle: "Conversation Error")
+            }
             lastContextResult = nil
         }
     }
 
     // MARK: - Ontology Todos Loading
     
-    private func loadProjectTodos() {
-        guard rootDirectory.path != sentinelDirectoryPath else {
+    private func loadProjectTodos(for root: URL?) {
+        guard let root else {
             projectTodos = .empty
             todosError = nil
             return
         }
-        
-        let todosURL = rootDirectory.appendingPathComponent("ProjectTodos.ent.json")
-        guard FileManager.default.fileExists(atPath: todosURL.path) else {
-            projectTodos = .empty
-            todosError = nil
-            return
-        }
-        
-        do {
-            let data = try Data(contentsOf: todosURL)
-            let decoder = JSONDecoder()
-            projectTodos = try decoder.decode(ProjectTodos.self, from: data)
-            todosError = nil
-        } catch {
-            projectTodos = .empty
-            todosError = "Failed to load ProjectTodos.ent.json: \(error.localizedDescription)"
+        Task {
+            do {
+                let todos = try projectTodosLoader.loadTodos(for: root)
+                await MainActor.run {
+                    projectTodos = todos
+                    todosError = nil
+                }
+            } catch {
+                await MainActor.run {
+                    projectTodos = .empty
+                    todosError = "Failed to load ProjectTodos.ent.json: \(error.localizedDescription)"
+                }
+            }
         }
     }
 
@@ -457,4 +479,28 @@ class WorkspaceViewModel: ObservableObject {
         logger.error("Workspace error: \(error.localizedDescription, privacy: .public)")
         alertCenter?.publish(error, fallbackTitle: fallbackTitle)
     }
+    
+    // MARK: - Timeouts
+    struct TimeoutError: LocalizedError {
+        let seconds: Double
+        var errorDescription: String? { "Operation timed out after \(seconds) seconds." }
+    }
+
+    private func withTimeout<T>(seconds: Double, operation: @escaping () async throws -> T) async throws -> T {
+        try await withThrowingTaskGroup(of: T.self) { group in
+            group.addTask {
+                try await operation()
+            }
+            group.addTask {
+                try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+                throw TimeoutError(seconds: seconds)
+            }
+            guard let result = try await group.next() else {
+                throw TimeoutError(seconds: seconds)
+            }
+            group.cancelAll()
+            return result
+        }
+    }
 }
+

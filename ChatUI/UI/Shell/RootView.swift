@@ -13,12 +13,12 @@
 
 import SwiftUI
 import CoreEngine
-import AppAdapters
 
 /// Root view that switches between onboarding and main workspace
 struct RootView: View {
     let workspaceEngine: WorkspaceEngine
-    let conversationEngine: ConversationEngineLive<AnyCodexClient, FileStoreConversationPersistence>
+    let conversationEngine: ConversationStreaming
+    let projectTodosLoader: ProjectTodosLoading
     @EnvironmentObject var projectSession: ProjectSession
     @EnvironmentObject var projectCoordinator: ProjectCoordinator
     @EnvironmentObject var alertCenter: AlertCenter
@@ -31,7 +31,8 @@ struct RootView: View {
             } else {
                 MainWorkspaceView(
                     workspaceEngine: workspaceEngine,
-                    conversationEngine: conversationEngine
+                    conversationEngine: conversationEngine,
+                    projectTodosLoader: projectTodosLoader
                 )
             }
         }

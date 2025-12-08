@@ -67,10 +67,8 @@ Kodbasen visar tecken på snabb utveckling med flera hacklösningar och onödig 
    - `XcodeNavigatorView.swift:47-53` synkar manuellt mellan dem
 
 2. **WorkspaceViewModel vs ChatViewModel:**
-   - Båda har `conversations` array
-   - `WorkspaceViewModel.conversation(for:)` skapar nya conversations
-   - `ChatViewModel` har sin egen conversation management
-   - Ingen klar separation
+   - Historically both owned `conversations`; now conversation access is async via engine actors and cached in `WorkspaceViewModel`.
+   - `ChatViewModel` still has its own conversation management; evaluate consolidating on the engine-backed cache.
 
 **Rekommendation:**
 - Skapa en `AppState` eller `RootViewModel` som äger all global state
@@ -104,27 +102,9 @@ Kodbasen visar tecken på snabb utveckling med flera hacklösningar och onödig 
 
 ## 2. HACKLÖSNINGAR
 
-### 2.1 Task { @MainActor } för att undvika Publishing Warning
+### 2.1 Async conversation access (resolved)
 
-**Problem:** `WorkspaceViewModel.conversation(for:)` använder Task för att undvika warning:
-
-```swift
-// WorkspaceViewModel.swift:68-71
-Task { @MainActor in
-    self.conversations[url] = new
-}
-return new
-```
-
-**Issues:**
-- Returnerar `new` INNAN den är lagrad i dictionary
-- Race condition: `conversation(for:)` kan kallas två gånger och skapa två conversations
-- Task completion är inte väntad, så callers kan få en conversation som inte är i dictionary ännu
-
-**Rekommendation:**
-- Använd `@MainActor` på hela klassen (redan gjort)
-- Ta bort Task-wrapper
-- Om warning uppstår, fixa root cause (troligen att metoden anropas från background thread)
+**Status:** `WorkspaceViewModel.conversation(for:)` is now async via the engine actor; no Task hacks or race-prone dictionary writes remain. Callers await the engine and cache results locally for UI access.
 
 ---
 

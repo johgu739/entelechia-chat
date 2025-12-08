@@ -4,7 +4,7 @@ import Security
 @preconcurrency import os.log
 
 /// Adapter wrapping KeychainService to conform to Engine expectations (minimal).
-public struct KeychainServiceAdapter: @unchecked Sendable {
+public struct KeychainServiceAdapter: Sendable {
     private let logger = Logger(subsystem: "chat.entelechia.uiconnections", category: "Keychain")
 
     public init() {}

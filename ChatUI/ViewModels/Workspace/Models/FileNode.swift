@@ -54,26 +54,35 @@ enum FileNodeError: LocalizedError {
 final class FileNode: Identifiable {
     private static let logger = Logger.persistence
 
+    /// UI identity (used by SwiftUI lists/outline).
     let id: UUID
+    /// Engine-issued identity, if this node was built from engine descriptors.
+    let descriptorID: FileID?
     let name: String
     let path: URL
     var children: [FileNode]? = nil
     let icon: String
     let isParentDirectory: Bool // Special flag for ".." navigation
     let isDirectory: Bool
-    private var childrenLoaded = false
     
-    init(id: UUID? = nil, name: String, path: URL, children: [FileNode]? = nil, icon: String, isParentDirectory: Bool = false, isDirectory: Bool = false) {
+    init(
+        id: UUID? = nil,
+        descriptorID: FileID? = nil,
+        name: String,
+        path: URL,
+        children: [FileNode]? = nil,
+        icon: String,
+        isParentDirectory: Bool = false,
+        isDirectory: Bool = false
+    ) {
         self.id = id ?? UUID()
+        self.descriptorID = descriptorID
         self.name = name
         self.path = path
         self.children = children
         self.icon = icon
         self.isParentDirectory = isParentDirectory
         self.isDirectory = isDirectory
-        // If children are provided, mark them as loaded
-        // If nil, they will be loaded lazily via loadChildrenIfNeeded()
-        self.childrenLoaded = (children != nil)
     }
     
     /// Create a FileNode from a file system URL
@@ -137,6 +146,7 @@ final class FileNode: Identifiable {
         }
         
         return FileNode(
+            descriptorID: nil,
             name: url.lastPathComponent.isEmpty ? url.path : url.lastPathComponent,
             path: url,
             children: children,
@@ -146,114 +156,27 @@ final class FileNode: Identifiable {
         )
     }
     
-    /// Load children lazily when expanded.
-    /// Skolboksexempel: lista bara verkliga undermappar/filer under `path`.
-    func loadChildrenIfNeeded(projectRoot: URL? = nil) throws {
-        // Early return if already loaded or not a directory
-        guard !childrenLoaded else { return }
-        guard isDirectory else { return }
-        
-        // Mark as loaded immediately to prevent double-loading
-        childrenLoaded = true
-        
-        let hasAccess = path.startAccessingSecurityScopedResource()
-        defer {
-            if hasAccess {
-                path.stopAccessingSecurityScopedResource()
-            }
-        }
-        
-        var directoryChildren: [FileNode] = []
-        
-        // Läs faktiska kataloginnehållet
-        // NO FILTERS - show everything that exists in the directory
-        do {
-            let contents = try FileManager.default.contentsOfDirectory(
-                at: path,
-                includingPropertiesForKeys: [.isDirectoryKey, .isPackageKey, .contentTypeKey],
-                options: []
-            )
-            
-            // Sort: directories first, then files, both alphabetically
-            let sortedContents = contents.sorted { url1, url2 in
-                let isDir1 = (try? url1.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true
-                let isDir2 = (try? url2.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true
-                
-                if isDir1 != isDir2 {
-                    return isDir1 // directories first
-                }
-                return url1.lastPathComponent.localizedCaseInsensitiveCompare(url2.lastPathComponent) == .orderedAscending
-            }
-            
-            // Convert items to FileNodes, excluding forbidden directories and files
-            for childURL in sortedContents {
-                // Skip forbidden directories
-                if FileExclusion.isForbiddenDirectory(url: childURL) {
-                    continue
-                }
-                
-                // Skip forbidden files
-                if FileExclusion.isForbiddenFile(url: childURL) {
-                    continue
-                }
-                
-                if let childNode = FileNode.from(url: childURL, includeParent: false, isParentDir: false) {
-                    directoryChildren.append(childNode)
-                } else {
-                    throw FileNodeError.childCreationFailed(childURL)
-                }
-            }
-        } catch {
-            throw FileNodeError.directoryReadFailed(path, underlying: error)
-        }
-        
-        // If directory listing succeeded but we got no children:
-        // - Root project directory must have content (fatal)
-        // - Other directories may legitimately be empty
-        if directoryChildren.isEmpty {
-            if let projectRoot, projectRoot == path {
-                throw FileNodeError.emptyProject(projectRoot)
-            } else {
-                children = []
-                return
-            }
-        }
-        
-        children = directoryChildren
-    }
-    
-    /// Ladda hela trädstrukturen under denna nod rekursivt.
-    func loadRecursively(projectRoot: URL? = nil) throws {
-        try loadChildrenIfNeeded(projectRoot: projectRoot)
-        for child in children ?? [] {
-            if child.isDirectory {
-                try child.loadRecursively(projectRoot: projectRoot)
-            }
-        }
-    }
-    
-    /// Reset children loading state (useful for refreshing)
-    func resetChildren() {
-        childrenLoaded = false
-        children = nil
-    }
 }
 
 extension FileNode {
     static let mockTree: [FileNode] = [
         FileNode(
+            descriptorID: nil,
             name: "EntelechiaOperator",
             path: URL(fileURLWithPath: "/EntelechiaOperator"),
             children: [
                 FileNode(
+                    descriptorID: nil,
                     name: "Sources",
                     path: URL(fileURLWithPath: "/EntelechiaOperator/Sources"),
                     children: [
                         FileNode(
+                            descriptorID: nil,
                             name: "App",
                             path: URL(fileURLWithPath: "/EntelechiaOperator/Sources/App"),
                             children: [
                                 FileNode(
+                                    descriptorID: nil,
                                     name: "EntelechiaOperatorApp.swift",
                                     path: URL(fileURLWithPath: "/EntelechiaOperator/Sources/App/EntelechiaOperatorApp.swift"),
                                     children: [],
@@ -299,6 +222,20 @@ extension FileNode {
         }
         return nil
     }
+
+    /// Recursively find a node by its engine descriptor ID.
+    func findNode(withDescriptorID descriptorID: FileID) -> FileNode? {
+        if let current = self.descriptorID, current == descriptorID {
+            return self
+        }
+        guard let children = children else { return nil }
+        for child in children {
+            if let found = child.findNode(withDescriptorID: descriptorID) {
+                return found
+            }
+        }
+        return nil
+    }
 }
 
 extension Array where Element == FileNode {
@@ -316,6 +253,16 @@ extension Array where Element == FileNode {
     func node(withURL url: URL) -> FileNode? {
         for node in self {
             if let found = node.findNode(withURL: url) {
+                return found
+            }
+        }
+        return nil
+    }
+
+    /// Recursively find a node by its engine descriptor ID.
+    func node(withDescriptorID descriptorID: FileID) -> FileNode? {
+        for node in self {
+            if let found = node.findNode(withDescriptorID: descriptorID) {
                 return found
             }
         }

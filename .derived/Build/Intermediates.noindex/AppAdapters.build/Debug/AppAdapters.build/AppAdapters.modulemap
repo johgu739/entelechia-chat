@@ -1,0 +1,4 @@
+module AppAdapters {
+header "AppAdapters-Swift.h"
+export *
+}

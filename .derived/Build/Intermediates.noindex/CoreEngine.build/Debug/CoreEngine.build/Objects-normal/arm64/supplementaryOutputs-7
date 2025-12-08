@@ -1,0 +1,37 @@
+{
+  "/Users/johangunnarsson/Developer/entelechia-chat/CoreEngine/Sources/CoreEngine/Protocols/PersistenceProtocols.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/PersistenceProtocols.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/PersistenceProtocols.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/PersistenceProtocols.dia",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/PersistenceProtocols.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/PersistenceProtocols.swiftdeps"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/CoreEngine/Sources/CoreEngine/Protocols/ProjectMetadataProtocols.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/ProjectMetadataProtocols.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/ProjectMetadataProtocols.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/ProjectMetadataProtocols.dia",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/ProjectMetadataProtocols.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/ProjectMetadataProtocols.swiftdeps"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/CoreEngine/Sources/CoreEngine/Protocols/ProjectTodosProtocols.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/ProjectTodosProtocols.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/ProjectTodosProtocols.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/ProjectTodosProtocols.dia",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/ProjectTodosProtocols.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/ProjectTodosProtocols.swiftdeps"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/CoreEngine/Sources/CoreEngine/Protocols/SecurityProtocols.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/SecurityProtocols.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/SecurityProtocols.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/SecurityProtocols.dia",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/SecurityProtocols.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/SecurityProtocols.swiftdeps"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/CoreEngine/Sources/CoreEngine/Protocols/WorkspaceProtocols.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/WorkspaceProtocols.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/WorkspaceProtocols.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/WorkspaceProtocols.dia",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/WorkspaceProtocols.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/CoreEngine.build/Debug/CoreEngine.build/Objects-normal/arm64/WorkspaceProtocols.swiftdeps"
+  }
+}

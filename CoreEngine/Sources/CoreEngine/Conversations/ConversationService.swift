@@ -11,16 +11,15 @@ public enum ConversationServiceError: LocalizedError, Sendable {
     }
 }
 
-/// Protocol-driven conversation logic (pure Engine).
-public final class ConversationService<Client: CodexClient, Persistence: ConversationPersistenceDriver>: @unchecked Sendable
+/// Compatibility wrapper that now delegates to the canonical ConversationEngineLive.
+@available(*, deprecated, message: "Use ConversationEngineLive instead; this wrapper will be removed.")
+public final class ConversationService<Client: CodexClient, Persistence: ConversationPersistenceDriver>: Sendable
 where Client.MessageType == Message,
       Client.ContextFileType == LoadedFile,
       Client.OutputPayload == ModelResponse,
       Persistence.ConversationType == Conversation {
 
-    private let assistant: Client
-    private let persistence: Persistence
-    private let fileLoader: FileContentLoading
+    private let engine: ConversationEngineLive<Client, Persistence>
     private let contextBuilder: ContextBuilder
 
     public init(
@@ -29,10 +28,13 @@ where Client.MessageType == Message,
         fileLoader: FileContentLoading,
         contextBuilder: ContextBuilder = ContextBuilder()
     ) {
-        self.assistant = assistant
-        self.persistence = persistence
-        self.fileLoader = fileLoader
         self.contextBuilder = contextBuilder
+        self.engine = ConversationEngineLive(
+            client: assistant,
+            persistence: persistence,
+            fileLoader: fileLoader,
+            contextBuilder: contextBuilder
+        )
     }
 
     /// Send a message with optional context files; returns updated conversation and context result.
@@ -46,65 +48,48 @@ where Client.MessageType == Message,
             throw ConversationServiceError.emptyMessage
         }
 
-        var contextFiles: [LoadedFile] = []
-        for url in contextURLs {
-            if let content = try? await fileLoader.load(url: url) {
-                contextFiles.append(
-                    LoadedFile(
-                        name: url.lastPathComponent,
-                        url: url,
-                        content: content,
-                        fileTypeIdentifier: url.pathExtension.isEmpty ? nil : url.pathExtension
-                    )
-                )
-            }
-        }
-
-        let contextResult = contextBuilder.build(from: contextFiles)
-
-        var updated = conversation
-        updated.messages.append(Message(role: .user, text: text))
-        updated.updatedAt = Date()
-
-        var streamingText = ""
-        var finalMessage: Message?
-
-        do {
-            let stream = try await assistant.stream(
-                messages: updated.messages,
-                contextFiles: contextResult.attachments
-            )
-
-            for try await chunk in stream {
-                onStreamEvent?(chunk)
-                switch chunk {
-                case .token(let token):
-                    streamingText += token
-                case .output(let output):
-                    finalMessage = Message(role: .assistant, text: output.content)
-                case .done:
+        var lastAggregate = ""
+        var emittedDone = false
+        let (updated, contextResult) = try await engine.sendMessage(
+            text,
+            in: conversation,
+            context: ConversationContextRequest(
+                contextFileURLs: contextURLs,
+                budget: contextBuilder.budgetConfig
+            ),
+            onStream: { delta in
+                switch delta {
+                case .context:
+                    // Keep stream contract focused on model payloads for compatibility.
                     break
+                case .assistantStreaming(let aggregate):
+                    lastAggregate = aggregate
+                    onStreamEvent?(.token(aggregate))
+                case .assistantCommitted(let message):
+                    onStreamEvent?(.output(ModelResponse(content: message.text)))
+                    onStreamEvent?(.done)
+                    emittedDone = true
                 }
             }
-        } catch {
-            finalMessage = Message(role: .assistant, text: "Sorry, I encountered an error: \(error.localizedDescription)")
+        )
+
+        if !emittedDone && !lastAggregate.isEmpty {
+            onStreamEvent?(.token(lastAggregate))
+            onStreamEvent?(.done)
+        } else if !emittedDone {
+            onStreamEvent?(.done)
         }
 
-        if let message = finalMessage {
-            updated.messages.append(message)
-        } else if !streamingText.isEmpty {
-            updated.messages.append(Message(role: .assistant, text: streamingText))
-        }
-        updated.updatedAt = Date()
-
-        try persistence.saveConversation(updated)
         return (updated, contextResult)
     }
 
     /// Read-only convenience: find a conversation for URL from persistence.
-    public func conversation(for url: URL) -> Conversation? {
-        guard let all = try? persistence.loadAllConversations() else { return nil }
-        return all.first { $0.contextFilePaths.contains(url.path) }
+    public func conversation(for url: URL) async -> Conversation? {
+        await engine.conversation(for: url)
+    }
+
+    public func ensureConversation(for url: URL) async throws -> Conversation {
+        try await engine.ensureConversation(for: url)
     }
 }
 

@@ -14,7 +14,6 @@
 import Foundation
 import SwiftUI
 import CoreEngine
-import AppAdapters
 import Combine
 import os.log
 
@@ -51,7 +50,7 @@ final class ProjectSession: ObservableObject, ProjectSessioning {
     @Published var activeProjectURL: URL?
     @Published var projectName: String = ""
     
-    private let projectEngine: ProjectEngineImpl<ProjectStoreRealAdapter>
+    private let projectEngine: ProjectEngine
     private let workspaceEngine: WorkspaceEngine
     private let securityScopeHandler: SecurityScopeHandling
     private var activeSecurityScopedURL: URL?
@@ -60,7 +59,7 @@ final class ProjectSession: ObservableObject, ProjectSessioning {
     private var alertCenter: AlertCenter?
     
     init(
-        projectEngine: ProjectEngineImpl<ProjectStoreRealAdapter>,
+        projectEngine: ProjectEngine,
         workspaceEngine: WorkspaceEngine,
         securityScopeHandler: SecurityScopeHandling
     ) {
@@ -74,7 +73,7 @@ final class ProjectSession: ObservableObject, ProjectSessioning {
     }
     
     /// Open a project (runtime state only - persistence handled by ProjectCoordinator)
-    func open(_ url: URL, name: String? = nil, bookmarkData _: Data? = nil) {
+    func open(_ url: URL, name: String? = nil, bookmarkData: Data? = nil) {
         // Determine a valid project root directory.
         // If the URL is a file (e.g. .xcodeproj), use its parent directory as project root.
         let resolvedURL: URL
@@ -106,7 +105,7 @@ final class ProjectSession: ObservableObject, ProjectSessioning {
         }
 
         // Start security-scoped access if available
-        startSecurityScope(for: resolvedURL)
+        startSecurityScope(for: resolvedURL, bookmarkData: bookmarkData)
         
         // Set active project (runtime state only)
         let finalName = name ?? resolvedURL.lastPathComponent
@@ -121,24 +120,28 @@ final class ProjectSession: ObservableObject, ProjectSessioning {
         projectName = ""
     }
     
-    /// Reload descriptors for current project (UI projection happens elsewhere)
-    func reloadDescriptors() async -> [FileDescriptor] {
-        guard activeProjectURL != nil else { return [] }
+    /// Reload engine snapshot for current project (UI projection happens elsewhere)
+    func reloadSnapshot() async -> WorkspaceSnapshot {
+        guard activeProjectURL != nil else { return .empty }
         do {
             return try await workspaceEngine.refresh()
         } catch {
             logger.error("Failed to reload files: \(error.localizedDescription, privacy: .public)")
             let wrapped = ProjectSessionError.reloadFailed(error)
             alertCenter?.publish(wrapped, fallbackTitle: "Failed to Reload Project")
-            return []
+            return .empty
         }
     }
 
-    private func startSecurityScope(for url: URL) {
-        let started = securityScopeHandler.startAccessing(url)
+    private func startSecurityScope(for url: URL, bookmarkData: Data?) {
+        var targetURL = url
+        if let data = bookmarkData, let resolved = try? securityScopeHandler.resolveBookmark(data) {
+            targetURL = resolved
+        }
+        let started = securityScopeHandler.startAccessing(targetURL)
         if started {
             hasActiveSecurityScope = true
-            activeSecurityScopedURL = url
+            activeSecurityScopedURL = targetURL
         }
     }
 

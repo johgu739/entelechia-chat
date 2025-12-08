@@ -1,0 +1,17 @@
+/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/AI/CodexAPIClientAdapter.swift
+/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/AlertSinkAdapter.swift
+/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/CodexClientAdapter.swift
+/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/FilesystemAdapters.swift
+/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/FilesystemWatcherAdapter.swift
+/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/MarkdownRendererAdapter.swift
+/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/Persistence/FileStoreAdapter.swift
+/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/Persistence/ProjectStoreAdapter.swift
+/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/Persistence/ProjectStoreRealAdapter.swift
+/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/PersistenceAdapters.swift
+/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/Placeholder.swift
+/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/Preferences/PreferencesStoreAdapter.swift
+/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/ProjectTodos/ProjectTodosLoaderAdapter.swift
+/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/Projects/ProjectMetadataAdapter.swift
+/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/Security/KeychainServiceAdapter.swift
+/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/Security/SecurityScopeService.swift
+/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/SecurityAdapters.swift

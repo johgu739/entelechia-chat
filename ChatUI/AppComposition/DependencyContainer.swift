@@ -1,132 +1,81 @@
 import Foundation
-import os.log
 import CoreEngine
-import AppAdapters
-
-typealias WorkspaceEngineLiveType = WorkspaceEngineImpl<PreferencesStoreAdapter<WorkspacePreferences>, ContextPreferencesStoreAdapter<WorkspaceContextPreferencesState>>
+import UIConnections
+import AppAdapters // Composition root only
 
 protocol DependencyContainer {
     var securityScopeHandler: SecurityScopeHandling { get }
-    var logger: Logger { get }
+    var codexStatus: CodexAvailability { get }
     var alertCenter: AlertCenter { get }
+    var workspaceEngine: WorkspaceEngine { get }
+    var projectEngine: ProjectEngine { get }
+    var conversationEngine: ConversationStreaming { get }
+    var projectTodosLoader: ProjectTodosLoading { get }
+    var projectMetadataHandler: ProjectMetadataHandling { get }
+}
 
-    // Engine + Adapter graph
-    var fileSystemAccess: FileSystemAccessAdapter { get }
-    var fileContentLoader: FileContentLoaderAdapter { get }
-    var projectPersistence: ProjectStoreRealAdapter { get }
-    var conversationPersistence: FileStoreConversationPersistence { get }
-    var preferencesDriver: PreferencesStoreAdapter<WorkspacePreferences> { get }
-    var contextPreferencesDriver: ContextPreferencesStoreAdapter<WorkspaceContextPreferencesState> { get }
-    var codexClient: AnyCodexClient { get }
-    var workspaceEngine: WorkspaceEngineLiveType { get }
-    var projectEngine: ProjectEngineImpl<ProjectStoreRealAdapter> { get }
-    var conversationEngine: ConversationEngineLive<AnyCodexClient, FileStoreConversationPersistence> { get }
-    var alertSink: AlertSink { get }
+enum CodexAvailability {
+    case connected
+    case degradedStub
+    case misconfigured(Error)
 }
 
 struct DefaultContainer: DependencyContainer {
     let securityScopeHandler: SecurityScopeHandling
-    let logger: Logger
+    let codexStatus: CodexAvailability
     let alertCenter: AlertCenter
-    let fileSystemAccess: FileSystemAccessAdapter
-    let fileContentLoader: FileContentLoaderAdapter
-    let projectPersistence: ProjectStoreRealAdapter
-    let conversationPersistence: FileStoreConversationPersistence
-    let preferencesDriver: PreferencesStoreAdapter<WorkspacePreferences>
-    let contextPreferencesDriver: ContextPreferencesStoreAdapter<WorkspaceContextPreferencesState>
-    let codexClient: AnyCodexClient
-    let workspaceEngine: WorkspaceEngineLiveType
-    let projectEngine: ProjectEngineImpl<ProjectStoreRealAdapter>
-    let conversationEngine: ConversationEngineLive<AnyCodexClient, FileStoreConversationPersistence>
-    let alertSink: AlertSink
+    let workspaceEngine: WorkspaceEngine
+    let projectEngine: ProjectEngine
+    let conversationEngine: ConversationStreaming
+    let projectTodosLoader: ProjectTodosLoading
+    let projectMetadataHandler: ProjectMetadataHandling
     
     init() {
-        self.securityScopeHandler = RealSecurityScopeHandler()
-        self.logger = Logger(subsystem: "chat.entelechia", category: "DefaultContainer")
-        self.alertCenter = AlertCenter()
-        self.fileSystemAccess = FileSystemAccessAdapter(fileManager: .default)
-        self.fileContentLoader = FileContentLoaderAdapter(fileManager: .default)
-        self.projectPersistence = ProjectStoreRealAdapter()
-        self.conversationPersistence = FileStoreConversationPersistence()
-        self.preferencesDriver = PreferencesStoreAdapter<WorkspacePreferences>()
-        self.contextPreferencesDriver = ContextPreferencesStoreAdapter<WorkspaceContextPreferencesState>()
-        self.workspaceEngine = WorkspaceEngineImpl(
-            fileSystem: fileSystemAccess,
-            preferences: preferencesDriver,
-            contextPreferences: contextPreferencesDriver
-        )
-        self.projectEngine = ProjectEngineImpl(persistence: projectPersistence)
-        self.alertSink = AlertCenterSink(alertCenter: alertCenter)
-        
-        // Build Codex client (Engine-facing).
-        self.codexClient = DefaultContainer.makeCodexClient(loader: CodexConfigLoader())
-        self.conversationEngine = ConversationEngineLive(
-            client: codexClient,
-            persistence: conversationPersistence,
-            fileLoader: fileContentLoader
-        )
+        let bootstrap = AppBootstrap()
+        self.securityScopeHandler = bootstrap.securityScope
+        self.alertCenter = bootstrap.alertCenter
+        self.codexStatus = bootstrap.codexStatus
+        self.workspaceEngine = bootstrap.engines.workspace
+        self.projectEngine = bootstrap.engines.project
+        self.conversationEngine = bootstrap.engines.conversation
+        self.projectTodosLoader = bootstrap.projectTodosLoader
+        self.projectMetadataHandler = bootstrap.projectMetadataHandler
     }
 }
 
 struct TestContainer: DependencyContainer {
     let securityScopeHandler: SecurityScopeHandling
-    let logger: Logger
+    let codexStatus: CodexAvailability
     let alertCenter: AlertCenter
-    let fileSystemAccess: FileSystemAccessAdapter
-    let fileContentLoader: FileContentLoaderAdapter
-    let projectPersistence: ProjectStoreRealAdapter
-    let conversationPersistence: FileStoreConversationPersistence
-    let preferencesDriver: PreferencesStoreAdapter<WorkspacePreferences>
-    let contextPreferencesDriver: ContextPreferencesStoreAdapter<WorkspaceContextPreferencesState>
-    let codexClient: AnyCodexClient
-    let workspaceEngine: WorkspaceEngineLiveType
-    let projectEngine: ProjectEngineImpl<ProjectStoreRealAdapter>
-    let conversationEngine: ConversationEngineLive<AnyCodexClient, FileStoreConversationPersistence>
-    let alertSink: AlertSink
+    let workspaceEngine: WorkspaceEngine
+    let projectEngine: ProjectEngine
+    let conversationEngine: ConversationStreaming
+    let projectTodosLoader: ProjectTodosLoading
+    let projectMetadataHandler: ProjectMetadataHandling
     
     init(root: URL) {
-        self.securityScopeHandler = NoopSecurityScopeHandler()
-        self.logger = Logger(subsystem: "chat.entelechia", category: "TestContainer")
-        self.alertCenter = AlertCenter()
-        self.fileSystemAccess = FileSystemAccessAdapter(fileManager: .default)
-        self.fileContentLoader = FileContentLoaderAdapter(fileManager: .default)
-        self.projectPersistence = ProjectStoreRealAdapter(baseURL: root)
-        self.conversationPersistence = FileStoreConversationPersistence(baseURL: root)
-        self.preferencesDriver = PreferencesStoreAdapter<WorkspacePreferences>(strict: true)
-        self.contextPreferencesDriver = ContextPreferencesStoreAdapter<WorkspaceContextPreferencesState>(strict: true)
-        self.workspaceEngine = WorkspaceEngineImpl(
-            fileSystem: fileSystemAccess,
-            preferences: preferencesDriver,
-            contextPreferences: contextPreferencesDriver
-        )
-        self.projectEngine = ProjectEngineImpl(persistence: projectPersistence)
-        self.alertSink = AlertCenterSink(alertCenter: alertCenter)
-        
-        self.codexClient = AnyCodexClient.stub()
-        self.conversationEngine = ConversationEngineLive(
-            client: codexClient,
-            persistence: conversationPersistence,
-            fileLoader: fileContentLoader
-        )
+        let bootstrap = AppBootstrap(baseURL: root, forTesting: true)
+        self.securityScopeHandler = bootstrap.securityScope
+        self.alertCenter = bootstrap.alertCenter
+        self.codexStatus = bootstrap.codexStatus
+        self.workspaceEngine = bootstrap.engines.workspace
+        self.projectEngine = bootstrap.engines.project
+        self.conversationEngine = bootstrap.engines.conversation
+        self.projectTodosLoader = bootstrap.projectTodosLoader
+        self.projectMetadataHandler = bootstrap.projectMetadataHandler
     }
-}
-
-struct NoopSecurityScopeHandler: SecurityScopeHandling {
-    func makeBookmark(for url: URL) throws -> Data { Data() }
-    func startAccessing(_ url: URL) -> Bool { false }
-    func stopAccessing(_ url: URL) {}
 }
 
 // MARK: - Engine-facing codex client adapter type eraser
 
-struct AnyCodexClient: CoreEngine.CodexClient, @unchecked Sendable {
+struct AnyCodexClient: CoreEngine.CodexClient {
     typealias MessageType = Message
     typealias ContextFileType = CoreEngine.LoadedFile
     typealias OutputPayload = ModelResponse
 
-    private let streamHandler: ([MessageType], [ContextFileType]) async throws -> AsyncThrowingStream<CoreEngine.StreamChunk<OutputPayload>, Error>
+    private let streamHandler: @Sendable ([MessageType], [ContextFileType]) async throws -> AsyncThrowingStream<CoreEngine.StreamChunk<OutputPayload>, Error>
 
-    init(_ streamHandler: @escaping ([MessageType], [ContextFileType]) async throws -> AsyncThrowingStream<CoreEngine.StreamChunk<OutputPayload>, Error>) {
+    init(_ streamHandler: @escaping @Sendable ([MessageType], [ContextFileType]) async throws -> AsyncThrowingStream<CoreEngine.StreamChunk<OutputPayload>, Error>) {
         self.streamHandler = streamHandler
     }
 
@@ -150,34 +99,5 @@ extension AnyCodexClient {
     }
 }
 
-// MARK: - Helpers
+private extension DefaultContainer {}
 
-private extension DefaultContainer {
-    static func makeCodexClient(loader: CodexConfigLoading) -> AnyCodexClient {
-        switch loader.loadConfig() {
-        case .success(let config):
-            let bridge = CodexConfigBridge(
-                apiKey: config.apiKey,
-                organization: config.organization,
-                baseURL: config.baseURL
-            )
-            let apiAdapter = CodexAPIClientAdapter(config: bridge)
-            return AnyCodexClient { messages, files in
-                try await apiAdapter.stream(messages: messages, contextFiles: files)
-            }
-
-        case .failure:
-            return AnyCodexClient.stub()
-        }
-    }
-}
-
-/// Adapter that forwards Engine alert sink calls to the shared `AlertCenter`.
-private struct AlertCenterSink: AlertSink, @unchecked Sendable {
-    let alertCenter: AlertCenter
-    func emit(_ error: Error) {
-        Task { @MainActor in
-            alertCenter.publish(error, fallbackTitle: "Something went wrong")
-        }
-    }
-}

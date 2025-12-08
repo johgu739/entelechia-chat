@@ -55,6 +55,7 @@ public struct ContextExclusion: Identifiable, Equatable, Sendable {
 
 public struct ContextBuilder: Sendable {
     private let budget: ContextBudget
+    public var budgetConfig: ContextBudget { budget }
 
     public init(budget: ContextBudget = .default) {
         self.budget = budget
@@ -159,13 +160,21 @@ to \(formatBytes(trimmedBytes)) to respect the per-file limit.
             return content
         }
 
+        let metadata = """
+…
+[Context trimmed automatically to \(formatBytes(byteLimit)) of text. \
+Original size was \(formatBytes(content.utf8.count))]
+"""
+        let metadataBytes = metadata.utf8.count
+        let availableForContent = max(0, byteLimit - metadataBytes)
+
         var accumulated = 0
         var index = content.startIndex
 
         while index < content.endIndex {
             let character = content[index]
             let characterByteCount = String(character).utf8.count
-            if accumulated + characterByteCount > byteLimit {
+            if accumulated + characterByteCount > availableForContent {
                 break
             }
             accumulated += characterByteCount
@@ -173,11 +182,6 @@ to \(formatBytes(trimmedBytes)) to respect the per-file limit.
         }
 
         let prefix = String(content[..<index])
-        let metadata = """
-…
-[Context trimmed automatically to \(formatBytes(byteLimit)) of text. \
-Original size was \(formatBytes(content.utf8.count))]
-"""
         return prefix + metadata
     }
 

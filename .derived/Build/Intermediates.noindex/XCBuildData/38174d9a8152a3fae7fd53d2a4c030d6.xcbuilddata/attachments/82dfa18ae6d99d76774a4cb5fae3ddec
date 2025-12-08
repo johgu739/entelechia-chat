@@ -1,0 +1,29 @@
+{
+  "" : {
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/UIConnections.build/Debug/UIConnections.build/Objects-normal/arm64/UIConnections-primary.dia",
+    "emit-module-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/UIConnections.build/Debug/UIConnections.build/Objects-normal/arm64/UIConnections-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/UIConnections.build/Debug/UIConnections.build/Objects-normal/arm64/UIConnections-primary-emit-module.dia",
+    "pch" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/UIConnections.build/Debug/UIConnections.build/Objects-normal/arm64/UIConnections-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/UIConnections.build/Debug/UIConnections.build/Objects-normal/arm64/UIConnections-primary.swiftdeps"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/UIConnections/Sources/UIConnections/ConversationViewState.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/UIConnections.build/Debug/UIConnections.build/Objects-normal/arm64/ConversationViewState.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/UIConnections.build/Debug/UIConnections.build/Objects-normal/arm64/ConversationViewState.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/UIConnections.build/Debug/UIConnections.build/Objects-normal/arm64/ConversationViewState.dia",
+    "index-unit-output-path" : "/UIConnections.build/Debug/UIConnections.build/Objects-normal/arm64/ConversationViewState.o",
+    "llvm-bc" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/UIConnections.build/Debug/UIConnections.build/Objects-normal/arm64/ConversationViewState.bc",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/UIConnections.build/Debug/UIConnections.build/Objects-normal/arm64/ConversationViewState.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/UIConnections.build/Debug/UIConnections.build/Objects-normal/arm64/ConversationViewState.swiftdeps",
+    "swiftmodule" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/UIConnections.build/Debug/UIConnections.build/Objects-normal/arm64/ConversationViewState~partial.swiftmodule"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/UIConnections/Sources/UIConnections/WorkspaceViewState.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/UIConnections.build/Debug/UIConnections.build/Objects-normal/arm64/WorkspaceViewState.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/UIConnections.build/Debug/UIConnections.build/Objects-normal/arm64/WorkspaceViewState.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/UIConnections.build/Debug/UIConnections.build/Objects-normal/arm64/WorkspaceViewState.dia",
+    "index-unit-output-path" : "/UIConnections.build/Debug/UIConnections.build/Objects-normal/arm64/WorkspaceViewState.o",
+    "llvm-bc" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/UIConnections.build/Debug/UIConnections.build/Objects-normal/arm64/WorkspaceViewState.bc",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/UIConnections.build/Debug/UIConnections.build/Objects-normal/arm64/WorkspaceViewState.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/UIConnections.build/Debug/UIConnections.build/Objects-normal/arm64/WorkspaceViewState.swiftdeps",
+    "swiftmodule" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/UIConnections.build/Debug/UIConnections.build/Objects-normal/arm64/WorkspaceViewState~partial.swiftmodule"
+  }
+}

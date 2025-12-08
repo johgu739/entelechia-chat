@@ -15,69 +15,55 @@ import Foundation
 import Combine
 import os.log
 import CoreEngine
-import AppAdapters
 
 struct RecentProject: Equatable {
-    let name: String
-    let path: String
+    let representation: ProjectRepresentation
     let bookmarkData: Data?
-}
-
-enum ProjectCoordinatorError: LocalizedError {
-    case emptyName
-    case directoryResolutionFailed(String)
-    case missingPath(String)
-
-    var errorDescription: String? {
-        switch self {
-        case .emptyName:
-            return "Project name is required."
-        case .directoryResolutionFailed(let path):
-            return "Could not resolve a project directory for \(path)."
-        case .missingPath(let path):
-            return "Project path does not exist: \(path)."
-        }
-    }
-
-    var failureReason: String? { errorDescription }
 }
 
 protocol ProjectSessioning: AnyObject {
     func open(_ url: URL, name: String?, bookmarkData: Data?)
     func close()
-    func reloadDescriptors() async -> [FileDescriptor]
+    func reloadSnapshot() async -> WorkspaceSnapshot
 }
 
 /// Coordinator for project operations (menu commands, file selection)
 @MainActor
 final class ProjectCoordinator: ObservableObject {
-    let projectEngine: ProjectEngineImpl<ProjectStoreRealAdapter>
+    let projectEngine: ProjectEngine
     private let projectSession: ProjectSessioning
     private let alertCenter: AlertCenter
     private let logger = Logger.persistence
     private let securityScopeHandler: SecurityScopeHandling
+    private let projectMetadataHandler: ProjectMetadataHandling
     
     init(
-        projectEngine: ProjectEngineImpl<ProjectStoreRealAdapter>,
+        projectEngine: ProjectEngine,
         projectSession: ProjectSessioning,
         alertCenter: AlertCenter,
-        securityScopeHandler: SecurityScopeHandling
+        securityScopeHandler: SecurityScopeHandling,
+        projectMetadataHandler: ProjectMetadataHandling
     ) {
         self.projectEngine = projectEngine
         self.projectSession = projectSession
         self.alertCenter = alertCenter
         self.securityScopeHandler = securityScopeHandler
+        self.projectMetadataHandler = projectMetadataHandler
     }
     
     /// Open project with URL and name (called from onboarding view)
     /// Name is REQUIRED - no optionals, no fallbacks
     func openProject(url: URL, name: String) {
         do {
-            let trimmedName = try validatedName(name)
-            let resolvedURL = try resolveDirectory(for: url)
-            let bookmarkData = try securityScopeHandler.makeBookmark(for: resolvedURL)
-            try persistProject(url: resolvedURL, name: trimmedName, bookmarkData: bookmarkData)
-            projectSession.open(resolvedURL, name: trimmedName, bookmarkData: bookmarkData)
+            let rep = try projectEngine.validateProject(at: url)
+            let resolvedURL = URL(fileURLWithPath: rep.rootPath)
+            let bookmarkData = try securityScopeHandler.createBookmark(for: resolvedURL)
+            let stored = projectMetadataHandler.withMetadata(
+                projectMetadataHandler.metadata(for: bookmarkData, lastSelection: nil, isLastOpened: true),
+                appliedTo: rep
+            )
+            try projectEngine.save(stored)
+            projectSession.open(resolvedURL, name: stored.name, bookmarkData: bookmarkData)
         } catch {
             logger.error("Failed to open project at \(url.path, privacy: .private): \(error.localizedDescription, privacy: .public)")
             alertCenter.publish(error, fallbackTitle: "Project Open Failed")
@@ -92,22 +78,17 @@ final class ProjectCoordinator: ObservableObject {
     /// Open a recent project
     func openRecent(_ project: RecentProject) {
         do {
-            let trimmedName = try validatedName(project.name)
-            let url = URL(fileURLWithPath: project.path)
-            guard FileManager.default.fileExists(atPath: url.path) else {
-                throw ProjectCoordinatorError.missingPath(project.path)
-            }
-            let bookmarkData = project.bookmarkData ?? (try? securityScopeHandler.makeBookmark(for: url))
-            let rep = ProjectRepresentation(
-                rootPath: url.path,
-                name: trimmedName,
-                metadata: metadata(for: bookmarkData, lastSelection: nil, isLastOpened: true),
-                linkedFiles: []
+            let rep = project.representation
+            let url = URL(fileURLWithPath: rep.rootPath)
+            let bookmarkData = project.bookmarkData ?? (try? securityScopeHandler.createBookmark(for: url))
+            let stored = projectMetadataHandler.withMetadata(
+                projectMetadataHandler.metadata(for: bookmarkData, lastSelection: nil, isLastOpened: true),
+                appliedTo: rep
             )
-            try projectEngine.save(rep)
-            projectSession.open(url, name: trimmedName, bookmarkData: bookmarkData)
+            try projectEngine.save(stored)
+            projectSession.open(url, name: rep.name, bookmarkData: bookmarkData)
         } catch {
-            logger.error("Failed to open recent project \(project.path, privacy: .private): \(error.localizedDescription, privacy: .public)")
+            logger.error("Failed to open recent project \(project.representation.rootPath, privacy: .private): \(error.localizedDescription, privacy: .public)")
             alertCenter.publish(error, fallbackTitle: "Open Recent Failed")
         }
     }
@@ -119,52 +100,21 @@ final class ProjectCoordinator: ObservableObject {
 
     // MARK: - Helpers
 
-    private func validatedName(_ name: String) throws -> String {
-        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { throw ProjectCoordinatorError.emptyName }
-        return trimmed
-    }
-    
-    private func resolveDirectory(for url: URL) throws -> URL {
-        var isDir: ObjCBool = false
-        if FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir) {
-            if isDir.boolValue { return url }
-            return url.deletingLastPathComponent()
-        }
-        throw ProjectCoordinatorError.directoryResolutionFailed(url.path)
-    }
-    
     private func persistProject(url: URL, name: String, bookmarkData: Data?) throws {
-        let rep = ProjectRepresentation(
-            rootPath: url.path,
-            name: name,
-            metadata: metadata(for: bookmarkData, lastSelection: nil, isLastOpened: true),
-            linkedFiles: []
+        let rep = ProjectRepresentation(rootPath: url.path, name: name)
+        let stored = projectMetadataHandler.withMetadata(
+            projectMetadataHandler.metadata(for: bookmarkData, lastSelection: nil, isLastOpened: true),
+            appliedTo: rep
         )
-        try projectEngine.save(rep)
-    }
-    
-    private func metadata(for bookmarkData: Data?, lastSelection: String?, isLastOpened: Bool) -> [String: String] {
-        var meta: [String: String] = [:]
-        if let data = bookmarkData {
-            meta["bookmarkData"] = data.base64EncodedString()
-        }
-        if let sel = lastSelection {
-            meta["lastSelection"] = sel
-        }
-        if isLastOpened {
-            meta["lastOpened"] = "true"
-        }
-        return meta
+        try projectEngine.save(stored)
     }
     
     private func engineRecentProjects() -> [RecentProject] {
         let reps = (try? projectEngine.loadAll()) ?? []
         return reps.map {
             RecentProject(
-                name: $0.name,
-                path: $0.rootPath,
-                bookmarkData: $0.metadata["bookmarkData"].flatMap { Data(base64Encoded: $0) }
+                representation: $0,
+                bookmarkData: projectMetadataHandler.bookmarkData(from: $0.metadata)
             )
         }
     }

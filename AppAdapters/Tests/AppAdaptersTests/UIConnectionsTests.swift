@@ -1,7 +1,7 @@
 import XCTest
 @testable import AppAdapters
 
-final class AppAdaptersTests: XCTestCase {
+final class UIConnectionsTests: XCTestCase {
     func testPlaceholderExists() {
         _ = AppAdaptersPlaceholder.self
     }

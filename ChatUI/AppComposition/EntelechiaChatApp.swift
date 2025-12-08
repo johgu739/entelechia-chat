@@ -20,6 +20,7 @@ struct EntelechiaChatApp: App {
     @StateObject private var projectSession: ProjectSession
     @StateObject private var projectCoordinator: ProjectCoordinator
     @StateObject private var alertCenter: AlertCenter
+    @StateObject private var codexStatusModel: CodexStatusModel
     private let container: DependencyContainer
     
     init() {
@@ -29,6 +30,7 @@ struct EntelechiaChatApp: App {
             self.container = testContainer
             let alertCenter = testContainer.alertCenter
             _alertCenter = StateObject(wrappedValue: alertCenter)
+            _codexStatusModel = StateObject(wrappedValue: CodexStatusModel(availability: testContainer.codexStatus))
             
             let testSession = ProjectSession(
                 projectEngine: testContainer.projectEngine,
@@ -41,7 +43,8 @@ struct EntelechiaChatApp: App {
                 projectEngine: testContainer.projectEngine,
                 projectSession: testSession,
                 alertCenter: alertCenter,
-                securityScopeHandler: testContainer.securityScopeHandler
+                securityScopeHandler: testContainer.securityScopeHandler,
+                projectMetadataHandler: testContainer.projectMetadataHandler
             ))
             return
         }
@@ -50,6 +53,7 @@ struct EntelechiaChatApp: App {
         self.container = container
         let alertCenter = container.alertCenter
         _alertCenter = StateObject(wrappedValue: alertCenter)
+        _codexStatusModel = StateObject(wrappedValue: CodexStatusModel(availability: container.codexStatus))
         
         let session = ProjectSession(
             projectEngine: container.projectEngine,
@@ -62,7 +66,8 @@ struct EntelechiaChatApp: App {
             projectEngine: container.projectEngine,
             projectSession: session,
             alertCenter: alertCenter,
-            securityScopeHandler: container.securityScopeHandler
+            securityScopeHandler: container.securityScopeHandler,
+            projectMetadataHandler: container.projectMetadataHandler
         ))
     }
     
@@ -70,11 +75,13 @@ struct EntelechiaChatApp: App {
         WindowGroup {
             RootView(
                 workspaceEngine: container.workspaceEngine,
-                conversationEngine: container.conversationEngine
+                conversationEngine: container.conversationEngine,
+                projectTodosLoader: container.projectTodosLoader
             )
                 .environmentObject(projectSession)
                 .environmentObject(projectCoordinator)
                 .environmentObject(alertCenter)
+                .environmentObject(codexStatusModel)
                 .frame(minWidth: 1000, minHeight: 700)
         }
         .windowStyle(.automatic)
@@ -85,14 +92,14 @@ struct EntelechiaChatApp: App {
                         Text("No Recent Projects")
                             .foregroundColor(.secondary)
                     } else {
-                        ForEach(Array(projectCoordinator.recentProjects.prefix(10).enumerated()), id: \.element.path) { index, project in
+                        ForEach(Array(projectCoordinator.recentProjects.prefix(10).enumerated()), id: \.element.representation.rootPath) { index, project in
                             Button(action: {
                                 projectCoordinator.openRecent(project)
                             }) {
                                 HStack {
                                     VStack(alignment: .leading, spacing: 2) {
-                                        Text(project.name)
-                                        Text(URL(fileURLWithPath: project.path).deletingLastPathComponent().path)
+                                        Text(project.representation.name)
+                                        Text(URL(fileURLWithPath: project.representation.rootPath).deletingLastPathComponent().path)
                                             .font(.caption)
                                             .foregroundColor(.secondary)
                                     }
@@ -123,9 +130,3 @@ struct EntelechiaChatApp: App {
     }
 }
 
-// MARK: - Test-only helpers
-private struct TestSecurityScopeHandler: SecurityScopeHandling {
-    func makeBookmark(for url: URL) throws -> Data { Data() }
-    func startAccessing(_ url: URL) -> Bool { false }
-    func stopAccessing(_ url: URL) {}
-}

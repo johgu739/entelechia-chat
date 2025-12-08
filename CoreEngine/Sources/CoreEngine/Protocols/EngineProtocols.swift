@@ -7,12 +7,14 @@ public protocol ConversationEngine: Sendable {
     associatedtype ContextResult: Sendable
     associatedtype StreamEvent: Sendable
 
-    func conversation(for url: URL) -> ConversationType?
+    func conversation(for url: URL) async -> ConversationType?
+    func conversation(forDescriptorIDs ids: [FileID]) async -> ConversationType?
     func ensureConversation(for url: URL) async throws -> ConversationType
+    func ensureConversation(forDescriptorIDs ids: [FileID], pathResolver: (FileID) -> String?) async throws -> ConversationType
     func sendMessage(
         _ text: String,
         in conversation: ConversationType,
-        contextURL: URL?,
+        context: ConversationContextRequest?,
         onStream: ((StreamEvent) -> Void)?
     ) async throws -> (ConversationType, ContextResult)
 }
@@ -22,16 +24,18 @@ public protocol ProjectEngine: Sendable {
     func openProject(at url: URL) throws -> ProjectRepresentation
     func save(_ project: ProjectRepresentation) throws
     func loadAll() throws -> [ProjectRepresentation]
+    func validateProject(at url: URL) throws -> ProjectRepresentation
 }
 
 /// Workspace navigation/context facade.
 public protocol WorkspaceEngine: Sendable {
-    func openWorkspace(rootPath: String) async throws -> WorkspaceState
-    func state() -> WorkspaceState
-    func descriptors() -> [FileDescriptor]
-    func refresh() async throws -> [FileDescriptor]
-    func select(path: String?) async throws -> WorkspaceState
-    func contextPreferences() async throws -> WorkspaceContextPreferencesState
-    func setContextInclusion(path: String, included: Bool) async throws -> WorkspaceContextPreferencesState
+    func openWorkspace(rootPath: String) async throws -> WorkspaceSnapshot
+    func snapshot() async -> WorkspaceSnapshot
+    func refresh() async throws -> WorkspaceSnapshot
+    func select(path: String?) async throws -> WorkspaceSnapshot
+    func contextPreferences() async throws -> WorkspaceSnapshot
+    func setContextInclusion(path: String, included: Bool) async throws -> WorkspaceSnapshot
+    func treeProjection() async -> WorkspaceTreeProjection?
+    func updates() -> AsyncStream<WorkspaceUpdate>
 }
 

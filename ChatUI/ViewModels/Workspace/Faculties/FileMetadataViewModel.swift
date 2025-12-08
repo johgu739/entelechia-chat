@@ -136,7 +136,7 @@ class FileMetadataViewModel: ObservableObject {
     }
     
     private func loadFileContentSafely(at url: URL) async throws -> String {
-        return try await Task.detached(priority: .utility) {
+        let loadTask = Task(priority: .utility) {
             // Check file type before reading
             let resourceValues = try url.resourceValues(forKeys: [.contentTypeKey])
             guard let contentType = resourceValues.contentType else {
@@ -155,7 +155,8 @@ class FileMetadataViewModel: ObservableObject {
             
             // Fallback to system encoding
             return try String(contentsOf: url, encoding: .utf8)
-        }.value
+        }
+        return try await loadTask.value
     }
     
     private func updateCache<T>(key: URL, value: T, cache: inout [URL: CacheEntry<T>]) {

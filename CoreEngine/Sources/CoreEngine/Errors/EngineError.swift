@@ -2,10 +2,14 @@
 public enum EngineError: Error, Sendable {
     case notImplemented
     case emptyMessage
-    case streamingFailed
-    case persistenceFailed
+    case streamingTransport(StreamTransportError)
+    case persistenceFailed(underlying: String)
     case workspaceNotOpened
     case invalidSelection(String)
     case invalidWorkspace(String)
+    case invalidDescriptor(String)
+    case contextLoadFailed(String)
+    case contextRequired(String)
+    case conversationNotFound(String)
 }
 

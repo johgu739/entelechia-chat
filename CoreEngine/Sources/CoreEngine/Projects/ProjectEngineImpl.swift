@@ -1,7 +1,7 @@
 import Foundation
 
 /// Pure project engine operating on ProjectRepresentation.
-public final class ProjectEngineImpl<Persistence: ProjectPersistenceDriver>: ProjectEngine, @unchecked Sendable
+public final class ProjectEngineImpl<Persistence: ProjectPersistenceDriver>: ProjectEngine, Sendable
 where Persistence.StoredProject: Collection, Persistence.StoredProject.Element == ProjectRepresentation {
 
     private let persistence: Persistence
@@ -11,8 +11,7 @@ where Persistence.StoredProject: Collection, Persistence.StoredProject.Element =
     }
 
     public func openProject(at url: URL) throws -> ProjectRepresentation {
-        let name = url.lastPathComponent
-        return ProjectRepresentation(rootPath: url.path, name: name)
+        try validateProject(at: url)
     }
 
     public func save(_ project: ProjectRepresentation) throws {
@@ -29,6 +28,14 @@ where Persistence.StoredProject: Collection, Persistence.StoredProject.Element =
 
     public func loadAll() throws -> [ProjectRepresentation] {
         Array(try persistence.loadProjects())
+    }
+
+    public func validateProject(at url: URL) throws -> ProjectRepresentation {
+        let name = url.lastPathComponent
+        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw EngineError.invalidWorkspace("Project name is required.")
+        }
+        return ProjectRepresentation(rootPath: url.path, name: name)
     }
 }
 

@@ -1,0 +1,23 @@
+{
+  "/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/AI/CodexAPIClientAdapter.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/CodexAPIClientAdapter.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/CodexAPIClientAdapter.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/CodexAPIClientAdapter.dia",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/CodexAPIClientAdapter.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/CodexAPIClientAdapter.swiftdeps"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/AlertSinkAdapter.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/AlertSinkAdapter.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/AlertSinkAdapter.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/AlertSinkAdapter.dia",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/AlertSinkAdapter.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/AlertSinkAdapter.swiftdeps"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/CodexClientAdapter.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/CodexClientAdapter.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/CodexClientAdapter.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/CodexClientAdapter.dia",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/CodexClientAdapter.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/CodexClientAdapter.swiftdeps"
+  }
+}

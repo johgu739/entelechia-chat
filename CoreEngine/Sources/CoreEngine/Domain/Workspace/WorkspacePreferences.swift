@@ -34,3 +34,10 @@ public struct WorkspaceContextPreferencesState: Codable, Equatable, Sendable {
     }
 }
 
+/// Inclusion markers derived from context preferences for each descriptor.
+public enum ContextInclusionState: String, Codable, Equatable, Sendable {
+    case included
+    case excluded
+    case neutral
+}
+

@@ -1,0 +1,40 @@
+{
+  "source": "/Users/johangunnarsson/Developer/entelechia-chat/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Inspector/InspectorPanel.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Inspector",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 22
+        }
+      },
+      {
+        "comment": "",
+        "key": "Selection",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 26
+        }
+      },
+      {
+        "comment": "",
+        "key": "Metadata",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 30
+        }
+      },
+      {
+        "comment": "",
+        "key": "No metadata available",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 32
+        }
+      }
+    ]
+  },
+  "version": 1
+}

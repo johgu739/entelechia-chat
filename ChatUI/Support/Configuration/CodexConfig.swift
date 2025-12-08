@@ -70,6 +70,10 @@ struct CodexConfigLoader: CodexConfigLoading {
         self.keychain = keychain
     }
 
+    /// Credential precedence:
+    /// 1) Environment variables (CODEX_API_KEY / CODEX_BASE_URL / CODEX_ORG)
+    /// 2) Keychain entry (service: chat.entelechia.codex, account: CODEX_API_KEY) with env overrides for baseURL/org
+    /// 3) Bundle CodexSecrets.plist
     func loadConfig() -> Result<CodexConfig, CodexConfigError> {
         if let envConfig = loadFromEnvironment() {
             return .success(envConfig)

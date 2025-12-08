@@ -1,0 +1,179 @@
+{
+  "" : {
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/AppAdapters-primary.dia",
+    "emit-module-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/AppAdapters-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/AppAdapters-primary-emit-module.dia",
+    "pch" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/AppAdapters-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/AppAdapters-primary.swiftdeps"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/AI/CodexAPIClientAdapter.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/CodexAPIClientAdapter.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/CodexAPIClientAdapter.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/CodexAPIClientAdapter.dia",
+    "index-unit-output-path" : "/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/CodexAPIClientAdapter.o",
+    "llvm-bc" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/CodexAPIClientAdapter.bc",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/CodexAPIClientAdapter.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/CodexAPIClientAdapter.swiftdeps",
+    "swiftmodule" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/CodexAPIClientAdapter~partial.swiftmodule"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/AlertSinkAdapter.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/AlertSinkAdapter.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/AlertSinkAdapter.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/AlertSinkAdapter.dia",
+    "index-unit-output-path" : "/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/AlertSinkAdapter.o",
+    "llvm-bc" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/AlertSinkAdapter.bc",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/AlertSinkAdapter.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/AlertSinkAdapter.swiftdeps",
+    "swiftmodule" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/AlertSinkAdapter~partial.swiftmodule"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/CodexClientAdapter.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/CodexClientAdapter.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/CodexClientAdapter.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/CodexClientAdapter.dia",
+    "index-unit-output-path" : "/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/CodexClientAdapter.o",
+    "llvm-bc" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/CodexClientAdapter.bc",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/CodexClientAdapter.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/CodexClientAdapter.swiftdeps",
+    "swiftmodule" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/CodexClientAdapter~partial.swiftmodule"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/FilesystemAdapters.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/FilesystemAdapters.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/FilesystemAdapters.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/FilesystemAdapters.dia",
+    "index-unit-output-path" : "/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/FilesystemAdapters.o",
+    "llvm-bc" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/FilesystemAdapters.bc",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/FilesystemAdapters.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/FilesystemAdapters.swiftdeps",
+    "swiftmodule" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/FilesystemAdapters~partial.swiftmodule"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/FilesystemWatcherAdapter.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/FilesystemWatcherAdapter.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/FilesystemWatcherAdapter.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/FilesystemWatcherAdapter.dia",
+    "index-unit-output-path" : "/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/FilesystemWatcherAdapter.o",
+    "llvm-bc" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/FilesystemWatcherAdapter.bc",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/FilesystemWatcherAdapter.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/FilesystemWatcherAdapter.swiftdeps",
+    "swiftmodule" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/FilesystemWatcherAdapter~partial.swiftmodule"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/MarkdownRendererAdapter.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/MarkdownRendererAdapter.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/MarkdownRendererAdapter.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/MarkdownRendererAdapter.dia",
+    "index-unit-output-path" : "/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/MarkdownRendererAdapter.o",
+    "llvm-bc" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/MarkdownRendererAdapter.bc",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/MarkdownRendererAdapter.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/MarkdownRendererAdapter.swiftdeps",
+    "swiftmodule" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/MarkdownRendererAdapter~partial.swiftmodule"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/Persistence/FileStoreAdapter.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/FileStoreAdapter.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/FileStoreAdapter.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/FileStoreAdapter.dia",
+    "index-unit-output-path" : "/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/FileStoreAdapter.o",
+    "llvm-bc" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/FileStoreAdapter.bc",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/FileStoreAdapter.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/FileStoreAdapter.swiftdeps",
+    "swiftmodule" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/FileStoreAdapter~partial.swiftmodule"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/Persistence/ProjectStoreAdapter.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/ProjectStoreAdapter.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/ProjectStoreAdapter.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/ProjectStoreAdapter.dia",
+    "index-unit-output-path" : "/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/ProjectStoreAdapter.o",
+    "llvm-bc" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/ProjectStoreAdapter.bc",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/ProjectStoreAdapter.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/ProjectStoreAdapter.swiftdeps",
+    "swiftmodule" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/ProjectStoreAdapter~partial.swiftmodule"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/Persistence/ProjectStoreRealAdapter.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/ProjectStoreRealAdapter.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/ProjectStoreRealAdapter.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/ProjectStoreRealAdapter.dia",
+    "index-unit-output-path" : "/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/ProjectStoreRealAdapter.o",
+    "llvm-bc" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/ProjectStoreRealAdapter.bc",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/ProjectStoreRealAdapter.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/ProjectStoreRealAdapter.swiftdeps",
+    "swiftmodule" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/ProjectStoreRealAdapter~partial.swiftmodule"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/PersistenceAdapters.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/PersistenceAdapters.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/PersistenceAdapters.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/PersistenceAdapters.dia",
+    "index-unit-output-path" : "/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/PersistenceAdapters.o",
+    "llvm-bc" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/PersistenceAdapters.bc",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/PersistenceAdapters.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/PersistenceAdapters.swiftdeps",
+    "swiftmodule" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/PersistenceAdapters~partial.swiftmodule"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/Placeholder.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/Placeholder.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/Placeholder.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/Placeholder.dia",
+    "index-unit-output-path" : "/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/Placeholder.o",
+    "llvm-bc" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/Placeholder.bc",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/Placeholder.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/Placeholder.swiftdeps",
+    "swiftmodule" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/Placeholder~partial.swiftmodule"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/Preferences/PreferencesStoreAdapter.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/PreferencesStoreAdapter.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/PreferencesStoreAdapter.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/PreferencesStoreAdapter.dia",
+    "index-unit-output-path" : "/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/PreferencesStoreAdapter.o",
+    "llvm-bc" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/PreferencesStoreAdapter.bc",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/PreferencesStoreAdapter.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/PreferencesStoreAdapter.swiftdeps",
+    "swiftmodule" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/PreferencesStoreAdapter~partial.swiftmodule"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/ProjectTodos/ProjectTodosLoaderAdapter.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/ProjectTodosLoaderAdapter.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/ProjectTodosLoaderAdapter.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/ProjectTodosLoaderAdapter.dia",
+    "index-unit-output-path" : "/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/ProjectTodosLoaderAdapter.o",
+    "llvm-bc" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/ProjectTodosLoaderAdapter.bc",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/ProjectTodosLoaderAdapter.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/ProjectTodosLoaderAdapter.swiftdeps",
+    "swiftmodule" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/ProjectTodosLoaderAdapter~partial.swiftmodule"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/Projects/ProjectMetadataAdapter.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/ProjectMetadataAdapter.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/ProjectMetadataAdapter.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/ProjectMetadataAdapter.dia",
+    "index-unit-output-path" : "/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/ProjectMetadataAdapter.o",
+    "llvm-bc" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/ProjectMetadataAdapter.bc",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/ProjectMetadataAdapter.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/ProjectMetadataAdapter.swiftdeps",
+    "swiftmodule" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/ProjectMetadataAdapter~partial.swiftmodule"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/Security/KeychainServiceAdapter.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/KeychainServiceAdapter.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/KeychainServiceAdapter.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/KeychainServiceAdapter.dia",
+    "index-unit-output-path" : "/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/KeychainServiceAdapter.o",
+    "llvm-bc" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/KeychainServiceAdapter.bc",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/KeychainServiceAdapter.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/KeychainServiceAdapter.swiftdeps",
+    "swiftmodule" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/KeychainServiceAdapter~partial.swiftmodule"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/Security/SecurityScopeService.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/SecurityScopeService.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/SecurityScopeService.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/SecurityScopeService.dia",
+    "index-unit-output-path" : "/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/SecurityScopeService.o",
+    "llvm-bc" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/SecurityScopeService.bc",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/SecurityScopeService.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/SecurityScopeService.swiftdeps",
+    "swiftmodule" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/SecurityScopeService~partial.swiftmodule"
+  },
+  "/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters/Sources/AppAdapters/SecurityAdapters.swift" : {
+    "const-values" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/SecurityAdapters.swiftconstvalues",
+    "dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/SecurityAdapters.d",
+    "diagnostics" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/SecurityAdapters.dia",
+    "index-unit-output-path" : "/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/SecurityAdapters.o",
+    "llvm-bc" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/SecurityAdapters.bc",
+    "object" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/SecurityAdapters.o",
+    "swift-dependencies" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/SecurityAdapters.swiftdeps",
+    "swiftmodule" : "/Users/johangunnarsson/Developer/entelechia-chat/.derived/Build/Intermediates.noindex/AppAdapters.build/Debug/AppAdapters.build/Objects-normal/arm64/SecurityAdapters~partial.swiftmodule"
+  }
+}

@@ -1,0 +1,4 @@
+module UIConnections {
+header "UIConnections-Swift.h"
+export *
+}

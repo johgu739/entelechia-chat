@@ -1,0 +1,4 @@
+module CoreEngine {
+header "CoreEngine-Swift.h"
+export *
+}

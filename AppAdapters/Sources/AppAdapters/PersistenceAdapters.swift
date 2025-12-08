@@ -1,75 +1,90 @@
 import Foundation
 import CoreEngine
+import os
 
 /// In-memory conversation persistence adapter (placeholder until disk-backed version is wired).
+///
+/// Concurrency: guarded by `OSAllocatedUnfairLock`. Marked `@unchecked Sendable` because the lock wrapper
+/// is not statically Sendable.
 public final class InMemoryConversationPersistence: ConversationPersistenceDriver, @unchecked Sendable {
     public typealias ConversationType = Conversation
 
-    private var storage: [UUID: Conversation] = [:]
+    private let storage = OSAllocatedUnfairLock<[UUID: Conversation]>(initialState: [:])
 
     public init() {}
 
     public func loadAllConversations() throws -> [Conversation] {
-        Array(storage.values)
+        storage.withLock { dict in Array(dict.values) }
     }
 
     public func saveConversation(_ conversation: Conversation) throws {
-        storage[conversation.id] = conversation
+        let _: Void = storage.withLock { dict in dict[conversation.id] = conversation }
     }
 
     public func deleteConversation(_ conversation: Conversation) throws {
-        storage.removeValue(forKey: conversation.id)
+        let _: Void = storage.withLock { dict in dict.removeValue(forKey: conversation.id) }
     }
 }
 
 /// In-memory project persistence adapter (placeholder).
+///
+/// Concurrency: guarded by `OSAllocatedUnfairLock`; marked `@unchecked Sendable` because the lock wrapper
+/// is not statically Sendable.
 public final class InMemoryProjectPersistence<StoredProject: Sendable>: ProjectPersistenceDriver, @unchecked Sendable {
-    private var value: StoredProject
+    private let storage: OSAllocatedUnfairLock<StoredProject>
 
     public init(initial: StoredProject) {
-        self.value = initial
+        self.storage = OSAllocatedUnfairLock(initialState: initial)
     }
 
     public func loadProjects() throws -> StoredProject {
-        value
+        storage.withLock { $0 }
     }
 
     public func saveProjects(_ projects: StoredProject) throws {
-        value = projects
+        let _: Void = storage.withLock { $0 = projects }
     }
 }
 
 /// In-memory preferences adapter.
+///
+/// Concurrency: guarded by `OSAllocatedUnfairLock`; marked `@unchecked Sendable` because the lock wrapper
+/// is not statically Sendable.
 public final class InMemoryPreferencesDriver<Preferences: Sendable>: PreferencesDriver, @unchecked Sendable {
-    private var map: [String: Preferences] = [:]
+    private let storage = OSAllocatedUnfairLock<[String: Preferences]>(initialState: [:])
+    private let defaultValue: Preferences
 
-    public init() {}
+    public init(defaultValue: Preferences) {
+        self.defaultValue = defaultValue
+    }
 
     public func loadPreferences(for project: URL) throws -> Preferences {
-        map[project.path] ?? {
-            fatalError("Preferences not set for \(project.path)")
-        }()
+        storage.withLock { map in map[project.path] ?? defaultValue }
     }
 
     public func savePreferences(_ preferences: Preferences, for project: URL) throws {
-        map[project.path] = preferences
+        let _: Void = storage.withLock { map in map[project.path] = preferences }
     }
 }
 
 /// In-memory context preferences adapter.
+///
+/// Concurrency: guarded by `OSAllocatedUnfairLock`; marked `@unchecked Sendable` because the lock wrapper
+/// is not statically Sendable.
 public final class InMemoryContextPreferencesDriver<ContextPreferences: Sendable>: ContextPreferencesDriver, @unchecked Sendable {
-    private var map: [String: ContextPreferences] = [:]
+    private let storage = OSAllocatedUnfairLock<[String: ContextPreferences]>(initialState: [:])
+    private let defaultValue: ContextPreferences
 
-    public init() {}
+    public init(defaultValue: ContextPreferences) {
+        self.defaultValue = defaultValue
+    }
 
     public func loadContextPreferences(for project: URL) throws -> ContextPreferences {
-        map[project.path] ?? {
-            fatalError("Context preferences not set for \(project.path)")
-        }()
+        storage.withLock { map in map[project.path] ?? defaultValue }
     }
 
     public func saveContextPreferences(_ preferences: ContextPreferences, for project: URL) throws {
-        map[project.path] = preferences
+        let _: Void = storage.withLock { map in map[project.path] = preferences }
     }
 }
 

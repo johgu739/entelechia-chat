@@ -1,4 +1,4 @@
-.PHONY: ontology ontology-validate ontology-rename
+.PHONY: ontology ontology-validate ontology-rename lint-guards
 
 # Run ontology generator
 ontology:
@@ -11,3 +11,7 @@ ontology-validate:
 # Apply renames (placeholder - not implemented yet)
 ontology-rename:
 	swift run --package-path Tools/OntologyGenerator entelechia-ontology --apply-renames .
+
+# Run guard checks for unchecked sendable and blocking primitives
+lint-guards:
+	bash Tools/lint-guards.sh

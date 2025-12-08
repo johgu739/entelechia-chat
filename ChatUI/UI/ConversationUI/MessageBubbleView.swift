@@ -90,7 +90,8 @@ struct MessageBubbleView: View {
         }
         
         // Hide after 1 second
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
             withAnimation(.easeInOut(duration: 0.25)) {
                 didCopy = false
             }

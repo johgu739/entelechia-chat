@@ -1,0 +1,18 @@
+Target dependency graph (7 targets)
+Target 'ChatUI' in project 'entelechia-chat'
+➜ Explicit dependency on target 'CoreEngine' in project 'CoreEngine'
+➜ Explicit dependency on target 'AppAdapters' in project 'AppAdapters'
+➜ Explicit dependency on target 'UIConnections' in project 'UIConnections'
+Target 'UIConnections' in project 'UIConnections'
+➜ Explicit dependency on target 'UIConnections' in project 'UIConnections'
+➜ Explicit dependency on target 'CoreEngine' in project 'CoreEngine'
+Target 'UIConnections' in project 'UIConnections'
+➜ Explicit dependency on target 'CoreEngine' in project 'CoreEngine'
+Target 'AppAdapters' in project 'AppAdapters'
+➜ Explicit dependency on target 'AppAdapters' in project 'AppAdapters'
+➜ Explicit dependency on target 'CoreEngine' in project 'CoreEngine'
+Target 'AppAdapters' in project 'AppAdapters'
+➜ Explicit dependency on target 'CoreEngine' in project 'CoreEngine'
+Target 'CoreEngine' in project 'CoreEngine'
+➜ Explicit dependency on target 'CoreEngine' in project 'CoreEngine'
+Target 'CoreEngine' in project 'CoreEngine' (no dependencies)

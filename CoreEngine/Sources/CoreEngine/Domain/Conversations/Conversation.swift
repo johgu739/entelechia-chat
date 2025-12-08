@@ -8,6 +8,7 @@ public struct Conversation: Identifiable, Codable, Equatable, Sendable {
     public var updatedAt: Date
     public var messages: [Message]
     public var contextFilePaths: [String]
+    public var contextDescriptorIDs: [FileID]?
 
     public enum CodingKeys: String, CodingKey {
         case id
@@ -16,6 +17,7 @@ public struct Conversation: Identifiable, Codable, Equatable, Sendable {
         case updatedAt
         case messages
         case contextFilePaths
+        case contextDescriptorIDs
     }
 
     public init(
@@ -24,7 +26,8 @@ public struct Conversation: Identifiable, Codable, Equatable, Sendable {
         createdAt: Date = Date(),
         updatedAt: Date = Date(),
         messages: [Message] = [],
-        contextFilePaths: [String] = []
+        contextFilePaths: [String] = [],
+        contextDescriptorIDs: [FileID]? = nil
     ) {
         self.id = id
         self.title = title
@@ -32,6 +35,7 @@ public struct Conversation: Identifiable, Codable, Equatable, Sendable {
         self.updatedAt = updatedAt
         self.messages = messages
         self.contextFilePaths = contextFilePaths
+        self.contextDescriptorIDs = contextDescriptorIDs
     }
 
     /// Compute summary title from first user message.

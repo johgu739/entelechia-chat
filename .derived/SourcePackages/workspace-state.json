@@ -1,0 +1,55 @@
+{
+  "object" : {
+    "artifacts" : [
+
+    ],
+    "dependencies" : [
+      {
+        "basedOn" : null,
+        "packageRef" : {
+          "identity" : "appadapters",
+          "kind" : "fileSystem",
+          "location" : "/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters",
+          "name" : "AppAdapters"
+        },
+        "state" : {
+          "name" : "fileSystem",
+          "path" : "/Users/johangunnarsson/Developer/entelechia-chat/AppAdapters"
+        },
+        "subpath" : "appadapters"
+      },
+      {
+        "basedOn" : null,
+        "packageRef" : {
+          "identity" : "coreengine",
+          "kind" : "fileSystem",
+          "location" : "/Users/johangunnarsson/Developer/entelechia-chat/CoreEngine",
+          "name" : "CoreEngine"
+        },
+        "state" : {
+          "name" : "fileSystem",
+          "path" : "/Users/johangunnarsson/Developer/entelechia-chat/CoreEngine"
+        },
+        "subpath" : "coreengine"
+      },
+      {
+        "basedOn" : null,
+        "packageRef" : {
+          "identity" : "uiconnections",
+          "kind" : "fileSystem",
+          "location" : "/Users/johangunnarsson/Developer/entelechia-chat/UIConnections",
+          "name" : "UIConnections"
+        },
+        "state" : {
+          "name" : "fileSystem",
+          "path" : "/Users/johangunnarsson/Developer/entelechia-chat/UIConnections"
+        },
+        "subpath" : "uiconnections"
+      }
+    ],
+    "prebuilts" : [
+
+    ]
+  },
+  "version" : 7
+}

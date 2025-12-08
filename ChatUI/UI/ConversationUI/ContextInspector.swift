@@ -15,11 +15,13 @@ import SwiftUI
 import AppKit
 import UniformTypeIdentifiers
 import CoreEngine
+import Combine
 
 struct ContextInspector: View {
     @EnvironmentObject var workspaceViewModel: WorkspaceViewModel
     @StateObject private var metadataViewModel = FileMetadataViewModel()
     @State private var selectedInspectorTab: InspectorTab = .file
+    @State private var contextErrorBanner: String?
     
     var body: some View {
         VStack(spacing: 0) {
@@ -104,6 +106,26 @@ struct ContextInspector: View {
         }
         .frame(minWidth: 220, maxWidth: 300)
         .background(Color.clear)
+        .overlay(alignment: .top) {
+            if let message = contextErrorBanner {
+                ContextErrorBanner(message: message) {
+                    withAnimation { contextErrorBanner = nil }
+                }
+                .transition(.move(edge: .top).combined(with: .opacity))
+                .padding(.horizontal, 8)
+                .padding(.top, 8)
+            }
+        }
+        .onChange(of: workspaceViewModel.lastContextResult) { _, newValue in
+            if newValue != nil {
+                contextErrorBanner = nil
+            }
+        }
+        .onReceive(workspaceViewModel.contextErrorPublisher) { message in
+            withAnimation {
+                contextErrorBanner = message
+            }
+        }
     }
 
     // MARK: - Tabs
@@ -266,6 +288,34 @@ struct ContextInspector: View {
         formatter.numberStyle = .decimal
         formatter.groupingSeparator = " "
         return formatter.string(from: NSNumber(value: number)) ?? "\(number)"
+    }
+}
+
+private struct ContextErrorBanner: View {
+    let message: String
+    let onDismiss: () -> Void
+    
+    var body: some View {
+        HStack(alignment: .center, spacing: 8) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundColor(.yellow)
+            Text(message)
+                .font(.system(size: 12))
+                .foregroundColor(.primary)
+                .lineLimit(3)
+            Spacer()
+            Button(action: onDismiss) {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundColor(.secondary)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color(NSColor.windowBackgroundColor).opacity(0.9))
+                .shadow(radius: 4)
+        )
     }
 }
 
@@ -530,7 +580,7 @@ private struct AsyncFilePreviewView: View {
                 }
                 
                 // Load content async
-                content = try await Task.detached(priority: .utility) {
+                let loadTask = Task(priority: .utility) {
                     if let data = try? Data(contentsOf: url),
                        let text = String(data: data, encoding: .utf8) {
                         // Limit preview to first 1000 lines
@@ -538,7 +588,8 @@ private struct AsyncFilePreviewView: View {
                         return lines.prefix(1000).joined(separator: "\n")
                     }
                     return try String(contentsOf: url, encoding: .utf8)
-                }.value
+                }
+                content = try await loadTask.value
             } catch {
                 self.error = error
             }

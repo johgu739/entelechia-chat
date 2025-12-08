@@ -98,9 +98,14 @@ struct ChatView: View {
         
         Task { @MainActor in
             await workspaceViewModel.sendMessage(text, for: conversation)
-            let targetURL = workspaceViewModel.selectedNode?.path ?? conversation.contextURL ?? conversation.contextFilePaths.first.map { URL(fileURLWithPath: $0) }
-            if let url = targetURL {
-                conversation = workspaceViewModel.conversation(for: url)
+            if let descriptorID = workspaceViewModel.selectedDescriptorID,
+               let refreshed = await workspaceViewModel.conversation(forDescriptorID: descriptorID) {
+                conversation = refreshed
+            } else {
+                let targetURL = workspaceViewModel.selectedNode?.path ?? conversation.contextURL ?? conversation.contextFilePaths.first.map { URL(fileURLWithPath: $0) }
+                if let url = targetURL {
+                    conversation = await workspaceViewModel.conversation(for: url)
+                }
             }
         }
     }

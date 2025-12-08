@@ -1,9 +1,10 @@
 import Foundation
 import CoreEngine
+import os
 
 /// Minimal project persistence adapter (placeholder) that keeps data in memory.
 /// Replace with a real disk-backed adapter using the app's ProjectStore when migrated.
-public final class InMemoryProjectStoreAdapter: ProjectPersistenceDriver, @unchecked Sendable {
+public final class InMemoryProjectStoreAdapter: ProjectPersistenceDriver, Sendable {
     public struct ProjectRecord: Codable, Sendable, Equatable {
         public var name: String
         public var path: String
@@ -24,18 +25,18 @@ public final class InMemoryProjectStoreAdapter: ProjectPersistenceDriver, @unche
 
     public typealias StoredProject = ProjectData
 
-    private var data: ProjectData
+    private let storage: OSAllocatedUnfairLock<ProjectData>
 
     public init(seed: ProjectData = ProjectData()) {
-        self.data = seed
+        self.storage = OSAllocatedUnfairLock(initialState: seed)
     }
 
     public func loadProjects() throws -> ProjectData {
-        data
+        storage.withLock { $0 }
     }
 
     public func saveProjects(_ projects: ProjectData) throws {
-        data = projects
+        storage.withLock { $0 = projects }
     }
 }
 

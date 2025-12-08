@@ -7,6 +7,12 @@ public protocol FileSystemAccess: Sendable {
     func resolveRoot(at path: String) throws -> FileID
 }
 
+/// Filesystem watch events for a workspace root (recursive).
+public protocol FileSystemWatching: Sendable {
+    /// Returns a stream that emits whenever the filesystem under `rootPath` changes.
+    func watch(rootPath: String) -> AsyncStream<Void>
+}
+
 /// Metadata for a file descriptor.
 public struct FileMetadata: Sendable {
     public let path: String
