@@ -78,11 +78,16 @@ public struct WorkspaceContextPreparer: Sendable {
         exclusions: Set<String>
     ) -> [String] {
         if !inclusions.isEmpty {
-            return inclusions.filter { !exclusions.contains($0) }
+            return inclusions
+                .filter { !exclusions.contains($0) }
+                .sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
         }
 
         if let preferred = preferredDescriptorIDs, !preferred.isEmpty {
-            return preferred.compactMap { pathMap[$0] }.filter { !exclusions.contains($0) }
+            return preferred
+                .compactMap { pathMap[$0] }
+                .filter { !exclusions.contains($0) }
+                .sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
         }
 
         if let selectedID = snapshot.selectedDescriptorID,

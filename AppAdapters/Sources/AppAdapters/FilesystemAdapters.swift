@@ -11,15 +11,28 @@ import os
 /// Sendable.
 public final class FileSystemAccessAdapter: FileSystemAccess, @unchecked Sendable {
     private let state = FileIDState()
+    private let boundary: WorkspaceBoundaryFiltering
+    private let rootProvider: WorkspaceRootProviding
+    private let maxDescriptorBytes: Int
 
-    public init() {}
+    public init(
+        boundary: WorkspaceBoundaryFiltering = DefaultWorkspaceBoundaryFilter(),
+        rootProvider: WorkspaceRootProviding = DefaultWorkspaceRootProvider(),
+        maxDescriptorBytes: Int = 1_000_000
+    ) {
+        self.boundary = boundary
+        self.rootProvider = rootProvider
+        self.maxDescriptorBytes = maxDescriptorBytes
+    }
 
     public func resolveRoot(at path: String) throws -> FileID {
-        ensureIDs(for: path)
+        let canonical = try rootProvider.canonicalRoot(for: path)
+        state.setRoot(canonical)
+        return ensureIDs(for: canonical)
     }
 
     public func listChildren(of id: FileID) throws -> [FileDescriptor] {
-        guard let path = state.path(for: id) else { return [] }
+        guard let rootPath = state.rootPath, let path = state.path(for: id) else { return [] }
         let url = URL(fileURLWithPath: path)
         let contents = try FileManager.default.contentsOfDirectory(
             at: url,
@@ -27,11 +40,56 @@ public final class FileSystemAccessAdapter: FileSystemAccess, @unchecked Sendabl
             options: [.skipsHiddenFiles]
         )
         var descriptors: [FileDescriptor] = []
-        for child in contents {
-            let isDir = (try? child.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
-            let childPath = child.path
+        for child in contents.sorted(by: { $0.path.localizedCaseInsensitiveCompare($1.path) == .orderedAscending }) {
+            let canonical = child.resolvingSymlinksInPath().standardizedFileURL.path
+            guard canonical.hasPrefix(rootPath) else { continue }
+            guard boundary.allows(canonicalPath: canonical) else { continue }
+
+            let values = try? child.resourceValues(forKeys: [.isDirectoryKey, .fileSizeKey, .contentTypeKey])
+            let isDir = values?.isDirectory ?? false
+
+            if !isDir {
+                if let contentType = values?.contentType,
+                   !(contentType.conforms(to: .text) || contentType.conforms(to: .sourceCode)) {
+                    continue
+                }
+                if let size = values?.fileSize, size > maxDescriptorBytes {
+                    continue
+                }
+            }
+
+            let childPath = canonical
             let childID = ensureIDs(for: childPath)
-            descriptors.append(FileDescriptor(id: childID, name: child.lastPathComponent, type: isDir ? .directory : .file, children: []))
+            if isDir {
+                descriptors.append(
+                    FileDescriptor(
+                        id: childID,
+                        name: child.lastPathComponent,
+                        type: .directory,
+                        children: [],
+                        canonicalPath: childPath,
+                        language: nil,
+                        size: values?.fileSize ?? 0,
+                        hash: ""
+                    )
+                )
+            } else {
+                let content = try Data(contentsOf: child)
+                let hash = FileDescriptor.hashFor(contents: content)
+                let language = Self.languageIdentifier(for: child)
+                descriptors.append(
+                    FileDescriptor(
+                        id: childID,
+                        name: child.lastPathComponent,
+                        type: .file,
+                        children: [],
+                        canonicalPath: childPath,
+                        language: language,
+                        size: content.count,
+                        hash: hash
+                    )
+                )
+            }
         }
         return descriptors
     }
@@ -52,6 +110,13 @@ public final class FileSystemAccessAdapter: FileSystemAccess, @unchecked Sendabl
     private func ensureIDs(for path: String) -> FileID {
         state.ensureIDs(for: path)
     }
+
+    private static func languageIdentifier(for url: URL) -> String? {
+        if let type = UTType(filenameExtension: url.pathExtension) {
+            return type.preferredMIMEType ?? type.identifier
+        }
+        return nil
+    }
 }
 
 // Thread-safe mapping between paths and FileID values.
@@ -61,6 +126,13 @@ private struct FileIDState: Sendable {
     private struct State {
         var idForPath: [String: FileID] = [:]
         var pathForID: [FileID: String] = [:]
+        var rootPath: String?
+    }
+
+    func setRoot(_ path: String) {
+        lock.withLock { state in
+            state.rootPath = path
+        }
     }
 
     func ensureIDs(for path: String) -> FileID {
@@ -77,6 +149,10 @@ private struct FileIDState: Sendable {
 
     func path(for id: FileID) -> String? {
         lock.withLock { state in state.pathForID[id] }
+    }
+
+    var rootPath: String? {
+        lock.withLock { state in state.rootPath }
     }
 }
 

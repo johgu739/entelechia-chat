@@ -41,7 +41,7 @@ struct CodeBlockView: View {
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
-            .background(Color(white: 0.96))
+            .background(Color.secondary.opacity(0.08))
             
             // Code content
             ScrollView(.horizontal, showsIndicators: true) {
@@ -53,7 +53,7 @@ struct CodeBlockView: View {
                     .padding(.vertical, 12)
             }
         }
-        .background(Color(nsColor: .controlBackgroundColor))
+        .background(Color(white: 0.97))
         .cornerRadius(12)
         .overlay(
             RoundedRectangle(cornerRadius: 12)

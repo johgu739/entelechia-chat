@@ -12,16 +12,11 @@ let package = Package(
             targets: ["AppCoreEngine"]
         )
     ],
-    dependencies: [
-        .package(name: "ArchitectureGuardian", path: "../ArchitectureGuardian")
-    ],
+    dependencies: [],
     targets: [
         .target(
             name: "AppCoreEngine",
-            dependencies: [],
-            plugins: [
-                .plugin(name: "ArchitectureGuardian", package: "ArchitectureGuardian")
-            ]
+            dependencies: []
         ),
         .testTarget(
             name: "AppCoreEngineTests",

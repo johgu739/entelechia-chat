@@ -15,6 +15,7 @@ struct AppBootstrap {
     let alertCenter: AlertCenter
     let projectTodosLoader: ProjectTodosLoading
     let projectMetadataHandler: ProjectMetadataHandling
+    let codexService: CodexService
     let engines: Engines
 
     init(baseURL: URL? = nil, forTesting: Bool = false) {
@@ -47,12 +48,21 @@ struct AppBootstrap {
             persistence: conversationPersistence,
             fileLoader: fileContentLoader
         )
+        let mutationAuthority = FileMutationAuthority()
+        let codexService = CodexService(
+            conversationEngine: ConversationEngineBox(engine: conversationEngine),
+            workspaceEngine: workspaceEngine,
+            codexClient: codexBuild.client,
+            fileLoader: fileContentLoader,
+            mutationPipeline: CodexMutationPipeline(authority: mutationAuthority)
+        )
 
         self.securityScope = securityScope
         self.alertCenter = AlertCenter()
         self.codexStatus = AppBootstrap.mapStatus(codexBuild.status)
         self.projectTodosLoader = projectTodosLoader
         self.projectMetadataHandler = projectMetadataHandler
+        self.codexService = codexService
         self.engines = Engines(
             workspace: workspaceEngine,
             project: projectEngine,

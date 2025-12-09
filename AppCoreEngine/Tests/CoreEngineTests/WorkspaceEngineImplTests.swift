@@ -167,6 +167,66 @@ final class WorkspaceEngineImplTests: XCTestCase {
         XCTAssertNil(snap.lastPersistedSelection)
     }
 
+    func testSnapshotDeterministicAcrossOpens() async throws {
+        let fs = FakeFileSystem(tree: [
+            "/root": ["a.swift", "b.swift"],
+            "/root/a.swift": [],
+            "/root/b.swift": []
+        ])
+        let engine = makeEngine(fs: fs)
+        let first = try await engine.openWorkspace(rootPath: "/root")
+        let second = try await engine.openWorkspace(rootPath: "/root")
+
+        let firstNames = first.descriptors.sorted { $0.canonicalPath < $1.canonicalPath }.map(\.canonicalPath)
+        let secondNames = second.descriptors.sorted { $0.canonicalPath < $1.canonicalPath }.map(\.canonicalPath)
+        XCTAssertEqual(firstNames, secondNames)
+        XCTAssertEqual(first.snapshotHash, second.snapshotHash)
+    }
+
+    func testSnapshotHashIgnoresSetOrdering() async throws {
+        let fs = FakeFileSystem(tree: [
+            "/root": ["a.swift", "b.swift"],
+            "/root/a.swift": [],
+            "/root/b.swift": []
+        ])
+
+        let prefsA = PreloadedContextPrefs(
+            initial: WorkspaceContextPreferencesState(
+                includedPaths: ["/root/b.swift", "/root/a.swift"],
+                excludedPaths: ["/root/ignored", "/root/alsoIgnored"],
+                lastFocusedFilePath: nil
+            )
+        )
+        let prefsB = PreloadedContextPrefs(
+            initial: WorkspaceContextPreferencesState(
+                includedPaths: ["/root/a.swift", "/root/b.swift"],
+                excludedPaths: ["/root/alsoIgnored", "/root/ignored"],
+                lastFocusedFilePath: nil
+            )
+        )
+
+        let engineA = WorkspaceEngineImpl(
+            fileSystem: fs,
+            preferences: InMemoryWorkspacePrefs(),
+            contextPreferences: prefsA,
+            watcher: NoopWatcher()
+        )
+        let engineB = WorkspaceEngineImpl(
+            fileSystem: fs,
+            preferences: InMemoryWorkspacePrefs(),
+            contextPreferences: prefsB,
+            watcher: NoopWatcher()
+        )
+
+        let snapA = try await engineA.openWorkspace(rootPath: "/root")
+        let snapB = try await engineB.openWorkspace(rootPath: "/root")
+
+        let namesA = snapA.descriptors.sorted { $0.canonicalPath < $1.canonicalPath }.map(\.canonicalPath)
+        let namesB = snapB.descriptors.sorted { $0.canonicalPath < $1.canonicalPath }.map(\.canonicalPath)
+        XCTAssertEqual(namesA, namesB)
+        XCTAssertEqual(snapA.snapshotHash, snapB.snapshotHash)
+    }
+
     func testExcludedPathsAreNotIndexedAfterRefresh() async throws {
         let fs = MutableFileSystem(tree: [
             "/root": ["a.txt", "b.txt"]
@@ -347,7 +407,11 @@ private final class FakeFileSystem: FileSystemAccess, @unchecked Sendable {
                 id: childId,
                 name: name,
                 type: isDirectory ? .directory : .file,
-                children: []
+                children: [],
+                canonicalPath: childPath,
+                language: nil,
+                size: 0,
+                hash: ""
             )
         }
     }
@@ -415,7 +479,11 @@ private final class MutableFileSystem: FileSystemAccess, @unchecked Sendable {
                 id: childId,
                 name: name,
                 type: isDirectory ? .directory : .file,
-                children: []
+                children: [],
+                canonicalPath: childPath,
+                language: nil,
+                size: 0,
+                hash: ""
             )
         }
     }

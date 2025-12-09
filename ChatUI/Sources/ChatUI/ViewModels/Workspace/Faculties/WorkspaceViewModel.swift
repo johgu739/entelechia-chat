@@ -108,6 +108,7 @@ class WorkspaceViewModel: ObservableObject {
     private let workspaceEngine: WorkspaceEngine
     private let conversationEngine: ConversationStreaming
     private let projectTodosLoader: ProjectTodosLoading
+    private let codexService: CodexService
     private var alertCenter: AlertCenter?
     private let logger = Logger.persistence
     private let contextErrorSubject = PassthroughSubject<String, Never>()
@@ -124,6 +125,7 @@ class WorkspaceViewModel: ObservableObject {
     
     // MARK: - Private State
     private var workspaceSnapshot: WorkspaceSnapshot = .empty
+    private var codexContextByMessageID: [UUID: ContextBuildResult] = [:]
     
     // MARK: - Initialization
     
@@ -131,11 +133,13 @@ class WorkspaceViewModel: ObservableObject {
         workspaceEngine: WorkspaceEngine,
         conversationEngine: ConversationStreaming,
         projectTodosLoader: ProjectTodosLoading,
+        codexService: CodexService = DefaultContainer().codexService,
         alertCenter: AlertCenter? = nil
     ) {
         self.workspaceEngine = workspaceEngine
         self.conversationEngine = conversationEngine
         self.projectTodosLoader = projectTodosLoader
+        self.codexService = codexService
         self.alertCenter = alertCenter
         subscribeToUpdates()
     }
@@ -449,6 +453,40 @@ class WorkspaceViewModel: ObservableObject {
             }
             lastContextResult = nil
         }
+    }
+
+    func askCodex(_ text: String, for conversation: Conversation) async -> Conversation {
+        isLoading = true
+        streamingMessages[conversation.id] = ""
+        defer {
+            isLoading = false
+            streamingMessages[conversation.id] = nil
+        }
+
+        guard let descriptorID = selectedDescriptorID else {
+            alertCenter?.publish(WorkspaceViewModelError.conversationEnsureFailed(EngineError.contextLoadFailed("No selection")), fallbackTitle: "Codex Error")
+            return conversation
+        }
+
+        do {
+            let answer = try await codexService.askAboutWorkspaceNode(scope: .descriptor(descriptorID), question: text) { [weak self] streaming in
+                Task { @MainActor in
+                    self?.streamingMessages[conversation.id] = streaming
+                }
+            }
+            var updated = conversation
+            let assistant = Message(role: .assistant, text: answer.text, createdAt: Date())
+            updated.messages.append(assistant)
+            codexContextByMessageID[assistant.id] = answer.context
+            return updated
+        } catch {
+            alertCenter?.publish(WorkspaceViewModelError.conversationEnsureFailed(error), fallbackTitle: "Codex Error")
+            return conversation
+        }
+    }
+
+    func contextForMessage(_ id: UUID) -> ContextBuildResult? {
+        codexContextByMessageID[id]
     }
 
     // MARK: - Ontology Todos Loading

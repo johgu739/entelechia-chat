@@ -23,7 +23,7 @@ struct MarkdownMessageView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Message content
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 12) {
                 ForEach(parseContent(), id: \.id) { block in
                     switch block.type {
                     case .codeBlock:
@@ -31,7 +31,9 @@ struct MarkdownMessageView: View {
                     case .text:
                         Text(MarkdownRenderer.parseMarkdown(block.content))
                             .textSelection(.enabled)
+                            .font(.system(size: 15))
                             .fixedSize(horizontal: false, vertical: true)
+                            .padding(.vertical, 2)
                     }
                 }
             }
@@ -55,9 +57,9 @@ struct MarkdownMessageView: View {
                         copyToClipboard(content)
                     }) {
                         Image(systemName: "doc.on.doc")
-                            .font(.system(size: 11, weight: .medium))
+                            .font(.system(size: 12, weight: .semibold))
                             .foregroundColor(.secondary)
-                            .frame(width: 18, height: 18)
+                            .frame(width: 22, height: 22)
                             .contentShape(Rectangle())
                             .scaleEffect(isHovered ? 1.05 : 1.0)
                             .opacity(isHovered ? 0.8 : 0.6)

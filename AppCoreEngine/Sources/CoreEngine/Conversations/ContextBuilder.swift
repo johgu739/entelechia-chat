@@ -21,6 +21,7 @@ public struct ContextBuildResult: Equatable, Sendable {
     public let totalBytes: Int
     public let totalTokens: Int
     public let budget: ContextBudget
+    public let encodedSegments: [ContextSegment]
 
     public var attachmentCount: Int { attachments.count }
 
@@ -30,7 +31,8 @@ public struct ContextBuildResult: Equatable, Sendable {
         excludedFiles: [ContextExclusion],
         totalBytes: Int,
         totalTokens: Int,
-        budget: ContextBudget
+        budget: ContextBudget,
+        encodedSegments: [ContextSegment] = []
     ) {
         self.attachments = attachments
         self.truncatedFiles = truncatedFiles
@@ -38,6 +40,7 @@ public struct ContextBuildResult: Equatable, Sendable {
         self.totalBytes = totalBytes
         self.totalTokens = totalTokens
         self.budget = budget
+        self.encodedSegments = encodedSegments
     }
 }
 
@@ -102,13 +105,18 @@ public struct ContextBuilder: Sendable {
             runningTokens = candidateTokens
         }
 
+        let encoder = WorkspaceContextEncoder()
+        let encodedFiles = encoder.encode(files: attachments)
+        let segments = WorkspaceContextSegmenter(maxTokensPerSegment: 8_000).segment(files: encodedFiles)
+
         return ContextBuildResult(
             attachments: attachments,
             truncatedFiles: truncated,
             excludedFiles: exclusions,
             totalBytes: runningBytes,
             totalTokens: runningTokens,
-            budget: budget
+            budget: budget,
+            encodedSegments: segments
         )
     }
 

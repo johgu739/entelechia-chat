@@ -11,6 +11,7 @@ public protocol DependencyContainer {
     var conversationEngine: ConversationStreaming { get }
     var projectTodosLoader: ProjectTodosLoading { get }
     var projectMetadataHandler: ProjectMetadataHandling { get }
+    var codexService: CodexService { get }
 }
 
 public enum CodexAvailability {
@@ -28,6 +29,7 @@ public struct DefaultContainer: DependencyContainer {
     public let conversationEngine: ConversationStreaming
     public let projectTodosLoader: ProjectTodosLoading
     public let projectMetadataHandler: ProjectMetadataHandling
+    public let codexService: CodexService
     
     public init() {
         let bootstrap = AppBootstrap()
@@ -39,6 +41,7 @@ public struct DefaultContainer: DependencyContainer {
         self.conversationEngine = bootstrap.engines.conversation
         self.projectTodosLoader = bootstrap.projectTodosLoader
         self.projectMetadataHandler = bootstrap.projectMetadataHandler
+        self.codexService = bootstrap.codexService
     }
 }
 
@@ -51,6 +54,7 @@ public struct TestContainer: DependencyContainer {
     public let conversationEngine: ConversationStreaming
     public let projectTodosLoader: ProjectTodosLoading
     public let projectMetadataHandler: ProjectMetadataHandling
+    public let codexService: CodexService
     
     public init(root: URL) {
         let bootstrap = AppBootstrap(baseURL: root, forTesting: true)
@@ -62,6 +66,7 @@ public struct TestContainer: DependencyContainer {
         self.conversationEngine = bootstrap.engines.conversation
         self.projectTodosLoader = bootstrap.projectTodosLoader
         self.projectMetadataHandler = bootstrap.projectMetadataHandler
+        self.codexService = bootstrap.codexService
     }
 }
 

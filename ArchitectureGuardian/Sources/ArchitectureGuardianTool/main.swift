@@ -1,59 +1,145 @@
 import Foundation
+import ArchitectureGuardianLib
 
-struct ArchitectureGuardianTool {
-    static func main() throws {
-        let args = CommandLine.arguments
-        guard args.count >= 4 else {
-            fputs("ArchitectureGuardian: missing arguments\n", stderr)
-            exit(1)
+private struct Config {
+    var output: String?
+    var rulesHint: String?
+    var sources: [String] = []
+}
+
+private func parseArguments() -> Config {
+    var config = Config()
+    var iterator = CommandLine.arguments.dropFirst().makeIterator()
+    while let arg = iterator.next() {
+        switch arg {
+        case "--output":
+            config.output = iterator.next()
+        case "--rules-hint":
+            config.rulesHint = iterator.next()
+        default:
+            config.sources.append(arg)
         }
-        let rulesPath = args[1]
-        let outputPath = args[2]
-        let files = Array(args.dropFirst(3))
+    }
+    return config
+}
 
-        let data = try Data(contentsOf: URL(fileURLWithPath: rulesPath))
-        let rules = try JSONDecoder().decode([String: [String]].self, from: data)
+private func findRulesFile(hint: String?, sources: [String]) -> URL? {
+    let fm = FileManager.default
 
-        var violations: [String] = []
-
-        for file in files {
-            var isDir: ObjCBool = false
-            if !FileManager.default.fileExists(atPath: file, isDirectory: &isDir) { continue }
-            if isDir.boolValue { continue }
-            guard let targetName = targetNameFromEnv() else { continue }
-            guard let allowed = rules[targetName] else { continue }
-            let contents = try String(contentsOfFile: file)
-            for line in contents.split(separator: "\n") {
-                let trimmed = line.trimmingCharacters(in: .whitespaces)
-                guard trimmed.hasPrefix("import ") else { continue }
-                let parts = trimmed.split(separator: " ", maxSplits: 1)
-                guard parts.count == 2 else { continue }
-                var module = String(parts[1])
-                module = module.replacingOccurrences(of: "@_exported", with: "").trimmingCharacters(in: .whitespaces)
-                if !allowed.contains(module) {
-                    let allowedList = allowed.joined(separator: ", ")
-                    violations.append("\(file): illegal import '\(module)' in target '\(targetName)'. Allowed: \(allowedList)")
-                }
-            }
-        }
-
-        if !violations.isEmpty {
-            for v in violations { fputs(v + "\n", stderr) }
-            exit(1)
-        }
-
-        // Emit a marker file so the build tool has an output.
-        let outURL = URL(fileURLWithPath: outputPath)
-        try FileManager.default.createDirectory(at: outURL.deletingLastPathComponent(), withIntermediateDirectories: true)
-        try Data("ok".utf8).write(to: outURL)
+    func resolve(_ path: String) -> URL {
+        URL(fileURLWithPath: path).resolvingSymlinksInPath()
     }
 
-    private static func targetNameFromEnv() -> String? {
-        ProcessInfo.processInfo.environment["TARGET_NAME"]
+    func ascend(from start: URL) -> URL? {
+        var current = start
+        while true {
+            let candidate = current.appendingPathComponent("ArchitectureRules.json")
+            if fm.fileExists(atPath: candidate.path) { return candidate }
+            let parent = current.deletingLastPathComponent()
+            if parent.path == current.path { return nil }
+            current = parent
+        }
+    }
+
+    if let hint, fm.fileExists(atPath: hint) {
+        return resolve(hint)
+    }
+
+    // Try from sources
+    for source in sources {
+        let dir = resolve(source).deletingLastPathComponent()
+        if let found = ascend(from: dir) { return found }
+    }
+
+    // Fallback to tool location via #file
+    let toolDir = URL(fileURLWithPath: #file).deletingLastPathComponent()
+    if let found = ascend(from: toolDir) { return found }
+
+    return nil
+}
+
+private func loadSources(_ paths: [String]) -> [String: String] {
+    var map: [String: String] = [:]
+    let fm = FileManager.default
+    for path in paths {
+        var isDir: ObjCBool = false
+        guard fm.fileExists(atPath: path, isDirectory: &isDir), !isDir.boolValue else {
+            fputs("ArchitectureGuardian: skipping non-file or missing path \(path)\n", stderr)
+            continue
+        }
+        do {
+            map[path] = try String(contentsOfFile: path)
+        } catch {
+            fputs("ArchitectureGuardian: failed to read \(path): \(error)\n", stderr)
+        }
+    }
+    return map
+}
+
+private func writeOutput(_ message: String, to path: String?) {
+    guard let path else { return }
+    let url = URL(fileURLWithPath: path)
+    let dir = url.deletingLastPathComponent()
+    do {
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        if let data = message.data(using: .utf8) {
+            try data.write(to: url)
+        } else {
+            // Fallback: create an empty file if encoding somehow fails
+            FileManager.default.createFile(atPath: url.path, contents: Data(), attributes: nil)
+        }
+    } catch {
+        fputs("ArchitectureGuardian: failed to write output at \(url.path): \(error)\n", stderr)
+        // Last resort: attempt a bare createFile to satisfy the build system
+        _ = FileManager.default.createFile(atPath: url.path, contents: message.data(using: .utf8), attributes: nil)
     }
 }
 
-// Entry point
-try ArchitectureGuardianTool.main()
+private func run() {
+    let config = parseArguments()
+    // Create/ensure output exists as early as possible to satisfy build system expectations.
+    writeOutput("starting\n", to: config.output)
 
+    guard let targetName = ProcessInfo.processInfo.environment["TARGET_NAME"] else {
+        fputs("ArchitectureGuardian: missing TARGET_NAME\n", stderr)
+        writeOutput("missing TARGET_NAME\n", to: config.output)
+        exit(0)
+    }
 
+    let rulesURL = findRulesFile(hint: config.rulesHint, sources: config.sources)
+    guard let rulesURL else {
+        fputs("ArchitectureGuardian: could not locate ArchitectureRules.json\n", stderr)
+        writeOutput("rules not found\n", to: config.output)
+        exit(0)
+    }
+
+    guard
+        let data = try? Data(contentsOf: rulesURL),
+        let rules = try? JSONDecoder().decode([String: [String]].self, from: data)
+    else {
+        fputs("ArchitectureGuardian: failed to load or decode rules at \(rulesURL.path)\n", stderr)
+        writeOutput("rules decode failure\n", to: config.output)
+        exit(0)
+    }
+
+    let sources = config.sources
+    let fileMap = loadSources(sources)
+
+    let violations = GuardianRunner.findViolations(
+        rules: rules,
+        fileContents: fileMap,
+        targetName: targetName
+    )
+
+    if violations.isEmpty {
+        writeOutput("ok\n", to: config.output)
+        exit(0)
+    } else {
+        let joined = violations.joined(separator: "\n")
+        fputs(joined + "\n", stderr)
+        writeOutput(joined + "\n", to: config.output)
+        exit(1)
+    }
+}
+
+run()

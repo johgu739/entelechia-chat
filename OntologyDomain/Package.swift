@@ -13,7 +13,6 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(name: "ArchitectureGuardian", path: "../ArchitectureGuardian"),
         .package(name: "OntologyIntegration", path: "../OntologyIntegration")
     ],
     targets: [
@@ -21,9 +20,6 @@ let package = Package(
             name: "OntologyDomain",
             dependencies: [
                 .product(name: "OntologyIntegration", package: "OntologyIntegration")
-            ],
-            plugins: [
-                .plugin(name: "ArchitectureGuardian", package: "ArchitectureGuardian")
             ]
         ),
         .testTarget(

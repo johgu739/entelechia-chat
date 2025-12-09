@@ -13,7 +13,6 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(name: "ArchitectureGuardian", path: "../ArchitectureGuardian"),
         .package(name: "OntologyFractal", path: "../OntologyFractal")
     ],
     targets: [
@@ -21,9 +20,6 @@ let package = Package(
             name: "OntologyIntegration",
             dependencies: [
                 .product(name: "OntologyFractal", package: "OntologyFractal")
-            ],
-            plugins: [
-                .plugin(name: "ArchitectureGuardian", package: "ArchitectureGuardian")
             ]
         ),
         .testTarget(

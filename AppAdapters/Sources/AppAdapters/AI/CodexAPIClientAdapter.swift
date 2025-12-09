@@ -10,17 +10,41 @@ public struct CodexAPIClientAdapter: CodexClient, Sendable {
 
     private let client: HTTPClient
     private let model: String
+    private let retryPolicy: RetryPolicy
 
-    public init(config: CodexConfigBridge) {
+    public init(config: CodexConfigBridge, retryPolicy: RetryPolicy = RetryPolicy()) {
         self.client = HTTPClient(config: config)
         self.model = config.model
+        self.retryPolicy = retryPolicy
     }
 
     public func stream(
         messages: [Message],
         contextFiles: [LoadedFile]
     ) async throws -> AsyncThrowingStream<StreamChunk<ModelResponse>, Error> {
-        try await client.stream(messages: messages, contextFiles: contextFiles, model: model)
+        try await executeWithRetry {
+            try await client.stream(messages: messages, contextFiles: contextFiles, model: model)
+        }
+    }
+
+    private func executeWithRetry<T>(
+        _ operation: @escaping () async throws -> T
+    ) async throws -> T {
+        var lastError: Error?
+        for attempt in 0...retryPolicy.maxRetries {
+            try Task.checkCancellation()
+            do {
+                return try await operation()
+            } catch {
+                lastError = error
+                if attempt == retryPolicy.maxRetries {
+                    break
+                }
+                let delay = retryPolicy.backoff.delay(for: attempt)
+                try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+            }
+        }
+        throw lastError ?? StreamTransportError.invalidResponse("Unknown streaming failure")
     }
 }
 

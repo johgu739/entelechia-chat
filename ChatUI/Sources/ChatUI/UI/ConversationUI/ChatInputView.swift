@@ -27,11 +27,32 @@ struct ChatInputView: View {
     @Binding var text: String
     let onSend: () -> Void
     let onAttachFile: () -> Void
+    let onAskCodex: (() -> Void)?
+    let isAskEnabled: Bool
+    let currentTarget: String?
+    let sendShortcut: String
+    let askShortcut: String
     
     @FocusState private var isFocused: Bool
     
     var body: some View {
         HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(currentTarget ?? "No selection")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor((currentTarget == nil) ? .secondary : .primary)
+                HStack(spacing: 8) {
+                    Text("Send: \(sendShortcut)")
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                    if onAskCodex != nil {
+                        Text("Ask Codex: \(askShortcut)")
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            
             // Plus button
             Button(action: {
                 onAttachFile()
@@ -39,6 +60,7 @@ struct ChatInputView: View {
                 Image(systemName: "plus")
                     .foregroundColor(.chatIcon)
                     .font(.system(size: 16, weight: .medium))
+                    .accessibilityLabel("Attach file")
             }
             .buttonStyle(.plain)
             
@@ -75,6 +97,23 @@ struct ChatInputView: View {
                     }
             }
             
+            if let onAskCodex {
+                Button(action: {
+                    ask(onAskCodex)
+                }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 16, weight: .medium))
+                        Text("Ask Codex")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundColor(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !isAskEnabled ? .chatIcon : .accentColor)
+                    .accessibilityLabel("Ask Codex")
+                }
+                .buttonStyle(.plain)
+                .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !isAskEnabled)
+            }
+
             // Send button
             Button(action: {
                 send()
@@ -82,6 +121,7 @@ struct ChatInputView: View {
                 Image(systemName: "paperplane.fill")
                     .foregroundColor(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .chatIcon : .accentColor)
                     .font(.system(size: 16, weight: .medium))
+                    .accessibilityLabel("Send")
             }
             .buttonStyle(.plain)
             .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -104,6 +144,13 @@ struct ChatInputView: View {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
         onSend()
+        text = ""
+    }
+
+    private func ask(_ handler: () -> Void) {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        handler()
         text = ""
     }
 }

@@ -13,13 +13,21 @@ let package = Package(
         )
     ],
     targets: [
+        .target(
+            name: "ArchitectureGuardianLib"
+        ),
         .executableTarget(
-            name: "ArchitectureGuardianTool"
+            name: "ArchitectureGuardianTool",
+            dependencies: ["ArchitectureGuardianLib"]
         ),
         .plugin(
             name: "ArchitectureGuardian",
             capability: .buildTool(),
             dependencies: ["ArchitectureGuardianTool"]
+        ),
+        .testTarget(
+            name: "ArchitectureGuardianTests",
+            dependencies: ["ArchitectureGuardianLib"]
         )
     ]
 )

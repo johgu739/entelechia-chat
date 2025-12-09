@@ -15,3 +15,7 @@ ontology-rename:
 # Run guard checks for unchecked sendable and blocking primitives
 lint-guards:
 	bash Tools/lint-guards.sh
+
+# Run all package test suites in deterministic order
+workspace-test:
+	bash scripts/workspace-test.sh

@@ -11,6 +11,7 @@ public struct WorkspaceSnapshot: Codable, Sendable, Equatable {
     public let descriptorPaths: [FileID: String]
     public let contextInclusions: [FileID: ContextInclusionState]
     public let descriptors: [FileDescriptor]
+    public let snapshotHash: String
 
     public init(
         rootPath: String?,
@@ -21,7 +22,8 @@ public struct WorkspaceSnapshot: Codable, Sendable, Equatable {
         contextPreferences: WorkspaceContextPreferencesState,
         descriptorPaths: [FileID: String],
         contextInclusions: [FileID: ContextInclusionState],
-        descriptors: [FileDescriptor]
+        descriptors: [FileDescriptor],
+        snapshotHash: String = ""
     ) {
         self.rootPath = rootPath
         self.selectedPath = selectedPath
@@ -32,6 +34,7 @@ public struct WorkspaceSnapshot: Codable, Sendable, Equatable {
         self.descriptorPaths = descriptorPaths
         self.contextInclusions = contextInclusions
         self.descriptors = descriptors
+        self.snapshotHash = snapshotHash
     }
 
     public static let empty = WorkspaceSnapshot(
@@ -43,7 +46,8 @@ public struct WorkspaceSnapshot: Codable, Sendable, Equatable {
         contextPreferences: .empty,
         descriptorPaths: [:],
         contextInclusions: [:],
-        descriptors: []
+        descriptors: [],
+        snapshotHash: ""
     )
 }
 

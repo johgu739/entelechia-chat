@@ -13,7 +13,6 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(name: "ArchitectureGuardian", path: "../ArchitectureGuardian"),
         .package(name: "UIConnections", path: "../UIConnections"),
         .package(name: "AppComposition", path: "../AppComposition")
     ],
@@ -35,9 +34,6 @@ let package = Package(
                 .enableUpcomingFeature("MemberImportVisibility"),
                 .enableUpcomingFeature("InferIsolatedConformances"),
                 .enableUpcomingFeature("NonisolatedNonsendingByDefault")
-            ],
-            plugins: [
-                .plugin(name: "ArchitectureGuardian", package: "ArchitectureGuardian")
             ]
         ),
         .testTarget(

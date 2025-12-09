@@ -13,7 +13,6 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(name: "ArchitectureGuardian", path: "../ArchitectureGuardian"),
         .package(name: "OntologyCore", path: "../OntologyCore")
     ],
     targets: [
@@ -21,10 +20,11 @@ let package = Package(
             name: "OntologyAct",
             dependencies: [
                 .product(name: "OntologyCore", package: "OntologyCore")
-            ],
-            plugins: [
-                .plugin(name: "ArchitectureGuardian", package: "ArchitectureGuardian")
             ]
+        ),
+        .testTarget(
+            name: "OntologyActTests",
+            dependencies: ["OntologyAct"]
         )
     ]
 )

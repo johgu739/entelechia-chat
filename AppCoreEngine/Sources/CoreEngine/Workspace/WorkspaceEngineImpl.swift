@@ -31,11 +31,12 @@ where PrefDriver.Preferences == WorkspacePreferences,
         guard !rootPath.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw EngineError.invalidWorkspace("Empty root path")
         }
-        let rootURL = URL(fileURLWithPath: rootPath)
+        let canonicalRoot = URL(fileURLWithPath: rootPath).resolvingSymlinksInPath().standardizedFileURL.path
+        let rootURL = URL(fileURLWithPath: canonicalRoot)
         let contextPrefs = (try? contextPreferencesDriver.loadContextPreferences(for: rootURL)) ?? .empty
 
-        let rootID = try fileSystem.resolveRoot(at: rootPath)
-        let tree = try buildTree(from: rootID, path: rootPath, contextPreferences: contextPrefs)
+        let rootID = try fileSystem.resolveRoot(at: canonicalRoot)
+        let tree = try buildTree(from: rootID, path: canonicalRoot, contextPreferences: contextPrefs)
 
         let prefs = (try? preferencesDriver.loadPreferences(for: rootURL)) ?? .empty
         let persistedSelection: String?
@@ -66,20 +67,26 @@ where PrefDriver.Preferences == WorkspacePreferences,
 
     public func refresh() async throws -> WorkspaceSnapshot {
         try Task.checkCancellation()
-        let current = await state.current()
-        guard let rootPath = current.snapshot.rootPath else {
+        let initial = await state.current()
+        guard let rootPath = initial.snapshot.rootPath else {
             throw EngineError.workspaceNotOpened
         }
         try Task.checkCancellation()
         let rootURL = URL(fileURLWithPath: rootPath)
-        let persistedPrefs = (try? contextPreferencesDriver.loadContextPreferences(for: rootURL)) ?? current.snapshot.contextPreferences
-        let contextPrefs = mergeContextPreferences(persistedPrefs, current.snapshot.contextPreferences)
+        let persistedPrefs = (try? contextPreferencesDriver.loadContextPreferences(for: rootURL)) ?? initial.snapshot.contextPreferences
+        let contextPrefs = mergeContextPreferences(persistedPrefs, initial.snapshot.contextPreferences)
         let rootID = try fileSystem.resolveRoot(at: rootPath)
         try Task.checkCancellation()
         let tree = try buildTree(from: rootID, path: rootPath, contextPreferences: contextPrefs)
 
-        var selectedPath = current.snapshot.selectedPath
-        var lastPersistedSelection = current.snapshot.lastPersistedSelection
+        // Re-read state and persisted preferences in case another task (e.g., setContextInclusion)
+        // mutated context preferences while this refresh was in-flight.
+        let latest = await state.current()
+        let latestPersistedPrefs = (try? contextPreferencesDriver.loadContextPreferences(for: rootURL)) ?? persistedPrefs
+        let mergedContextPrefs = mergeContextPreferences(latestPersistedPrefs, latest.snapshot.contextPreferences)
+
+        var selectedPath = latest.snapshot.selectedPath
+        var lastPersistedSelection = latest.snapshot.lastPersistedSelection
         if let selected = selectedPath, !tree.pathIndex.keys.contains(selected) {
             selectedPath = nil
             lastPersistedSelection = nil
@@ -90,7 +97,7 @@ where PrefDriver.Preferences == WorkspacePreferences,
             rootPath: rootPath,
             selectedPath: selectedPath,
             lastPersistedSelection: lastPersistedSelection,
-            contextPreferences: contextPrefs,
+            contextPreferences: mergedContextPrefs,
             descriptorIndex: tree.descriptorIndex,
             pathIndex: tree.pathIndex
         )
@@ -266,17 +273,22 @@ where PrefDriver.Preferences == WorkspacePreferences,
         if Task.isCancelled { throw CancellationError() }
         let children = try fileSystem.listChildren(of: id)
         if Task.isCancelled { throw CancellationError() }
-        let filteredChildren = filtered(children, at: path, preferences: contextPreferences)
+        let filteredChildren = filtered(children, preferences: contextPreferences)
+            .sorted { $0.canonicalPath.localizedCaseInsensitiveCompare($1.canonicalPath) == .orderedAscending }
         descriptorIndex[id] = FileDescriptor(
             id: id,
             name: (path as NSString).lastPathComponent,
             type: .directory,
-            children: filteredChildren.map { $0.id }
+            children: filteredChildren.map { $0.id },
+            canonicalPath: path,
+            language: nil,
+            size: 0,
+            hash: ""
         )
         pathIndex[path] = id
 
         for child in filteredChildren {
-            let childPath = (path as NSString).appendingPathComponent(child.name)
+            let childPath = child.canonicalPath
             descriptorIndex[child.id] = child
             pathIndex[childPath] = child.id
             if child.type == .directory {
@@ -292,18 +304,17 @@ where PrefDriver.Preferences == WorkspacePreferences,
         }
     }
 
-    private func filtered(_ children: [FileDescriptor], at parentPath: String, preferences: WorkspaceContextPreferencesState) -> [FileDescriptor] {
+    private func filtered(_ children: [FileDescriptor], preferences: WorkspaceContextPreferencesState) -> [FileDescriptor] {
         guard !preferences.excludedPaths.isEmpty else { return children }
         return children.filter { child in
-            let fullPath = (parentPath as NSString).appendingPathComponent(child.name)
-            return !preferences.excludedPaths.contains(fullPath)
+            !preferences.excludedPaths.contains(child.canonicalPath)
         }
     }
 
     private func buildContextInclusions(for prefs: WorkspaceContextPreferencesState, pathIndex: [String: FileID]) -> [FileID: ContextInclusionState] {
         let descriptorPaths = Dictionary(uniqueKeysWithValues: pathIndex.map { ($0.value, $0.key) })
         var result: [FileID: ContextInclusionState] = [:]
-        for (id, path) in descriptorPaths {
+        for (id, path) in descriptorPaths.sorted(by: { $0.value.localizedCaseInsensitiveCompare($1.value) == .orderedAscending }) {
             if prefs.excludedPaths.contains(path) {
                 result[id] = .excluded
                 continue
@@ -328,6 +339,19 @@ where PrefDriver.Preferences == WorkspacePreferences,
         let descriptorPaths = Dictionary(uniqueKeysWithValues: pathIndex.map { ($0.value, $0.key) })
         let selectedDescriptorID = selectedPath.flatMap { pathIndex[$0] }
         let persistedDescriptorID = lastPersistedSelection.flatMap { pathIndex[$0] }
+        let orderedDescriptors = descriptorIndex.values.sorted { lhs, rhs in
+            let pathCompare = lhs.canonicalPath.localizedCaseInsensitiveCompare(rhs.canonicalPath)
+            if pathCompare != .orderedSame { return pathCompare == .orderedAscending }
+            return lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
+        }
+        let orderedContextInclusions = buildContextInclusions(for: contextPreferences, pathIndex: pathIndex)
+        let snapshotHash = SnapshotHasher.hash(
+            rootPath: rootPath,
+            descriptors: orderedDescriptors,
+            descriptorPaths: descriptorPaths,
+            contextInclusions: orderedContextInclusions,
+            contextPreferences: contextPreferences
+        )
         return WorkspaceSnapshot(
             rootPath: rootPath,
             selectedPath: selectedPath,
@@ -336,8 +360,9 @@ where PrefDriver.Preferences == WorkspacePreferences,
             lastPersistedDescriptorID: persistedDescriptorID,
             contextPreferences: contextPreferences,
             descriptorPaths: descriptorPaths,
-            contextInclusions: buildContextInclusions(for: contextPreferences, pathIndex: pathIndex),
-            descriptors: Array(descriptorIndex.values)
+            contextInclusions: orderedContextInclusions,
+            descriptors: orderedDescriptors,
+            snapshotHash: snapshotHash
         )
     }
 
@@ -409,6 +434,38 @@ where PrefDriver.Preferences == WorkspacePreferences,
 private struct WorkspaceTree {
     let descriptorIndex: [FileID: FileDescriptor]
     let pathIndex: [String: FileID]
+}
+
+private enum SnapshotHasher {
+    static func hash(
+        rootPath: String?,
+        descriptors: [FileDescriptor],
+        descriptorPaths: [FileID: String],
+        contextInclusions: [FileID: ContextInclusionState],
+        contextPreferences: WorkspaceContextPreferencesState
+    ) -> String {
+        var lines: [String] = []
+        lines.append("root:\(rootPath ?? "")")
+        for (id, path) in descriptorPaths.sorted(by: { $0.value.localizedCaseInsensitiveCompare($1.value) == .orderedAscending }) {
+            lines.append("p|\(id.rawValue.uuidString)|\(path)")
+        }
+        for descriptor in descriptors {
+            let childIDs = descriptor.children.map { $0.rawValue.uuidString }.joined(separator: ",")
+            lines.append("d|\(descriptor.canonicalPath)|\(descriptor.language ?? "")|\(descriptor.size)|\(descriptor.hash)|\(descriptor.type.rawValue)|\(childIDs)")
+        }
+        for (id, state) in contextInclusions.sorted(by: { $0.key.rawValue.uuidString < $1.key.rawValue.uuidString }) {
+            lines.append("i|\(id.rawValue.uuidString)|\(state.rawValue)")
+        }
+        let included = contextPreferences.includedPaths.sorted(by: { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }).joined(separator: "|")
+        let excluded = contextPreferences.excludedPaths.sorted(by: { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }).joined(separator: "|")
+        lines.append("prefs|included|\(included)")
+        lines.append("prefs|excluded|\(excluded)")
+        if let focused = contextPreferences.lastFocusedFilePath {
+            lines.append("prefs|focused|\(focused)")
+        }
+        let joined = lines.joined(separator: "\n")
+        return StableHasher.sha256(data: Data(joined.utf8))
+    }
 }
 
 private actor WorkspaceStateActor {

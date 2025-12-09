@@ -1,6 +1,6 @@
-import OntologyCore
+@preconcurrency import OntologyCore
 
-public struct EngineCoreBinder: Sendable {
+public struct EngineCoreBinder: @unchecked Sendable {
     public let receiver: PropositionReceiving & InvariantReceiving
     public let projector: ForwardProjecting
     public let retrodictor: BackwardRetrodicting

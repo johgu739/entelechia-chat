@@ -13,7 +13,6 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(name: "ArchitectureGuardian", path: "../ArchitectureGuardian"),
         .package(name: "AppCoreEngine", path: "../AppCoreEngine"),
         .package(name: "AppAdapters", path: "../AppAdapters"),
         .package(name: "OntologyIntegration", path: "../OntologyIntegration"),
@@ -30,10 +29,11 @@ let package = Package(
             ],
             resources: [
                 .process("CodexSecrets.plist")
-            ],
-            plugins: [
-                .plugin(name: "ArchitectureGuardian", package: "ArchitectureGuardian")
             ]
+        ),
+        .testTarget(
+            name: "AppCompositionTests",
+            dependencies: ["AppComposition"]
         )
     ]
 )

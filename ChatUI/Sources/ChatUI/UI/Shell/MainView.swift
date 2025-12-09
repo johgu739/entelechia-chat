@@ -37,7 +37,8 @@ struct MainWorkspaceView: View {
             wrappedValue: WorkspaceViewModel(
                 workspaceEngine: workspaceEngine,
                 conversationEngine: conversationEngine,
-                projectTodosLoader: projectTodosLoader
+                projectTodosLoader: projectTodosLoader,
+                codexService: DefaultContainer().codexService
             )
         )
     }
