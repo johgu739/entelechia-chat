@@ -12,7 +12,7 @@
 // @EntelechiaHeaderEnd
 
 import SwiftUI
-import AppCoreEngine
+import AppComposition
 
 /// Root view that switches between onboarding and main workspace
 struct RootView: View {

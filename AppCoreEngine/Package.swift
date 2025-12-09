@@ -13,12 +13,15 @@ let package = Package(
         )
     ],
     dependencies: [
-        // No external dependencies; keep the Engine pure and portable.
+        .package(name: "ArchitectureGuardian", path: "../ArchitectureGuardian")
     ],
     targets: [
         .target(
             name: "AppCoreEngine",
-            dependencies: []
+            dependencies: [],
+            plugins: [
+                .plugin(name: "ArchitectureGuardian", package: "ArchitectureGuardian")
+            ]
         ),
         .testTarget(
             name: "AppCoreEngineTests",

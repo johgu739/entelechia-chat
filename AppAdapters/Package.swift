@@ -13,6 +13,7 @@ let package = Package(
         )
     ],
     dependencies: [
+        .package(name: "ArchitectureGuardian", path: "../ArchitectureGuardian"),
         .package(name: "AppCoreEngine", path: "../AppCoreEngine")
     ],
     targets: [
@@ -20,6 +21,9 @@ let package = Package(
             name: "AppAdapters",
             dependencies: [
                 .product(name: "AppCoreEngine", package: "AppCoreEngine")
+            ],
+            plugins: [
+                .plugin(name: "ArchitectureGuardian", package: "ArchitectureGuardian")
             ]
         ),
         .testTarget(

@@ -16,7 +16,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 import AppKit
 import os.log
-import AppCoreEngine
+import AppComposition
 
 private typealias FileExclusion = AppCoreEngine.FileExclusion
 

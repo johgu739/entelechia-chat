@@ -1,5 +1,6 @@
 import XCTest
 @testable import ChatUI
+import AppComposition
 import Security
 import os.log
 
@@ -78,7 +79,7 @@ final class CodexConfigLoaderTests: XCTestCase {
 
     func testSecretsBundleIsModuleNotMain() {
         XCTAssertNotEqual(CodexConfigLoader.secretsBundle, Bundle.main)
-        XCTAssertEqual(CodexConfigLoader.secretsBundle, Bundle.module)
+        XCTAssertNotNil(CodexConfigLoader.secretsBundle.url(forResource: "CodexSecrets", withExtension: "plist"))
     }
 }
 

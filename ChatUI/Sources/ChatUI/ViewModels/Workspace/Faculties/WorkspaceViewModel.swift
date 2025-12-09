@@ -17,7 +17,7 @@ import Combine
 import UniformTypeIdentifiers
 import CoreServices
 import os.log
-import AppCoreEngine
+import AppComposition
 import UIConnections
 
 enum WorkspaceViewModelError: LocalizedError {

@@ -1,7 +1,6 @@
 import XCTest
 @testable import ChatUI
-@testable import AppCoreEngine
-@testable import AppAdapters
+import AppComposition
 
 final class WorkspaceViewModelWatcherErrorTests: XCTestCase {
     func testWatcherErrorSurfacesAndClears() async throws {

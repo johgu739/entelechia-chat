@@ -13,6 +13,7 @@
 
 import Foundation
 import os.log
+import AppComposition
 
 enum PreferenceValue: Codable, Equatable, Sendable {
     case bool(Bool)

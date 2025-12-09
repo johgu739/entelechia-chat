@@ -13,7 +13,7 @@
 
 import Foundation
 import UniformTypeIdentifiers
-import AppCoreEngine
+import AppComposition
 
 struct WorkspaceLoadedFile: Identifiable, Equatable {
     let id: UUID

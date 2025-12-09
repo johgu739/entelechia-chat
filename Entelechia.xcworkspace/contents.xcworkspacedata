@@ -2,6 +2,33 @@
 <Workspace
    version = "1.0">
    <FileRef
+      location = "group:OntologyCore">
+   </FileRef>
+   <FileRef
+      location = "group:OntologyAct">
+   </FileRef>
+   <FileRef
+      location = "group:OntologyState">
+   </FileRef>
+   <FileRef
+      location = "group:OntologyTeleology">
+   </FileRef>
+   <FileRef
+      location = "group:OntologyIntelligence">
+   </FileRef>
+   <FileRef
+      location = "group:OntologyFractal">
+   </FileRef>
+   <FileRef
+      location = "group:OntologyIntegration">
+   </FileRef>
+   <FileRef
+      location = "group:OntologyDomain">
+   </FileRef>
+   <FileRef
+      location = "group:AppCoreEngine">
+   </FileRef>
+   <FileRef
       location = "group:AppAdapters">
    </FileRef>
    <FileRef

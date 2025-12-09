@@ -1,0 +1,21 @@
+{
+  "ChatUI": ["Foundation", "SwiftUI", "Combine", "AppKit", "os", "os.log", "Security", "UniformTypeIdentifiers", "CoreServices", "Dispatch", "UIConnections", "AppComposition"],
+  "ChatUITests": ["Foundation", "XCTest", "ChatUI", "AppComposition"],
+  "UIConnections": ["Foundation", "AppCoreEngine"],
+  "UIConnectionsTests": ["Foundation", "XCTest", "UIConnections", "AppCoreEngine"],
+  "AppComposition": ["Foundation", "SwiftUI", "Combine", "os", "os.log", "Security", "UniformTypeIdentifiers", "CoreServices", "Dispatch", "AppCoreEngine", "AppAdapters", "OntologyIntegration", "OntologyDomain"],
+  "AppAdapters": ["Foundation", "os", "Security", "UniformTypeIdentifiers", "CoreServices", "Dispatch", "AppCoreEngine"],
+  "AppAdaptersTests": ["Foundation", "XCTest", "AppAdapters", "AppCoreEngine"],
+  "AppCoreEngine": ["Foundation", "Dispatch"],
+  "AppCoreEngineTests": ["Foundation", "XCTest", "AppCoreEngine"],
+  "OntologyCore": ["Foundation", "Dispatch"],
+  "OntologyAct": ["Foundation", "Dispatch", "OntologyCore"],
+  "OntologyState": ["Foundation", "Dispatch", "OntologyAct", "OntologyCore"],
+  "OntologyTeleology": ["Foundation", "Dispatch", "OntologyState", "OntologyAct", "OntologyCore"],
+  "OntologyIntelligence": ["Foundation", "Dispatch", "OntologyTeleology", "OntologyState", "OntologyAct", "OntologyCore"],
+  "OntologyFractal": ["Foundation", "Dispatch", "OntologyIntelligence", "OntologyTeleology", "OntologyState", "OntologyAct", "OntologyCore"],
+  "OntologyIntegration": ["Foundation", "Dispatch", "OntologyFractal", "OntologyIntelligence", "OntologyTeleology", "OntologyState", "OntologyAct", "OntologyCore"],
+  "OntologyDomain": ["Foundation", "Dispatch", "OntologyIntegration", "OntologyFractal", "OntologyIntelligence", "OntologyTeleology", "OntologyState", "OntologyAct", "OntologyCore"]
+}
+
+

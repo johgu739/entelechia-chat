@@ -12,7 +12,7 @@
 // @EntelechiaHeaderEnd
 
 import SwiftUI
-import AppCoreEngine
+import AppComposition
 import UniformTypeIdentifiers
 
 /// Onboarding view shown when no project is open

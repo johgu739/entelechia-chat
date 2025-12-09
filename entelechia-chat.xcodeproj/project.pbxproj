@@ -113,6 +113,7 @@
 				5BB6E2472EE811320077AB81 /* OntologyAct */,
 				5BB6E24A2EE8113C0077AB81 /* OntologyCore */,
 				5BB6E24D2EE811520077AB81 /* AppCoreEngine */,
+				5BB6E2882EE847350077AB81 /* AppComposition */,
 			);
 			productName = EntelechiaChat;
 			productReference = 5B86B9732EE7413C00482C26 /* EntelechiaChat.app */;
@@ -153,6 +154,7 @@
 				5BB6E2462EE811310077AB81 /* XCLocalSwiftPackageReference "OntologyAct" */,
 				5BB6E2492EE8113B0077AB81 /* XCLocalSwiftPackageReference "OntologyCore" */,
 				5BB6E24C2EE811520077AB81 /* XCLocalSwiftPackageReference "AppCoreEngine" */,
+				5BB6E2872EE847350077AB81 /* XCLocalSwiftPackageReference "AppComposition" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 5B86E5462EE19FAD00482C26 /* Products */;
@@ -439,6 +441,10 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = AppCoreEngine;
 		};
+		5BB6E2872EE847350077AB81 /* XCLocalSwiftPackageReference "AppComposition" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = AppComposition;
+		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -485,6 +491,10 @@
 		5BB6E24D2EE811520077AB81 /* AppCoreEngine */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = AppCoreEngine;
+		};
+		5BB6E2882EE847350077AB81 /* AppComposition */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AppComposition;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

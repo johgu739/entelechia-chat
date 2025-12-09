@@ -1,4 +1,5 @@
 import SwiftUI
+import AppComposition
 
 struct CodexStatusBanner: View {
     @EnvironmentObject var codexStatusModel: CodexStatusModel

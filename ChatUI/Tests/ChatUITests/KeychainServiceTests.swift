@@ -1,4 +1,5 @@
 import XCTest
+import AppComposition
 @testable import ChatUI
 
 final class KeychainServiceTests: XCTestCase {

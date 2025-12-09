@@ -1,4 +1,5 @@
 import SwiftUI
+import AppComposition
 
 /// Public entry point for embedding the Chat UI in a host app (no @main).
 public struct ChatUIRoot: View {

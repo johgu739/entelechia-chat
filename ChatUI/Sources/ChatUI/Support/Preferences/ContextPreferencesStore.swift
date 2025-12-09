@@ -13,6 +13,7 @@
 
 import Foundation
 import os.log
+import AppComposition
 
 struct ContextPreferences: Codable, Equatable, Sendable {
     var includedPaths: Set<String>

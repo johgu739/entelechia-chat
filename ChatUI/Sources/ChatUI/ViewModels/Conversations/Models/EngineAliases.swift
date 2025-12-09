@@ -1,4 +1,4 @@
-import AppCoreEngine
+import AppComposition
 
 typealias Conversation = AppCoreEngine.Conversation
 typealias Message = AppCoreEngine.Message

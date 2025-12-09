@@ -14,7 +14,7 @@
 import Foundation
 import Combine
 import os.log
-import AppCoreEngine
+import AppComposition
 
 struct RecentProject: Equatable {
     let representation: ProjectRepresentation

@@ -12,7 +12,7 @@
 // @EntelechiaHeaderEnd
 
 import SwiftUI
-import AppCoreEngine
+import AppComposition
 
 struct MainWorkspaceView: View {
     private let workspaceEngine: WorkspaceEngine
