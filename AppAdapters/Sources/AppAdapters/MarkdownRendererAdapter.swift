@@ -1,5 +1,5 @@
 import Foundation
-import CoreEngine
+import AppCoreEngine
 
 /// Placeholder markdown renderer to satisfy adapter surface.
 public struct MarkdownRendererAdapter {

@@ -13,15 +13,15 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(path: "../CoreEngine"),
-        .package(path: "../UIConnections"),
-        .package(path: "../AppAdapters")
+        .package(name: "AppCoreEngine", path: "../AppCoreEngine"),
+        .package(name: "UIConnections", path: "../UIConnections"),
+        .package(name: "AppAdapters", path: "../AppAdapters")
     ],
     targets: [
         .target(
             name: "ChatUI",
             dependencies: [
-                .product(name: "CoreEngine", package: "CoreEngine"),
+                .product(name: "AppCoreEngine", package: "AppCoreEngine"),
                 .product(name: "UIConnections", package: "UIConnections"),
                 .product(name: "AppAdapters", package: "AppAdapters")
             ],

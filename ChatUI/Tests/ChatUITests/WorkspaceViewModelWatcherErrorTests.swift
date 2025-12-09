@@ -1,6 +1,6 @@
 import XCTest
 @testable import ChatUI
-@testable import CoreEngine
+@testable import AppCoreEngine
 @testable import AppAdapters
 
 final class WorkspaceViewModelWatcherErrorTests: XCTestCase {

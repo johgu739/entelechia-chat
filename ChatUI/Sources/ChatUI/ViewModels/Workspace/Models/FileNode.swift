@@ -16,9 +16,9 @@ import SwiftUI
 import UniformTypeIdentifiers
 import AppKit
 import os.log
-import CoreEngine
+import AppCoreEngine
 
-private typealias FileExclusion = CoreEngine.FileExclusion
+private typealias FileExclusion = AppCoreEngine.FileExclusion
 
 enum FileNodeError: LocalizedError {
     case childCreationFailed(URL)

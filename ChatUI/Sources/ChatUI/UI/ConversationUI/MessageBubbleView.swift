@@ -12,7 +12,7 @@
 // @EntelechiaHeaderEnd
 
 import SwiftUI
-import CoreEngine
+import AppCoreEngine
 import AppKit
 
 struct MessageBubbleView: View {

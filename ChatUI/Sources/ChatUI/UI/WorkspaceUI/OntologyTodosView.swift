@@ -12,7 +12,7 @@
 // @EntelechiaHeaderEnd
 
 import SwiftUI
-import CoreEngine
+import AppCoreEngine
 
 struct OntologyTodosView: View {
     @EnvironmentObject var workspaceViewModel: WorkspaceViewModel

@@ -1,5 +1,5 @@
 import Foundation
-import CoreEngine
+import AppCoreEngine
 
 /// Concrete metadata handler for projects (bookmark encoding/decoding).
 public struct ProjectMetadataAdapter: ProjectMetadataHandling, Sendable {

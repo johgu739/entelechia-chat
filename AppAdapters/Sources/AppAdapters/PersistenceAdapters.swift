@@ -1,5 +1,5 @@
 import Foundation
-import CoreEngine
+import AppCoreEngine
 import os
 
 /// In-memory conversation persistence adapter (placeholder until disk-backed version is wired).

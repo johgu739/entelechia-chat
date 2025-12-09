@@ -14,7 +14,7 @@
 import SwiftUI
 import AppKit
 import UniformTypeIdentifiers
-import CoreEngine
+import AppCoreEngine
 
 @MainActor
 struct XcodeNavigatorRepresentable: NSViewRepresentable {

@@ -1,5 +1,5 @@
 import Foundation
-import CoreEngine
+import AppCoreEngine
 import os
 
 /// Minimal project persistence adapter (placeholder) that keeps data in memory.

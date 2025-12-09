@@ -1,5 +1,5 @@
 import Foundation
-import CoreEngine
+import AppCoreEngine
 import AppAdapters
 
 /// UI-facing, non-generic surface for conversation orchestration.

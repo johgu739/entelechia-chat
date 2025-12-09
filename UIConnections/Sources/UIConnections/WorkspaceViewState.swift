@@ -1,5 +1,5 @@
 import Foundation
-import CoreEngine
+import AppCoreEngine
 
 /// UI-ready representation of the workspace tree and selection.
 public struct WorkspaceViewState: Sendable {

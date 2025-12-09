@@ -7,25 +7,18 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		5B86B96B2EE739F400482C26 /* ChatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 5B86B96A2EE739F400482C26 /* ChatUI */; };
 		5B86B9802EE741B600482C26 /* ChatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 5B86B97F2EE741B600482C26 /* ChatUI */; };
-		5C5C5C5C2EE4000100000003 /* UIConnections in Frameworks */ = {isa = PBXBuildFile; productRef = 5C5C5C5C2EE4000100000002 /* UIConnections */; };
-		5C5C5C5C2EE4000100000004 /* UIConnections in Frameworks */ = {isa = PBXBuildFile; productRef = 5C5C5C5C2EE4000100000002 /* UIConnections */; };
-		EEEEE111FACEBEEF00000001 /* CoreEngine in Frameworks */ = {isa = PBXBuildFile; productRef = EEEEE115FACEBEEF00000005 /* CoreEngine */; };
-		EEEEE112FACEBEEF00000002 /* AppAdapters in Frameworks */ = {isa = PBXBuildFile; productRef = EEEEE116FACEBEEF00000006 /* AppAdapters */; };
-		EEEEE113FACEBEEF00000003 /* CoreEngine in Frameworks */ = {isa = PBXBuildFile; productRef = EEEEE117FACEBEEF00000007 /* CoreEngine */; };
-		EEEEE114FACEBEEF00000004 /* AppAdapters in Frameworks */ = {isa = PBXBuildFile; productRef = EEEEE118FACEBEEF00000008 /* AppAdapters */; };
+		5BB6E2172EE775D90077AB81 /* ChatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 5BB6E2162EE775D90077AB81 /* ChatUI */; };
+		5BB6E2362EE810E90077AB81 /* OntologyDomain in Frameworks */ = {isa = PBXBuildFile; productRef = 5BB6E2352EE810E90077AB81 /* OntologyDomain */; };
+		5BB6E2392EE810F40077AB81 /* OntologyIntegration in Frameworks */ = {isa = PBXBuildFile; productRef = 5BB6E2382EE810F40077AB81 /* OntologyIntegration */; };
+		5BB6E23C2EE811010077AB81 /* OntologyFractal in Frameworks */ = {isa = PBXBuildFile; productRef = 5BB6E23B2EE811010077AB81 /* OntologyFractal */; };
+		5BB6E23F2EE8110B0077AB81 /* OntologyIntelligence in Frameworks */ = {isa = PBXBuildFile; productRef = 5BB6E23E2EE8110B0077AB81 /* OntologyIntelligence */; };
+		5BB6E2422EE811150077AB81 /* OntologyTeleology in Frameworks */ = {isa = PBXBuildFile; productRef = 5BB6E2412EE811150077AB81 /* OntologyTeleology */; };
+		5BB6E2452EE8111F0077AB81 /* OntologyState in Frameworks */ = {isa = PBXBuildFile; productRef = 5BB6E2442EE8111F0077AB81 /* OntologyState */; };
+		5BB6E2482EE811320077AB81 /* OntologyAct in Frameworks */ = {isa = PBXBuildFile; productRef = 5BB6E2472EE811320077AB81 /* OntologyAct */; };
+		5BB6E24B2EE8113C0077AB81 /* OntologyCore in Frameworks */ = {isa = PBXBuildFile; productRef = 5BB6E24A2EE8113C0077AB81 /* OntologyCore */; };
+		5BB6E24E2EE811520077AB81 /* AppCoreEngine in Frameworks */ = {isa = PBXBuildFile; productRef = 5BB6E24D2EE811520077AB81 /* AppCoreEngine */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXContainerItemProxy section */
-		5B86FEAE2EE3201F00482C26 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 5B86E53D2EE19FAD00482C26 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 5B86E5442EE19FAD00482C26;
-			remoteInfo = "entelechia-chat";
-		};
-/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		5B86B9732EE7413C00482C26 /* EntelechiaChat.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = EntelechiaChat.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -33,108 +26,10 @@
 		5B86FEAA2EE3201F00482C26 /* ChatUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ChatUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		5B86B96E2EE73C0800482C26 /* Exceptions for "ChatUI" folder in "ChatUI" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Sources/ChatUI/AppComposition/Folder.ent,
-				Sources/ChatUI/AppComposition/Folder.topology.json,
-				Sources/ChatUI/Assets/Assets.xcassets,
-				Sources/ChatUI/Support/AI/Folder.ent,
-				Sources/ChatUI/Support/AI/Folder.topology.json,
-				Sources/ChatUI/Support/Configuration/CodexSecrets.example.plist,
-				Sources/ChatUI/Support/Folder.ent,
-				Sources/ChatUI/Support/Folder.topology.json,
-				Sources/ChatUI/Support/Persistence/Folder.ent,
-				Sources/ChatUI/Support/Persistence/Folder.topology.json,
-				Sources/ChatUI/Support/Rendering/Folder.ent,
-				Sources/ChatUI/Support/Rendering/Folder.topology.json,
-				Sources/ChatUI/Tools/Folder.ent,
-				Sources/ChatUI/Tools/Folder.topology.json,
-				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Folder.ent,
-				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Folder.topology.json,
-				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/App/Folder.ent,
-				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/App/Folder.topology.json,
-				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/App/Toolbar/Folder.ent,
-				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/App/Toolbar/Folder.topology.json,
-				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Editor/Folder.ent,
-				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Editor/Folder.topology.json,
-				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Folder.ent,
-				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Folder.topology.json,
-				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Inspector/Folder.ent,
-				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Inspector/Folder.topology.json,
-				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Navigation/Folder.ent,
-				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Navigation/Folder.topology.json,
-				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Systems/Codex/Folder.ent,
-				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Systems/Codex/Folder.topology.json,
-				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Systems/Daemon/Folder.ent,
-				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Systems/Daemon/Folder.topology.json,
-				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Systems/FileSystem/Folder.ent,
-				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Systems/FileSystem/Folder.topology.json,
-				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Systems/Folder.ent,
-				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Systems/Folder.topology.json,
-				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Systems/PatchEngine/Folder.ent,
-				Sources/ChatUI/Tools/Operator/EntelechiaOperator/Sources/Systems/PatchEngine/Folder.topology.json,
-				Sources/ChatUI/Tools/Operator/Folder.ent,
-				Sources/ChatUI/Tools/Operator/Folder.topology.json,
-				Sources/ChatUI/UI/ConversationUI/Folder.ent,
-				Sources/ChatUI/UI/ConversationUI/Folder.topology.json,
-				Sources/ChatUI/UI/Folder.ent,
-				Sources/ChatUI/UI/Folder.topology.json,
-				Sources/ChatUI/UI/Shell/Folder.ent,
-				Sources/ChatUI/UI/Shell/Folder.topology.json,
-				Sources/ChatUI/UI/Theme/Folder.ent,
-				Sources/ChatUI/UI/Theme/Folder.topology.json,
-				Sources/ChatUI/UI/WorkspaceUI/Folder.ent,
-				Sources/ChatUI/UI/WorkspaceUI/Folder.topology.json,
-				Sources/ChatUI/UI/WorkspaceUI/XcodeNavigator/Folder.ent,
-				Sources/ChatUI/UI/WorkspaceUI/XcodeNavigator/Folder.topology.json,
-				Sources/ChatUI/ViewModels/Conversations/Faculties/Folder.ent,
-				Sources/ChatUI/ViewModels/Conversations/Faculties/Folder.topology.json,
-				Sources/ChatUI/ViewModels/Conversations/Folder.ent,
-				Sources/ChatUI/ViewModels/Conversations/Folder.topology.json,
-				Sources/ChatUI/ViewModels/Conversations/Models/Folder.ent,
-				Sources/ChatUI/ViewModels/Conversations/Models/Folder.topology.json,
-				Sources/ChatUI/ViewModels/Conversations/Services/Folder.ent,
-				Sources/ChatUI/ViewModels/Conversations/Services/Folder.topology.json,
-				Sources/ChatUI/ViewModels/Folder.ent,
-				Sources/ChatUI/ViewModels/Folder.topology.json,
-				Sources/ChatUI/ViewModels/Projects/Folder.ent,
-				Sources/ChatUI/ViewModels/Projects/Folder.topology.json,
-				Sources/ChatUI/ViewModels/Projects/Models/Folder.ent,
-				Sources/ChatUI/ViewModels/Projects/Models/Folder.topology.json,
-				Sources/ChatUI/ViewModels/Projects/Services/Folder.ent,
-				Sources/ChatUI/ViewModels/Projects/Services/Folder.topology.json,
-				Sources/ChatUI/ViewModels/Workspace/Faculties/Folder.ent,
-				Sources/ChatUI/ViewModels/Workspace/Faculties/Folder.topology.json,
-				Sources/ChatUI/ViewModels/Workspace/Folder.ent,
-				Sources/ChatUI/ViewModels/Workspace/Folder.topology.json,
-				Sources/ChatUI/ViewModels/Workspace/Models/Folder.ent,
-				Sources/ChatUI/ViewModels/Workspace/Models/Folder.topology.json,
-				Sources/ChatUI/ViewModels/Workspace/Services/Folder.ent,
-				Sources/ChatUI/ViewModels/Workspace/Services/Folder.topology.json,
-			);
-			target = 5B86E5442EE19FAD00482C26 /* ChatUI */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		5B86B9742EE7413C00482C26 /* EntelechiaChat */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = EntelechiaChat;
-			sourceTree = "<group>";
-		};
-		5B86E5472EE19FAD00482C26 /* ChatUI */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				5B86B96E2EE73C0800482C26 /* Exceptions for "ChatUI" folder in "ChatUI" target */,
-			);
-			path = ChatUI;
-			sourceTree = "<group>";
-		};
-		5B86FEAB2EE3201F00482C26 /* ChatUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = ChatUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -144,28 +39,17 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5BB6E2172EE775D90077AB81 /* ChatUI in Frameworks */,
+				5BB6E2452EE8111F0077AB81 /* OntologyState in Frameworks */,
+				5BB6E24E2EE811520077AB81 /* AppCoreEngine in Frameworks */,
+				5BB6E24B2EE8113C0077AB81 /* OntologyCore in Frameworks */,
+				5BB6E2482EE811320077AB81 /* OntologyAct in Frameworks */,
 				5B86B9802EE741B600482C26 /* ChatUI in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		5B86E5422EE19FAD00482C26 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				5B86B96B2EE739F400482C26 /* ChatUI in Frameworks */,
-				EEEEE111FACEBEEF00000001 /* CoreEngine in Frameworks */,
-				EEEEE112FACEBEEF00000002 /* AppAdapters in Frameworks */,
-				5C5C5C5C2EE4000100000003 /* UIConnections in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		5B86FEA72EE3201F00482C26 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				EEEEE113FACEBEEF00000003 /* CoreEngine in Frameworks */,
-				EEEEE114FACEBEEF00000004 /* AppAdapters in Frameworks */,
-				5C5C5C5C2EE4000100000004 /* UIConnections in Frameworks */,
+				5BB6E23F2EE8110B0077AB81 /* OntologyIntelligence in Frameworks */,
+				5BB6E2392EE810F40077AB81 /* OntologyIntegration in Frameworks */,
+				5BB6E2362EE810E90077AB81 /* OntologyDomain in Frameworks */,
+				5BB6E2422EE811150077AB81 /* OntologyTeleology in Frameworks */,
+				5BB6E23C2EE811010077AB81 /* OntologyFractal in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -182,8 +66,6 @@
 		5B86E53C2EE19FAD00482C26 = {
 			isa = PBXGroup;
 			children = (
-				5B86E5472EE19FAD00482C26 /* ChatUI */,
-				5B86FEAB2EE3201F00482C26 /* ChatUITests */,
 				5B86B9742EE7413C00482C26 /* EntelechiaChat */,
 				5B86B97E2EE741B600482C26 /* Frameworks */,
 				5B86E5462EE19FAD00482C26 /* Products */,
@@ -221,61 +103,20 @@
 			name = EntelechiaChat;
 			packageProductDependencies = (
 				5B86B97F2EE741B600482C26 /* ChatUI */,
+				5BB6E2162EE775D90077AB81 /* ChatUI */,
+				5BB6E2352EE810E90077AB81 /* OntologyDomain */,
+				5BB6E2382EE810F40077AB81 /* OntologyIntegration */,
+				5BB6E23B2EE811010077AB81 /* OntologyFractal */,
+				5BB6E23E2EE8110B0077AB81 /* OntologyIntelligence */,
+				5BB6E2412EE811150077AB81 /* OntologyTeleology */,
+				5BB6E2442EE8111F0077AB81 /* OntologyState */,
+				5BB6E2472EE811320077AB81 /* OntologyAct */,
+				5BB6E24A2EE8113C0077AB81 /* OntologyCore */,
+				5BB6E24D2EE811520077AB81 /* AppCoreEngine */,
 			);
 			productName = EntelechiaChat;
 			productReference = 5B86B9732EE7413C00482C26 /* EntelechiaChat.app */;
 			productType = "com.apple.product-type.application";
-		};
-		5B86E5442EE19FAD00482C26 /* ChatUI */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 5B86E5502EE19FAF00482C26 /* Build configuration list for PBXNativeTarget "ChatUI" */;
-			buildPhases = (
-				5B86E5422EE19FAD00482C26 /* Frameworks */,
-				5B86E5432EE19FAD00482C26 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				5B86E5472EE19FAD00482C26 /* ChatUI */,
-			);
-			name = ChatUI;
-			packageProductDependencies = (
-				EEEEE115FACEBEEF00000005 /* CoreEngine */,
-				EEEEE116FACEBEEF00000006 /* AppAdapters */,
-				5C5C5C5C2EE4000100000002 /* UIConnections */,
-				5B86B96A2EE739F400482C26 /* ChatUI */,
-			);
-			productName = ChatUI;
-			productReference = 5B86E5452EE19FAD00482C26 /* ChatUI.app */;
-			productType = "com.apple.product-type.application";
-		};
-		5B86FEA92EE3201F00482C26 /* ChatUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 5B86FEB02EE3201F00482C26 /* Build configuration list for PBXNativeTarget "ChatUITests" */;
-			buildPhases = (
-				5B86FEA62EE3201F00482C26 /* Sources */,
-				5B86FEA72EE3201F00482C26 /* Frameworks */,
-				5B86FEA82EE3201F00482C26 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				5B86FEAF2EE3201F00482C26 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				5B86FEAB2EE3201F00482C26 /* ChatUITests */,
-			);
-			name = ChatUITests;
-			packageProductDependencies = (
-				EEEEE117FACEBEEF00000007 /* CoreEngine */,
-				EEEEE118FACEBEEF00000008 /* AppAdapters */,
-				5C5C5C5C2EE4000100000002 /* UIConnections */,
-			);
-			productName = ChatUITests;
-			productReference = 5B86FEAA2EE3201F00482C26 /* ChatUITests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -290,13 +131,6 @@
 					5B86B9722EE7413C00482C26 = {
 						CreatedOnToolsVersion = 26.1.1;
 					};
-					5B86E5442EE19FAD00482C26 = {
-						CreatedOnToolsVersion = 26.1.1;
-					};
-					5B86FEA92EE3201F00482C26 = {
-						CreatedOnToolsVersion = 26.1.1;
-						TestTargetID = 5B86E5442EE19FAD00482C26;
-					};
 				};
 			};
 			buildConfigurationList = 5B86E5402EE19FAD00482C26 /* Build configuration list for PBXProject "entelechia-chat" */;
@@ -309,18 +143,22 @@
 			mainGroup = 5B86E53C2EE19FAD00482C26;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				EEEEE119FACEBEEF00000009 /* XCLocalSwiftPackageReference "CoreEngine" */,
-				EEEEE11AFACEBEEF0000000A /* XCLocalSwiftPackageReference "AppAdapters" */,
-				5C5C5C5C2EE4000100000001 /* XCLocalSwiftPackageReference "UIConnections" */,
-				5B86B9692EE739F400482C26 /* XCLocalSwiftPackageReference "ChatUI" */,
+				5BB6E2152EE775D90077AB81 /* XCLocalSwiftPackageReference "ChatUI" */,
+				5BB6E2342EE810E90077AB81 /* XCLocalSwiftPackageReference "OntologyDomain" */,
+				5BB6E2372EE810F40077AB81 /* XCLocalSwiftPackageReference "OntologyIntegration" */,
+				5BB6E23A2EE811010077AB81 /* XCLocalSwiftPackageReference "OntologyFractal" */,
+				5BB6E23D2EE8110B0077AB81 /* XCLocalSwiftPackageReference "OntologyIntelligence" */,
+				5BB6E2402EE811150077AB81 /* XCLocalSwiftPackageReference "OntologyTeleology" */,
+				5BB6E2432EE8111F0077AB81 /* XCLocalSwiftPackageReference "OntologyState" */,
+				5BB6E2462EE811310077AB81 /* XCLocalSwiftPackageReference "OntologyAct" */,
+				5BB6E2492EE8113B0077AB81 /* XCLocalSwiftPackageReference "OntologyCore" */,
+				5BB6E24C2EE811520077AB81 /* XCLocalSwiftPackageReference "AppCoreEngine" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 5B86E5462EE19FAD00482C26 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				5B86E5442EE19FAD00482C26 /* ChatUI */,
-				5B86FEA92EE3201F00482C26 /* ChatUITests */,
 				5B86B9722EE7413C00482C26 /* EntelechiaChat */,
 			);
 		};
@@ -328,20 +166,6 @@
 
 /* Begin PBXResourcesBuildPhase section */
 		5B86B9712EE7413C00482C26 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		5B86E5432EE19FAD00482C26 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		5B86FEA82EE3201F00482C26 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -358,22 +182,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		5B86FEA62EE3201F00482C26 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		5B86FEAF2EE3201F00482C26 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 5B86E5442EE19FAD00482C26 /* ChatUI */;
-			targetProxy = 5B86FEAE2EE3201F00482C26 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		5B86B97C2EE7413F00482C26 /* Debug */ = {
@@ -566,102 +375,6 @@
 			};
 			name = Release;
 		};
-		5B86E5512EE19FAF00482C26 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
-				ENABLE_APP_SANDBOX = YES;
-				ENABLE_PREVIEWS = YES;
-				ENABLE_USER_SELECTED_FILES = readonly;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "cath.entelechia-chat";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				REGISTER_APP_GROUPS = YES;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-			};
-			name = Debug;
-		};
-		5B86E5522EE19FAF00482C26 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
-				ENABLE_APP_SANDBOX = YES;
-				ENABLE_PREVIEWS = YES;
-				ENABLE_USER_SELECTED_FILES = readonly;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "cath.entelechia-chat";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				REGISTER_APP_GROUPS = YES;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-			};
-			name = Release;
-		};
-		5B86FEB12EE3201F00482C26 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = cath.ChatUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ChatUI.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ChatUI";
-			};
-			name = Debug;
-		};
-		5B86FEB22EE3201F00482C26 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = cath.ChatUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ChatUI.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ChatUI";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -683,79 +396,95 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		5B86E5502EE19FAF00482C26 /* Build configuration list for PBXNativeTarget "ChatUI" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				5B86E5512EE19FAF00482C26 /* Debug */,
-				5B86E5522EE19FAF00482C26 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		5B86FEB02EE3201F00482C26 /* Build configuration list for PBXNativeTarget "ChatUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				5B86FEB12EE3201F00482C26 /* Debug */,
-				5B86FEB22EE3201F00482C26 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		5B86B9692EE739F400482C26 /* XCLocalSwiftPackageReference "ChatUI" */ = {
+		5BB6E2152EE775D90077AB81 /* XCLocalSwiftPackageReference "ChatUI" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = ChatUI;
 		};
-		5C5C5C5C2EE4000100000001 /* XCLocalSwiftPackageReference "UIConnections" */ = {
+		5BB6E2342EE810E90077AB81 /* XCLocalSwiftPackageReference "OntologyDomain" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = UIConnections;
+			relativePath = OntologyDomain;
 		};
-		EEEEE119FACEBEEF00000009 /* XCLocalSwiftPackageReference "CoreEngine" */ = {
+		5BB6E2372EE810F40077AB81 /* XCLocalSwiftPackageReference "OntologyIntegration" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = CoreEngine;
+			relativePath = OntologyIntegration;
 		};
-		EEEEE11AFACEBEEF0000000A /* XCLocalSwiftPackageReference "AppAdapters" */ = {
+		5BB6E23A2EE811010077AB81 /* XCLocalSwiftPackageReference "OntologyFractal" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = AppAdapters;
+			relativePath = OntologyFractal;
+		};
+		5BB6E23D2EE8110B0077AB81 /* XCLocalSwiftPackageReference "OntologyIntelligence" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = OntologyIntelligence;
+		};
+		5BB6E2402EE811150077AB81 /* XCLocalSwiftPackageReference "OntologyTeleology" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = OntologyTeleology;
+		};
+		5BB6E2432EE8111F0077AB81 /* XCLocalSwiftPackageReference "OntologyState" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = OntologyState;
+		};
+		5BB6E2462EE811310077AB81 /* XCLocalSwiftPackageReference "OntologyAct" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = OntologyAct;
+		};
+		5BB6E2492EE8113B0077AB81 /* XCLocalSwiftPackageReference "OntologyCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = OntologyCore;
+		};
+		5BB6E24C2EE811520077AB81 /* XCLocalSwiftPackageReference "AppCoreEngine" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = AppCoreEngine;
 		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		5B86B96A2EE739F400482C26 /* ChatUI */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = ChatUI;
-		};
 		5B86B97F2EE741B600482C26 /* ChatUI */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 5B86B9692EE739F400482C26 /* XCLocalSwiftPackageReference "ChatUI" */;
 			productName = ChatUI;
 		};
-		5C5C5C5C2EE4000100000002 /* UIConnections */ = {
+		5BB6E2162EE775D90077AB81 /* ChatUI */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 5C5C5C5C2EE4000100000001 /* XCLocalSwiftPackageReference "UIConnections" */;
-			productName = UIConnections;
+			productName = ChatUI;
 		};
-		EEEEE115FACEBEEF00000005 /* CoreEngine */ = {
+		5BB6E2352EE810E90077AB81 /* OntologyDomain */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = EEEEE119FACEBEEF00000009 /* XCLocalSwiftPackageReference "CoreEngine" */;
-			productName = CoreEngine;
+			productName = OntologyDomain;
 		};
-		EEEEE116FACEBEEF00000006 /* AppAdapters */ = {
+		5BB6E2382EE810F40077AB81 /* OntologyIntegration */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = EEEEE11AFACEBEEF0000000A /* XCLocalSwiftPackageReference "AppAdapters" */;
-			productName = AppAdapters;
+			productName = OntologyIntegration;
 		};
-		EEEEE117FACEBEEF00000007 /* CoreEngine */ = {
+		5BB6E23B2EE811010077AB81 /* OntologyFractal */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = EEEEE119FACEBEEF00000009 /* XCLocalSwiftPackageReference "CoreEngine" */;
-			productName = CoreEngine;
+			productName = OntologyFractal;
 		};
-		EEEEE118FACEBEEF00000008 /* AppAdapters */ = {
+		5BB6E23E2EE8110B0077AB81 /* OntologyIntelligence */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = EEEEE11AFACEBEEF0000000A /* XCLocalSwiftPackageReference "AppAdapters" */;
-			productName = AppAdapters;
+			productName = OntologyIntelligence;
+		};
+		5BB6E2412EE811150077AB81 /* OntologyTeleology */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = OntologyTeleology;
+		};
+		5BB6E2442EE8111F0077AB81 /* OntologyState */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = OntologyState;
+		};
+		5BB6E2472EE811320077AB81 /* OntologyAct */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = OntologyAct;
+		};
+		5BB6E24A2EE8113C0077AB81 /* OntologyCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = OntologyCore;
+		};
+		5BB6E24D2EE811520077AB81 /* AppCoreEngine */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AppCoreEngine;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

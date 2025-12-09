@@ -12,7 +12,7 @@
 // @EntelechiaHeaderEnd
 
 import SwiftUI
-import CoreEngine
+import AppCoreEngine
 
 struct EditorSurface: View {
     @EnvironmentObject private var appState: AppState

@@ -1,5 +1,5 @@
 import Foundation
-import CoreEngine
+import AppCoreEngine
 import UIConnections
 import AppAdapters // Composition root only
 
@@ -68,21 +68,21 @@ struct TestContainer: DependencyContainer {
 
 // MARK: - Engine-facing codex client adapter type eraser
 
-struct AnyCodexClient: CoreEngine.CodexClient {
+struct AnyCodexClient: AppCoreEngine.CodexClient {
     typealias MessageType = Message
-    typealias ContextFileType = CoreEngine.LoadedFile
+    typealias ContextFileType = AppCoreEngine.LoadedFile
     typealias OutputPayload = ModelResponse
 
-    private let streamHandler: @Sendable ([MessageType], [ContextFileType]) async throws -> AsyncThrowingStream<CoreEngine.StreamChunk<OutputPayload>, Error>
+    private let streamHandler: @Sendable ([MessageType], [ContextFileType]) async throws -> AsyncThrowingStream<AppCoreEngine.StreamChunk<OutputPayload>, Error>
 
-    init(_ streamHandler: @escaping @Sendable ([MessageType], [ContextFileType]) async throws -> AsyncThrowingStream<CoreEngine.StreamChunk<OutputPayload>, Error>) {
+    init(_ streamHandler: @escaping @Sendable ([MessageType], [ContextFileType]) async throws -> AsyncThrowingStream<AppCoreEngine.StreamChunk<OutputPayload>, Error>) {
         self.streamHandler = streamHandler
     }
 
     func stream(
         messages: [MessageType],
         contextFiles: [ContextFileType]
-    ) async throws -> AsyncThrowingStream<CoreEngine.StreamChunk<OutputPayload>, Error> {
+    ) async throws -> AsyncThrowingStream<AppCoreEngine.StreamChunk<OutputPayload>, Error> {
         try await streamHandler(messages, contextFiles)
     }
 }
@@ -91,8 +91,8 @@ extension AnyCodexClient {
     static func stub() -> AnyCodexClient {
         AnyCodexClient { _, _ in
             AsyncThrowingStream { continuation in
-                continuation.yield(CoreEngine.StreamChunk.output(ModelResponse(content: "Stub response")))
-                continuation.yield(CoreEngine.StreamChunk.done)
+                continuation.yield(AppCoreEngine.StreamChunk.output(ModelResponse(content: "Stub response")))
+                continuation.yield(AppCoreEngine.StreamChunk.done)
                 continuation.finish()
             }
         }

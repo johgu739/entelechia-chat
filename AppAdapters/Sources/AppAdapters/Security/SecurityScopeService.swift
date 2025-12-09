@@ -1,5 +1,5 @@
 import Foundation
-import CoreEngine
+import AppCoreEngine
 
 /// Thread-safe security scope service that creates, resolves, and manages security-scoped bookmarks.
 ///

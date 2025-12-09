@@ -13,13 +13,13 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(path: "../CoreEngine")
+        .package(name: "AppCoreEngine", path: "../AppCoreEngine")
     ],
     targets: [
         .target(
             name: "AppAdapters",
             dependencies: [
-                .product(name: "CoreEngine", package: "CoreEngine")
+                .product(name: "AppCoreEngine", package: "AppCoreEngine")
             ]
         ),
         .testTarget(

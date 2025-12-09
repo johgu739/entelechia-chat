@@ -15,7 +15,7 @@ import Foundation
 import SwiftUI
 import Combine
 import UniformTypeIdentifiers
-import CoreEngine
+import AppCoreEngine
 
 @MainActor
 class FileMetadataViewModel: ObservableObject {

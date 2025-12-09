@@ -1,5 +1,5 @@
 import Foundation
-import CoreEngine
+import AppCoreEngine
 
 /// Minimal Codex client adapter placeholder; replace with real networked client.
 public struct CodexClientAdapter: CodexClient, Sendable {

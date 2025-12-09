@@ -1,4 +1,4 @@
-import CoreEngine
+import AppCoreEngine
 
 /// Alert sink that ignores errors (placeholder).
 public struct NullAlertSink: AlertSink {

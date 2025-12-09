@@ -1,6 +1,6 @@
 import XCTest
 @testable import UIConnections
-@testable import CoreEngine
+@testable import AppCoreEngine
 
 final class MappingTests: XCTestCase {
 

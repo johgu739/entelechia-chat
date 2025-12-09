@@ -1,5 +1,5 @@
 import Foundation
-import CoreEngine
+import AppCoreEngine
 
 /// No-op security scope handler placeholder.
 public struct NoopSecurityScopeHandler: SecurityScopeHandling {

@@ -13,7 +13,7 @@
 
 import SwiftUI
 import AppKit
-import CoreEngine
+import AppCoreEngine
 
 struct XcodeNavigatorView: View {
     @EnvironmentObject var workspaceViewModel: WorkspaceViewModel

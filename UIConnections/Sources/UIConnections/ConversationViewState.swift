@@ -1,5 +1,5 @@
 import Foundation
-import CoreEngine
+import AppCoreEngine
 
 /// UI-ready conversation state for display/streaming.
 public struct ConversationViewState: Sendable, Equatable {

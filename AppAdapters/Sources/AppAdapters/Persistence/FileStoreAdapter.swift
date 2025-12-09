@@ -1,5 +1,5 @@
 import Foundation
-import CoreEngine
+import AppCoreEngine
 @preconcurrency import os.log
 
 /// Disk-backed conversation persistence adapter wrapping existing FileStore logic.

@@ -13,7 +13,7 @@
 
 import Foundation
 import SwiftUI
-import CoreEngine
+import AppCoreEngine
 import Combine
 import os.log
 

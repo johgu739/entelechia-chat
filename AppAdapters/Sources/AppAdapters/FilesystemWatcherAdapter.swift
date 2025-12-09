@@ -1,6 +1,6 @@
 import Foundation
 import CoreServices
-import CoreEngine
+import AppCoreEngine
 
 /// FSEvents-based recursive watcher emitting coalesced change signals for a root path.
 ///

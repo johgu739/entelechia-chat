@@ -1,7 +1,7 @@
 import XCTest
 import Combine
 @testable import ChatUI
-import CoreEngine
+import AppCoreEngine
 import AppAdapters
 
 @MainActor

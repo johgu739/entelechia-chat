@@ -1,6 +1,6 @@
 import XCTest
 @testable import UIConnections
-import CoreEngine
+import AppCoreEngine
 
 final class WorkspaceMapperCompletenessTests: XCTestCase {
 

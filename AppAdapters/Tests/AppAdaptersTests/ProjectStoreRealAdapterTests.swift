@@ -1,6 +1,6 @@
 import XCTest
 @testable import AppAdapters
-import CoreEngine
+import AppCoreEngine
 
 final class ProjectStoreRealAdapterTests: XCTestCase {
 

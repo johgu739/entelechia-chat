@@ -1,5 +1,5 @@
 import Foundation
-import CoreEngine
+import AppCoreEngine
 @preconcurrency import os.log
 
 /// Codex client adapter (self-contained HTTP implementation with lightweight streaming).
