@@ -43,7 +43,9 @@ struct ArchitectureGuardianTool {
         }
 
         // Emit a marker file so the build tool has an output.
-        try Data("ok".utf8).write(to: URL(fileURLWithPath: outputPath))
+        let outURL = URL(fileURLWithPath: outputPath)
+        try FileManager.default.createDirectory(at: outURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try Data("ok".utf8).write(to: outURL)
     }
 
     private static func targetNameFromEnv() -> String? {
