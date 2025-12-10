@@ -26,7 +26,11 @@ let package = Package(
         ),
         .testTarget(
             name: "UIConnectionsTests",
-            dependencies: ["UIConnections"]
+            dependencies: [
+                "UIConnections",
+                .product(name: "AppCoreEngine", package: "AppCoreEngine"),
+                .product(name: "AppAdapters", package: "AppAdapters")
+            ]
         )
     ]
 )

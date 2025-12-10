@@ -1,6 +1,5 @@
 import Foundation
 import AppCoreEngine
-import AppAdapters
 
 public enum WorkspaceScope: Equatable, Sendable {
     case descriptor(FileID)

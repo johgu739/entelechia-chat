@@ -18,11 +18,11 @@ public struct ChatUIHost: View {
         self.workspaceEngine = container.workspaceEngine
         self.conversationEngine = container.conversationEngine
         self.projectTodosLoader = container.projectTodosLoader
-        self.codexService = CodexQueryAdapter(service: container.codexService)
+        self.codexService = container.codexService
         
         let alertCenter = container.alertCenter
         _alertCenter = StateObject(wrappedValue: alertCenter)
-        _codexStatusModel = StateObject(wrappedValue: CodexStatusModel(availability: .connected))
+        _codexStatusModel = StateObject(wrappedValue: CodexStatusModel(availability: ChatUIHost.map(container.codexStatus)))
         
         let session = ProjectSession(
             projectEngine: container.projectEngine,
@@ -52,6 +52,17 @@ public struct ChatUIHost: View {
         .environmentObject(alertCenter)
         .environmentObject(codexStatusModel)
         .frame(minWidth: 1000, minHeight: 700)
+    }
+
+    private static func map(_ availability: CodexAvailability) -> CodexStatusModel.State {
+        switch availability {
+        case .connected:
+            return .connected
+        case .degradedStub:
+            return .degradedStub
+        case .misconfigured(let error):
+            return .misconfigured(error.localizedDescription)
+        }
     }
 }
 

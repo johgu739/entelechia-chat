@@ -33,7 +33,7 @@ collect_and_check() {
   while IFS= read -r file; do
     files+=("$file")
   done < <(find "$dir" -name "*.swift" -print | sort)
-  run_guard "$target" "${files[@]}"
+  run_guard "$target" "${files[@]:-}"
 }
 
 # Target -> directory mapping (Sources/ and Tests/ layouts)

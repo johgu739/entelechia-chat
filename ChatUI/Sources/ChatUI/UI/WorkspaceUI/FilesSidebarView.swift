@@ -292,7 +292,7 @@ struct FilePreviewView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                if file.fileType?.conforms(to: .sourceCode) == true || file.fileType?.conforms(to: .text) == true {
+                if file.fileKind == .sourceCode || file.fileKind == .text {
                     Text(file.content)
                         .font(.system(size: 13, design: .monospaced))
                         .frame(maxWidth: .infinity, alignment: .leading)

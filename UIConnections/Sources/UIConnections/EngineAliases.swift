@@ -1,5 +1,4 @@
 @_exported import AppCoreEngine
-@_exported import AppAdapters
 import AppCoreEngine
 
 public typealias Conversation = AppCoreEngine.Conversation

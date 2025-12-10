@@ -1,5 +1,4 @@
 import Foundation
-import SwiftUI
 
 /// Observable status holder for Codex availability (UI-facing).
 public final class CodexStatusModel: ObservableObject {
@@ -7,6 +6,12 @@ public final class CodexStatusModel: ObservableObject {
         case connected
         case degradedStub
         case misconfigured(String)
+    }
+    
+    public enum Tone {
+        case success
+        case warning
+        case error
     }
     
     @Published public private(set) var state: State
@@ -26,14 +31,14 @@ public final class CodexStatusModel: ObservableObject {
         }
     }
     
-    public var accentColor: Color {
+    public var tone: Tone {
         switch state {
         case .connected:
-            return .green
+            return .success
         case .degradedStub:
-            return .orange
+            return .warning
         case .misconfigured:
-            return .red
+            return .error
         }
     }
     
