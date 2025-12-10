@@ -12,7 +12,7 @@
 // @EntelechiaHeaderEnd
 
 import SwiftUI
-import AppComposition
+import UIConnections
 import AppKit
 
 struct ChatView: View {
@@ -341,7 +341,7 @@ struct ChatView: View {
                         Text("Excluded")
                             .font(.system(size: 12, weight: .semibold))
                         ForEach(ctx.excludedFiles, id: \.id) { exclusion in
-                            Text("\(exclusion.file.url.lastPathComponent) – \(exclusion.reason)")
+                            Text(verbatim: "\(exclusion.file.url.lastPathComponent) – \(exclusion.reason)")
                                 .font(.system(size: 11))
                                 .foregroundColor(.secondary)
                         }

@@ -12,12 +12,13 @@
 // @EntelechiaHeaderEnd
 
 import SwiftUI
-import AppComposition
+import UIConnections
 
 struct MainWorkspaceView: View {
     private let workspaceEngine: WorkspaceEngine
     private let conversationEngine: ConversationStreaming
     private let projectTodosLoader: ProjectTodosLoading
+    private let codexService: CodexQuerying
     @EnvironmentObject var projectSession: ProjectSession
     @EnvironmentObject var alertCenter: AlertCenter
     @EnvironmentObject var codexStatusModel: CodexStatusModel
@@ -28,17 +29,19 @@ struct MainWorkspaceView: View {
     init(
         workspaceEngine: WorkspaceEngine,
         conversationEngine: ConversationStreaming,
-        projectTodosLoader: ProjectTodosLoading
+        projectTodosLoader: ProjectTodosLoading,
+        codexService: CodexQuerying
     ) {
         self.workspaceEngine = workspaceEngine
         self.conversationEngine = conversationEngine
         self.projectTodosLoader = projectTodosLoader
+        self.codexService = codexService
         _workspaceViewModel = StateObject(
             wrappedValue: WorkspaceViewModel(
                 workspaceEngine: workspaceEngine,
                 conversationEngine: conversationEngine,
                 projectTodosLoader: projectTodosLoader,
-                codexService: DefaultContainer().codexService
+                codexService: codexService
             )
         )
     }
@@ -59,12 +62,16 @@ struct MainWorkspaceView: View {
                 .navigationSplitViewColumnWidth(min: 220, ideal: 260, max: 320)
         }
         .overlay(alignment: .top) {
-            CodexStatusBanner()
-                .environmentObject(codexStatusModel)
-                .environmentObject(workspaceViewModel)
-                .padding(.horizontal, 12)
-                .padding(.top, 8)
+            if codexStatusModel.state != .connected {
+                CodexStatusBanner()
+                    .environmentObject(codexStatusModel)
+                    .environmentObject(workspaceViewModel)
+                    .padding(.horizontal, 12)
+                    .padding(.top, 8)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
         }
+        .animation(.easeInOut, value: codexStatusModel.state)
         .toolbar {
             // File Explorer toggle
             ToolbarItem(placement: .automatic) {

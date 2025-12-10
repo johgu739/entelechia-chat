@@ -6,13 +6,13 @@
 //
 
 import SwiftUI
-import ChatUI
+import AppComposition
 
 @main
 struct EntelechiaChatApp: App {
     var body: some Scene {
         WindowGroup {
-            ChatUIRoot()
+            ChatUIHost()
         }
     }
 }

@@ -3,6 +3,10 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+echo "==> Running architecture layering guard"
+"$ROOT/scripts/layering-guard.sh"
+
+echo "==> Building all packages after guardrail check"
 packages=(
   "AppCoreEngine"
   "AppAdapters"
@@ -20,8 +24,9 @@ packages=(
 )
 
 for pkg in "${packages[@]}"; do
-  echo "==> Checking $pkg"
+  echo "==> swift build --package-path $pkg"
   (cd "$ROOT/$pkg" && swift build)
 done
+
 
 

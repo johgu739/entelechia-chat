@@ -7,7 +7,7 @@ public struct DefaultTeleologySupervisor: TeleologySupervising {
 
     public func evaluatePreconditions(for state: EngineState) -> TeleologyReport {
         var notes: [String] = []
-        var conflicts: [Invariant] = []
+        let conflicts: [Invariant] = []
 
         let propIDs = Set(state.propositions.propositions.map { $0.id })
         for rel in state.relationGraph.relations {

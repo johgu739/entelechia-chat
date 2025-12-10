@@ -1,4 +1,5 @@
 import XCTest
+import UIConnections
 @testable import AppComposition
 import AppCoreEngine
 import AppAdapters

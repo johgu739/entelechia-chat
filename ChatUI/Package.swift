@@ -13,15 +13,13 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(name: "UIConnections", path: "../UIConnections"),
-        .package(name: "AppComposition", path: "../AppComposition")
+        .package(name: "UIConnections", path: "../UIConnections")
     ],
     targets: [
         .target(
             name: "ChatUI",
             dependencies: [
-                .product(name: "UIConnections", package: "UIConnections"),
-                .product(name: "AppComposition", package: "AppComposition")
+                .product(name: "UIConnections", package: "UIConnections")
             ],
             exclude: [],
             resources: [
@@ -40,7 +38,7 @@ let package = Package(
             name: "ChatUITests",
             dependencies: [
                 "ChatUI",
-                .product(name: "AppComposition", package: "AppComposition")
+                .product(name: "UIConnections", package: "UIConnections")
             ]
         )
     ]

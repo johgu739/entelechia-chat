@@ -18,3 +18,4 @@ Concurrency boundaries for impurities:
 - URLSession: actor encapsulation; callbacks not main-thread by default.
 - FSEvents: queue-confined; AsyncStream continuation touched only on watcher queue.
 
+

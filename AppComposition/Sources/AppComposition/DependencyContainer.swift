@@ -1,6 +1,7 @@
 import Foundation
 import AppCoreEngine
 import AppAdapters
+import UIConnections
 
 public protocol DependencyContainer {
     var securityScopeHandler: SecurityScopeHandling { get }

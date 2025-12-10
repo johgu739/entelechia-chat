@@ -2,6 +2,7 @@ import Foundation
 import os.log
 import AppCoreEngine
 import AppAdapters
+import UIConnections
 
 struct AppBootstrap {
     struct Engines {

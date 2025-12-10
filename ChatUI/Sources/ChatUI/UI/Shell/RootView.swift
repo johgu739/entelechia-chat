@@ -12,18 +12,31 @@
 // @EntelechiaHeaderEnd
 
 import SwiftUI
-import AppComposition
+import UIConnections
 
 /// Root view that switches between onboarding and main workspace
-struct RootView: View {
-    let workspaceEngine: WorkspaceEngine
-    let conversationEngine: ConversationStreaming
-    let projectTodosLoader: ProjectTodosLoading
+public struct RootView: View {
+    public let workspaceEngine: WorkspaceEngine
+    public let conversationEngine: ConversationStreaming
+    public let projectTodosLoader: ProjectTodosLoading
+    public let codexService: CodexQuerying
     @EnvironmentObject var projectSession: ProjectSession
     @EnvironmentObject var projectCoordinator: ProjectCoordinator
     @EnvironmentObject var alertCenter: AlertCenter
     
-    var body: some View {
+    public init(
+        workspaceEngine: WorkspaceEngine,
+        conversationEngine: ConversationStreaming,
+        projectTodosLoader: ProjectTodosLoading,
+        codexService: CodexQuerying
+    ) {
+        self.workspaceEngine = workspaceEngine
+        self.conversationEngine = conversationEngine
+        self.projectTodosLoader = projectTodosLoader
+        self.codexService = codexService
+    }
+    
+    public var body: some View {
         Group {
             // Simple 2-state machine: onboarding / workspace
             if projectSession.activeProjectURL == nil {
@@ -32,7 +45,8 @@ struct RootView: View {
                 MainWorkspaceView(
                     workspaceEngine: workspaceEngine,
                     conversationEngine: conversationEngine,
-                    projectTodosLoader: projectTodosLoader
+                    projectTodosLoader: projectTodosLoader,
+                    codexService: codexService
                 )
             }
         }

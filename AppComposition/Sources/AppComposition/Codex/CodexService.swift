@@ -1,6 +1,7 @@
 import Foundation
 import AppCoreEngine
 import AppAdapters
+import UIConnections
 
 public struct CodexPromptShaper: Sendable {
     public init() {}
@@ -9,16 +10,8 @@ public struct CodexPromptShaper: Sendable {
     }
 }
 
-public enum WorkspaceScope: Equatable, Sendable {
-    case descriptor(FileID)
-    case path(String)
-    case selection
-}
-
-public struct CodexAnswer: Equatable, Sendable {
-    public let text: String
-    public let context: ContextBuildResult
-}
+public typealias WorkspaceScope = UIConnections.WorkspaceScope
+public typealias CodexAnswer = UIConnections.CodexAnswer
 
 public final class CodexMutationPipeline: @unchecked Sendable {
     private let authority: FileMutationAuthorizing

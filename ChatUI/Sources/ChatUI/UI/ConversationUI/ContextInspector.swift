@@ -14,7 +14,7 @@
 import SwiftUI
 import AppKit
 import UniformTypeIdentifiers
-import AppComposition
+import UIConnections
 import Combine
 
 struct ContextInspector: View {

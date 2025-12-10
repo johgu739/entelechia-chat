@@ -11,3 +11,4 @@ public protocol WorkspaceBoundaryFiltering: Sendable {
     func allows(canonicalPath: String) -> Bool
 }
 
+

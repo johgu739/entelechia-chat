@@ -13,7 +13,7 @@
 
 import Foundation
 import os.log
-import AppComposition
+import UIConnections
 
 enum PreferenceValue: Codable, Equatable, Sendable {
     case bool(Bool)
@@ -108,7 +108,7 @@ struct PreferencesStore: PreferencesStoring {
     private let fileManager: FileManager
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
-    private let logger = Logger.preferences
+    private let logger = Logger(subsystem: "ChatUI", category: "PreferencesStore")
     private let strict: Bool
 
     init(
@@ -127,17 +127,17 @@ struct PreferencesStore: PreferencesStoring {
     func load(for projectRoot: URL, strict: Bool = false) throws -> Preferences {
         let url = fileURL(for: projectRoot)
         guard fileManager.fileExists(atPath: url.path) else {
-            logger.debug("Preferences missing at \(url.path, privacy: .private); returning defaults.")
+            logger.debug("Preferences missing at \(url.path); returning defaults.")
             return .empty
         }
 
         do {
             let data = try Data(contentsOf: url)
             let preferences = try decoder.decode(Preferences.self, from: data)
-            logger.debug("Loaded preferences from \(url.path, privacy: .private).")
+            logger.debug("Loaded preferences from \(url.path).")
             return preferences
         } catch {
-            logger.error("Failed to decode preferences at \(url.path, privacy: .private): \(error.localizedDescription, privacy: .public)")
+            logger.error("Failed to decode preferences at \(url.path): \(error.localizedDescription)")
             if strict { throw error }
             return .empty
         }
@@ -159,11 +159,11 @@ struct PreferencesStore: PreferencesStoring {
             try ensureDirectoryExists(for: url)
             let data = try encoder.encode(preferences)
             try data.write(to: url, options: [.atomic])
-            logger.debug("Preferences saved at \(url.path, privacy: .private).")
+            logger.debug("Preferences saved at \(url.path).")
         } catch let error as PreferencesStoreError {
             throw error
         } catch {
-            logger.error("Failed to save preferences at \(url.path, privacy: .private): \(error.localizedDescription, privacy: .public)")
+            logger.error("Failed to save preferences at \(url.path): \(error.localizedDescription)")
             throw PreferencesStoreError.writeFailure(error)
         }
     }

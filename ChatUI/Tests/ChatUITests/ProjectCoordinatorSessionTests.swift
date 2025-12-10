@@ -1,6 +1,6 @@
 import XCTest
 @testable import ChatUI
-import AppComposition
+import UIConnections
 
 private final class StubSecurityScope: SecurityScopeHandling, @unchecked Sendable {
     private(set) var startedURL: URL?

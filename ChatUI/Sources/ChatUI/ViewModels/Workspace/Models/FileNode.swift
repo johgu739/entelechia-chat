@@ -16,7 +16,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 import AppKit
 import os.log
-import AppComposition
+import UIConnections
 
 private typealias FileExclusion = AppCoreEngine.FileExclusion
 
@@ -52,7 +52,7 @@ enum FileNodeError: LocalizedError {
 /// Can be used in both SwiftUI (OutlineGroup) and AppKit (NSOutlineView)
 /// This is a value/entity type, not a view model, so it does not conform to ObservableObject
 final class FileNode: Identifiable {
-    private static let logger = Logger.persistence
+    private static let logger = Logger(subsystem: "ChatUI", category: "FileNode")
 
     /// UI identity (used by SwiftUI lists/outline).
     let id: UUID

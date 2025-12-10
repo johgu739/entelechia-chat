@@ -1,5 +1,5 @@
 import Foundation
-import AppComposition
+import UIConnections
 import UniformTypeIdentifiers
 private typealias FileExclusion = AppCoreEngine.FileExclusion
 

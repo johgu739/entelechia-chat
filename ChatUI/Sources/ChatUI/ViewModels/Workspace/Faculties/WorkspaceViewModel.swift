@@ -17,7 +17,6 @@ import Combine
 import UniformTypeIdentifiers
 import CoreServices
 import os.log
-import AppComposition
 import UIConnections
 
 enum WorkspaceViewModelError: LocalizedError {
@@ -50,6 +49,13 @@ enum WorkspaceViewModelError: LocalizedError {
         default:
             return errorDescription
         }
+    }
+}
+
+// MARK: - Null Codex for tests/DI defaults
+private struct NullCodexService: CodexQuerying {
+    func askAboutWorkspaceNode(scope: WorkspaceScope, question: String, onStream: ((String) -> Void)?) async throws -> CodexAnswer {
+        throw WorkspaceViewModelError.conversationEnsureFailed(EngineError.contextLoadFailed("Codex unavailable"))
     }
 }
 
@@ -108,9 +114,9 @@ class WorkspaceViewModel: ObservableObject {
     private let workspaceEngine: WorkspaceEngine
     private let conversationEngine: ConversationStreaming
     private let projectTodosLoader: ProjectTodosLoading
-    private let codexService: CodexService
+    private let codexService: CodexQuerying
     private var alertCenter: AlertCenter?
-    private let logger = Logger.persistence
+    private let logger = Logger(subsystem: "ChatUI", category: "WorkspaceViewModel")
     private let contextErrorSubject = PassthroughSubject<String, Never>()
     
     // MARK: - Derived State
@@ -133,7 +139,7 @@ class WorkspaceViewModel: ObservableObject {
         workspaceEngine: WorkspaceEngine,
         conversationEngine: ConversationStreaming,
         projectTodosLoader: ProjectTodosLoading,
-        codexService: CodexService = DefaultContainer().codexService,
+        codexService: CodexQuerying = NullCodexService(),
         alertCenter: AlertCenter? = nil
     ) {
         self.workspaceEngine = workspaceEngine

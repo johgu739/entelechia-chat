@@ -36,108 +36,99 @@ struct ChatInputView: View {
     @FocusState private var isFocused: Bool
     
     var body: some View {
-        HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(currentTarget ?? "No selection")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor((currentTarget == nil) ? .secondary : .primary)
-                HStack(spacing: 8) {
-                    Text("Send: \(sendShortcut)")
-                        .font(.system(size: 11))
+        VStack(alignment: .leading, spacing: 6) {
+            if let currentTarget, !currentTarget.isEmpty {
+                HStack(spacing: 6) {
+                    Image(systemName: "folder")
                         .foregroundColor(.secondary)
-                    if onAskCodex != nil {
-                        Text("Ask Codex: \(askShortcut)")
-                            .font(.system(size: 11))
-                            .foregroundColor(.secondary)
-                    }
+                        .font(.system(size: 11, weight: .semibold))
+                    Text(currentTarget)
+                        .font(.system(size: 11, weight: .semibold))
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .foregroundColor(.secondary)
                 }
+                .padding(.horizontal, 4)
             }
             
-            // Plus button
-            Button(action: {
-                onAttachFile()
-            }) {
-                Image(systemName: "plus")
-                    .foregroundColor(.chatIcon)
-                    .font(.system(size: 16, weight: .medium))
-                    .accessibilityLabel("Attach file")
-            }
-            .buttonStyle(.plain)
-            
-            // Text area
-            ZStack(alignment: .topLeading) {
-                if text.isEmpty {
-                    Text("Type a message…")
-                        .foregroundColor(.chatPlaceholder)
-                        .font(.system(size: 15))
-                        .padding(.vertical, 11)
-                        .padding(.horizontal, 4)
-                        .allowsHitTesting(false)
+            HStack(alignment: .bottom, spacing: 8) {
+                Button(action: { onAttachFile() }) {
+                    Image(systemName: "plus")
+                        .foregroundColor(.chatIcon)
+                        .font(.system(size: 16, weight: .medium))
+                        .accessibilityLabel("Attach file")
                 }
+                .buttonStyle(.plain)
                 
-                TextEditor(text: $text)
-                    .scrollContentBackground(.hidden)
-                    .font(.system(size: 15))
-                    .padding(.vertical, 8)
-                    .frame(minHeight: 44, maxHeight: 120)
-                    .focused($isFocused)
-                    .onChange(of: text) { oldValue, newValue in
-                        // Handle Enter key press (without Command modifier)
-                        if newValue.contains("\n") && !oldValue.contains("\n") {
-                            // Check if Command key is NOT pressed
-                            if let event = NSApp.currentEvent, !event.modifierFlags.contains(.command) {
-                                // Remove the newline and send
-                                let trimmed = text.replacingOccurrences(of: "\n", with: "")
-                                text = trimmed
-                                if !trimmed.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                                    send()
+                ZStack(alignment: .topLeading) {
+                    if text.isEmpty {
+                        Text("Message Codex…")
+                            .foregroundColor(.chatPlaceholder)
+                            .font(.system(size: 15))
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 6)
+                            .allowsHitTesting(false)
+                    }
+                    
+                    TextEditor(text: $text)
+                        .scrollContentBackground(.hidden)
+                        .font(.system(size: 15))
+                        .padding(.vertical, 6)
+                        .padding(.horizontal, 2)
+                        .frame(minHeight: 36, maxHeight: 120, alignment: .top)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .focused($isFocused)
+                        .onChange(of: text) { oldValue, newValue in
+                            // Enter sends when Command is not held, matching chat-style input
+                            if newValue.contains("\n") && !oldValue.contains("\n") {
+                                if let event = NSApp.currentEvent, !event.modifierFlags.contains(.command) {
+                                    let trimmed = text.replacingOccurrences(of: "\n", with: "")
+                                    text = trimmed
+                                    if !trimmed.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                        send()
+                                    }
                                 }
                             }
                         }
-                    }
-            }
-            
-            if let onAskCodex {
-                Button(action: {
-                    ask(onAskCodex)
-                }) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "sparkles")
-                            .font(.system(size: 16, weight: .medium))
-                        Text("Ask Codex")
-                            .font(.system(size: 14, weight: .semibold))
-                    }
-                    .foregroundColor(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !isAskEnabled ? .chatIcon : .accentColor)
-                    .accessibilityLabel("Ask Codex")
                 }
-                .buttonStyle(.plain)
-                .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !isAskEnabled)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                
+                HStack(spacing: 6) {
+                    if let onAskCodex {
+                        Button(action: { ask(onAskCodex) }) {
+                            Image(systemName: "sparkles")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !isAskEnabled ? .chatIcon : .accentColor)
+                                .accessibilityLabel("Ask Codex")
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !isAskEnabled)
+                    }
+                    
+                    Button(action: { send() }) {
+                        Image(systemName: "paperplane.fill")
+                            .foregroundColor(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .chatIcon : .accentColor)
+                            .font(.system(size: 16, weight: .semibold))
+                            .accessibilityLabel("Send")
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
             }
-
-            // Send button
-            Button(action: {
-                send()
-            }) {
-                Image(systemName: "paperplane.fill")
-                    .foregroundColor(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .chatIcon : .accentColor)
-                    .font(.system(size: 16, weight: .medium))
-                    .accessibilityLabel("Send")
-            }
-            .buttonStyle(.plain)
-            .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 18)
+                    .fill(Color.chatInputBackground)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18)
+                            .stroke(Color.chatInputBorder, lineWidth: 1)
+                    )
+            )
+            .frame(minHeight: 52, maxHeight: 180, alignment: .top)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background(Color.chatInputBackground)
-        .overlay(
-            RoundedRectangle(cornerRadius: 22)
-                .stroke(Color.chatInputBorder, lineWidth: 1)
-        )
-        .cornerRadius(22)
-        .onAppear {
-            // Focus on appear - already on main thread in SwiftUI
-            isFocused = true
-        }
+        .padding(.horizontal, 4)
+        .onAppear { isFocused = true }
     }
     
     private func send() {

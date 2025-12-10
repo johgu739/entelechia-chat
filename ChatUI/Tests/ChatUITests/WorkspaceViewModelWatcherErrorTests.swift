@@ -1,6 +1,6 @@
 import XCTest
 @testable import ChatUI
-import AppComposition
+import UIConnections
 
 final class WorkspaceViewModelWatcherErrorTests: XCTestCase {
     func testWatcherErrorSurfacesAndClears() async throws {

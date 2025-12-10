@@ -15,7 +15,7 @@ import Foundation
 import SwiftUI
 import Combine
 import UniformTypeIdentifiers
-import AppComposition
+import UIConnections
 
 @MainActor
 class FileMetadataViewModel: ObservableObject {

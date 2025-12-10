@@ -13,7 +13,7 @@
 
 import Foundation
 import os.log
-import AppComposition
+import UIConnections
 
 struct ContextPreferences: Codable, Equatable, Sendable {
     var includedPaths: Set<String>
@@ -53,7 +53,7 @@ struct ContextPreferencesStore: ContextPreferencesStoring {
     private let fileManager: FileManager
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
-    private let logger = Logger.preferences
+    private let logger = Logger(subsystem: "ChatUI", category: "ContextPreferences")
     private let strict: Bool
 
     init(

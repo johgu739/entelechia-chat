@@ -33,3 +33,4 @@ This charter states which AppAdapters types are Sendable across threads/actors a
 - KeychainServiceAdapter save/load/delete.
 - SecurityScopeService Noop lifecycle smoke test.
 
+

@@ -1,6 +1,6 @@
 import XCTest
 @testable import ChatUI
-import AppComposition
+import UIConnections
 import UIConnections
 
 private final class StubWorkspaceEngine: WorkspaceEngine, @unchecked Sendable {

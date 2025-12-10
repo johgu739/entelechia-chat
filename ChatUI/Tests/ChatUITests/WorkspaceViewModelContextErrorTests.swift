@@ -1,7 +1,7 @@
 import XCTest
 import Combine
 @testable import ChatUI
-import AppComposition
+import UIConnections
 
 @MainActor
 final class WorkspaceViewModelContextErrorTests: XCTestCase {

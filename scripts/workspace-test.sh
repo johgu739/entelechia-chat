@@ -3,6 +3,10 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+# Layering guard must pass before any tests
+echo "==> Architecture layering guard"
+"${ROOT}/scripts/layering-guard.sh"
+
 # Canonical, deterministic package order.
 packages=(
   "AppCoreEngine"
@@ -39,4 +43,5 @@ if [[ "${failures}" -ne 0 ]]; then
 fi
 
 echo "Workspace tests passed for all ${#packages[@]} packages."
+
 

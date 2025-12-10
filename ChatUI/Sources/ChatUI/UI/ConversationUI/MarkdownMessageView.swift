@@ -12,7 +12,7 @@
 // @EntelechiaHeaderEnd
 
 import SwiftUI
-import AppComposition
+import UIConnections
 import AppKit
 
 struct MarkdownMessageView: View {

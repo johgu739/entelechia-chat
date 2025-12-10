@@ -13,13 +13,15 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(name: "AppCoreEngine", path: "../AppCoreEngine")
+        .package(name: "AppCoreEngine", path: "../AppCoreEngine"),
+        .package(name: "AppAdapters", path: "../AppAdapters")
     ],
     targets: [
         .target(
             name: "UIConnections",
             dependencies: [
-                .product(name: "AppCoreEngine", package: "AppCoreEngine")
+                .product(name: "AppCoreEngine", package: "AppCoreEngine"),
+                .product(name: "AppAdapters", package: "AppAdapters")
             ]
         ),
         .testTarget(

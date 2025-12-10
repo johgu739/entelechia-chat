@@ -14,7 +14,7 @@
 import Foundation
 import SwiftUI
 import AppKit
-import AppComposition
+import UIConnections
 
 struct MarkdownRenderer {
     /// Parse markdown content into blocks (text and code blocks)
