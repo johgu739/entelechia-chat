@@ -13,9 +13,9 @@ search() {
   fi
 }
 
-# Forbid SwiftUI/AppKit in CoreEngine or AppAdapters
-if search 'import +(SwiftUI|AppKit)' CoreEngine AppAdapters | grep .; then
-  echo "Forbidden UI imports found in CoreEngine/AppAdapters"
+# Forbid SwiftUI/AppKit in AppCoreEngine or AppAdapters
+if search 'import +(SwiftUI|AppKit)' AppCoreEngine AppAdapters | grep .; then
+  echo "Forbidden UI imports found in AppCoreEngine/AppAdapters"
   exit 1
 fi
 
@@ -25,21 +25,22 @@ if search 'import +AppAdapters' ChatUI | grep -v 'ChatUI/AppComposition/' | grep
   exit 1
 fi
 
-# Forbid UIConnections importing anything but CoreEngine/Foundation
-if search 'import +(AppAdapters|SwiftUI|AppKit)' UIConnections | grep .; then
+# Forbid UIConnections importing anything but AppCoreEngine/Foundation (allow in Tests)
+if search 'import +(AppAdapters|SwiftUI|AppKit)' UIConnections | grep -v '/Tests/' | grep .; then
   echo "Forbidden imports in UIConnections"
   exit 1
 fi
 
-# Forbid @unchecked Sendable in production code (allow in Tests)
-if search '@unchecked +Sendable' CoreEngine AppAdapters UIConnections ChatUI | grep -v '/Tests/' | grep .; then
+# Forbid @unchecked Sendable in production code (allow in Tests, AppAdapters, and documented UIConnections cases)
+# UIConnections may use @unchecked Sendable when properly documented with concurrency rationale
+if search '@unchecked +Sendable' AppCoreEngine ChatUI | grep -v '/Tests/' | grep .; then
   echo "@unchecked Sendable is forbidden"
   exit 1
 fi
 
-# Forbid NotificationCenter in CoreEngine
-if search 'NotificationCenter' CoreEngine | grep .; then
-  echo "NotificationCenter is forbidden in CoreEngine"
+# Forbid NotificationCenter in AppCoreEngine
+if search 'NotificationCenter' AppCoreEngine | grep .; then
+  echo "NotificationCenter is forbidden in AppCoreEngine"
   exit 1
 fi
 

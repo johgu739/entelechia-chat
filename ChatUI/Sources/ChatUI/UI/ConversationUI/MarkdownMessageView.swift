@@ -21,58 +21,11 @@ struct MarkdownMessageView: View {
     @State private var isHovered = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            // Message content
-            VStack(alignment: .leading, spacing: 12) {
-                ForEach(parseContent(), id: \.id) { block in
-                    switch block.type {
-                    case .codeBlock:
-                        CodeBlockView(code: block.content, language: block.language)
-                    case .text:
-                        Text(MarkdownRenderer.parseMarkdown(block.content))
-                            .textSelection(.enabled)
-                            .font(.system(size: 15))
-                            .fixedSize(horizontal: false, vertical: true)
-                            .padding(.vertical, 2)
-                    }
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, 4)
-            
-            // Bottom row with copy button (ChatGPT/Cursor style)
-            HStack {
-                Spacer()
-                
-                // Copy button with "Copied" feedback
-                HStack(spacing: 6) {
-                    if didCopy {
-                        Text("Copied")
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(.secondary)
-                            .transition(.opacity.combined(with: .scale(scale: 0.9)))
-                    }
-                    
-                    Button(action: {
-                        copyToClipboard(content)
-                    }) {
-                        Image(systemName: "doc.on.doc")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(.secondary)
-                            .frame(width: 22, height: 22)
-                            .contentShape(Rectangle())
-                            .scaleEffect(isHovered ? 1.05 : 1.0)
-                            .opacity(isHovered ? 0.8 : 0.6)
-                    }
-                    .buttonStyle(.plain)
-                }
-                .animation(.easeInOut(duration: 0.15), value: isHovered)
-                .animation(.easeInOut(duration: 0.25), value: didCopy)
-            }
+        VStack(alignment: .leading, spacing: DS.s8) {
+            contentBlocks
+            copyRow
         }
-        .onHover { hovering in
-            isHovered = hovering
-        }
+        .onHover { isHovered = $0 }
     }
     
     private func copyToClipboard(_ text: String) {
@@ -94,7 +47,52 @@ struct MarkdownMessageView: View {
         }
     }
     
-    private func parseContent() -> [ContentBlock] {
-        return MarkdownRenderer.parseContent(content)
+    private var contentBlocks: some View {
+        VStack(alignment: .leading, spacing: DS.s12) {
+            ForEach(MarkdownRenderer.parseContent(content), id: \.id) { block in
+                switch block.type {
+                case .codeBlock:
+                    CodeBlockView(code: block.content, language: block.language)
+                case .text:
+                    Text(MarkdownRenderer.parseMarkdown(block.content))
+                        .textSelection(.enabled)
+                        .font(DS.body)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.vertical, DS.s4 / 2)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, DS.s4)
+    }
+    
+    private var copyRow: some View {
+        HStack {
+            Spacer()
+            HStack(spacing: DS.s6) {
+                if didCopy {
+                    Text("Copied")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(.secondary)
+                        .transition(.opacity.combined(with: .scale(scale: 0.9)))
+                }
+                
+                Button(
+                    action: { copyToClipboard(content) },
+                    label: {
+                        Image(systemName: "doc.on.doc")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.secondary)
+                            .frame(width: DS.s20, height: DS.s20)
+                            .contentShape(Rectangle())
+                            .scaleEffect(isHovered ? 1.05 : 1.0)
+                            .opacity(isHovered ? 0.8 : 0.6)
+                    }
+                )
+                .buttonStyle(.plain)
+            }
+            .animation(.easeInOut(duration: 0.15), value: isHovered)
+            .animation(.easeInOut(duration: 0.25), value: didCopy)
+        }
     }
 }

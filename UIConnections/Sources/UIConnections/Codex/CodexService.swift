@@ -1,6 +1,5 @@
 import Foundation
 import AppCoreEngine
-import AppAdapters
 
 public enum CodexAvailability {
     case connected
@@ -8,6 +7,9 @@ public enum CodexAvailability {
     case misconfigured(Error)
 }
 
+/// Service for querying Codex/AI models with workspace context.
+/// Marked `@unchecked Sendable` because internal dependencies (engines, clients) are
+/// thread-safe and accessed via async/await boundaries.
 public final class CodexService: @unchecked Sendable, CodexQuerying {
     private let conversationEngine: ConversationStreaming
     private let workspaceEngine: WorkspaceEngine
@@ -15,7 +17,7 @@ public final class CodexService: @unchecked Sendable, CodexQuerying {
     private let contextPreparer: WorkspaceContextPreparer
     private let contextEncoder: WorkspaceContextEncoder
     private let segmenter: WorkspaceContextSegmenter
-    private let retryPolicy: RetryPolicy
+    private let retryPolicy: AppCoreEngine.RetryPolicy
     private let promptShaper: CodexPromptShaper
     private let mutationPipeline: CodexMutationPipeline
 
@@ -25,7 +27,7 @@ public final class CodexService: @unchecked Sendable, CodexQuerying {
         codexClient: AnyCodexClient,
         fileLoader: FileContentLoading,
         contextSegmenter: WorkspaceContextSegmenter = WorkspaceContextSegmenter(),
-        retryPolicy: RetryPolicy = RetryPolicy(),
+        retryPolicy: AppCoreEngine.RetryPolicy,
         mutationAuthority: FileMutationAuthorizing
     ) {
         self.conversationEngine = conversationEngine
@@ -91,7 +93,11 @@ Context is provided in stable segments; respect ordering.
             Message(role: .user, text: userPrompt, createdAt: Date())
         ]
 
-        let text = try await streamWithRetry(messages: messages, contextFiles: contextResult.attachments, onStream: onStream)
+        let text = try await streamWithRetry(
+            messages: messages,
+            contextFiles: contextResult.attachments,
+            onStream: onStream
+        )
 
         return CodexAnswer(text: text, context: contextResult)
     }
@@ -123,7 +129,7 @@ Context is provided in stable segments; respect ordering.
             } catch {
                 lastError = error
                 if attempt == retryPolicy.maxRetries { break }
-                let delay = retryPolicy.backoff.delay(for: attempt)
+                let delay = retryPolicy.delay(for: attempt)
                 try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
             }
         }

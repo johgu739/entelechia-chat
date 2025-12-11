@@ -29,8 +29,12 @@ public struct AppContainer {
         let fileWatcher = FileSystemWatcherAdapter()
         let projectPersistence = ProjectStoreRealAdapter(baseURL: baseURL)
         let conversationPersistence = FileStoreConversationPersistence(baseURL: baseURL)
-        let preferencesDriver = PreferencesStoreAdapter<WorkspacePreferences>(strict: forTesting)
-        let contextPreferencesDriver = ContextPreferencesStoreAdapter<WorkspaceContextPreferencesState>(strict: forTesting)
+        let preferencesDriver = PreferencesStoreAdapter<WorkspacePreferences>(
+            strict: forTesting
+        )
+        let contextPreferencesDriver = ContextPreferencesStoreAdapter<WorkspaceContextPreferencesState>(
+            strict: forTesting
+        )
         let projectTodosLoader = ProjectTodosLoaderAdapter()
         let projectMetadataHandler = ProjectMetadataAdapter()
 
@@ -52,11 +56,13 @@ public struct AppContainer {
             fileLoader: fileContentLoader
         )
         let mutationAuthority = FileMutationAuthority()
+        let retryPolicy = RetryPolicyImpl()
         let codexService = CodexService(
             conversationEngine: ConversationEngineBox(engine: conversationEngine),
             workspaceEngine: workspaceEngine,
             codexClient: codexBuild.client,
             fileLoader: fileContentLoader,
+            retryPolicy: retryPolicy,
             mutationAuthority: mutationAuthority
         )
 

@@ -5,4 +5,3 @@ final class EmptyTests: XCTestCase {
         XCTAssertTrue(true)
     }
 }
-

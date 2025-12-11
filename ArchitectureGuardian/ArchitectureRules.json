@@ -1,22 +1,129 @@
 {
-  "ChatUI": ["Foundation", "SwiftUI", "UIConnections", "AppKit", "UniformTypeIdentifiers", "Combine"],
-  "ChatUITests": ["Foundation", "XCTest", "ChatUI", "UIConnections", "SwiftUI", "AppKit", "UniformTypeIdentifiers", "Combine", "Darwin"],
-  "UIConnections": ["Foundation", "Combine", "os", "os.log", "AppCoreEngine", "AppAdapters"],
-  "UIConnectionsTests": ["Foundation", "XCTest", "UIConnections", "Combine", "os", "os.log", "AppCoreEngine", "AppAdapters"],
-  "AppComposition": ["Foundation", "SwiftUI", "ChatUI", "UIConnections", "AppAdapters", "AppCoreEngine", "OntologyIntegration", "OntologyDomain"],
-  "AppAdapters": ["Foundation", "os", "os.log", "Dispatch", "AppCoreEngine", "Security", "UniformTypeIdentifiers", "CoreServices", "AppKit"],
-  "AppAdaptersTests": ["Foundation", "XCTest", "AppAdapters", "AppCoreEngine", "UniformTypeIdentifiers"],
-  "AppCompositionTests": ["Foundation", "XCTest", "AppComposition", "ChatUI", "UIConnections", "AppAdapters", "AppCoreEngine"],
-  "AppCoreEngine": ["Foundation", "Dispatch"],
-  "AppCoreEngineTests": ["Foundation", "XCTest", "AppCoreEngine"],
-  "OntologyCore": ["Foundation", "Dispatch"],
-  "OntologyAct": ["Foundation", "Dispatch", "OntologyCore"],
-  "OntologyState": ["Foundation", "Dispatch", "OntologyAct", "OntologyCore"],
-  "OntologyTeleology": ["Foundation", "Dispatch", "OntologyState", "OntologyAct", "OntologyCore"],
-  "OntologyIntelligence": ["Foundation", "Dispatch", "OntologyTeleology", "OntologyState", "OntologyAct", "OntologyCore"],
-  "OntologyFractal": ["Foundation", "Dispatch", "OntologyIntelligence", "OntologyTeleology", "OntologyState", "OntologyAct", "OntologyCore"],
-  "OntologyIntegration": ["Foundation", "Dispatch", "OntologyFractal", "OntologyIntelligence", "OntologyTeleology", "OntologyState", "OntologyAct", "OntologyCore"],
-  "OntologyDomain": ["Foundation", "Dispatch", "OntologyIntegration", "OntologyFractal", "OntologyIntelligence", "OntologyTeleology", "OntologyState", "OntologyAct", "OntologyCore"]
+  "targets": {
+    "ChatUI": {
+      "allowedImports": ["Foundation", "SwiftUI", "UIConnections", "AppKit", "Combine"],
+      "forbidden": [
+        {
+          "regex": "GeometryReader",
+          "message": "GeometryReader is only allowed in ChatUI/Shared/SizeReader.swift",
+          "excludedPaths": ["ChatUI/Sources/ChatUI/Shared/SizeReader.swift"],
+          "excludedTargets": ["ChatUITests"]
+        },
+        {
+          "regex": "^import\\s+(AppCoreEngine|AppAdapters)\\b",
+          "message": "ChatUI must depend on UIConnections, not AppCoreEngine/AppAdapters."
+        },
+        {
+          "regex": "\\.(onAppear|onChange|task|onReceive)\\s*\\([^)]*\\)\\s*\\{[^}]*\\b(WorkspaceViewModel|ChatViewModel|ConversationCoordinator|CodexService)\\b[^}]*\\}",
+          "message": "Lifecycle modifiers must not reference WorkspaceViewModel, ChatViewModel, ConversationCoordinator, or CodexService. Move logic to view-model methods.",
+          "excludedTargets": ["ChatUITests"]
+        },
+        {
+          "regex": "\\.onChange\\s*\\([^)]*\\)\\s*\\{[^}]*\\bawait\\b",
+          "message": ".onChange blocks must not contain await. Use view-model async flows instead.",
+          "excludedTargets": ["ChatUITests"]
+        },
+        {
+          "regex": "\\.task\\s*\\(",
+          "message": ".task modifier is forbidden in ChatUI. Use view-model async flows instead.",
+          "excludedTargets": ["ChatUITests"]
+        },
+        {
+          "regex": "\\.onReceive\\s*\\(",
+          "message": ".onReceive is forbidden in ChatUI except for keyboard/animation/size publishers. Move event handling to view models.",
+          "excludedTargets": ["ChatUITests"],
+          "excludedPaths": ["ChatUI/Sources/ChatUI/Design/KeyboardAdaptiveInset.swift"]
+        }
+      ]
+    },
+    "ChatUITests": {
+      "allowedImports": ["Foundation", "XCTest", "ChatUI", "UIConnections", "SwiftUI", "AppKit", "Combine", "Darwin"]
+    },
+    "UIConnections": {
+      "allowedImports": ["Foundation", "Combine", "os", "os.log", "AppCoreEngine", "AppAdapters"],
+      "forbidden": [
+        {
+          "regex": "^import\\s+SwiftUI\\b",
+          "message": "UIConnections cannot import SwiftUI."
+        }
+      ]
+    },
+    "UIConnectionsTests": {
+      "allowedImports": ["Foundation", "XCTest", "UIConnections", "Combine", "os", "os.log", "AppCoreEngine", "AppAdapters"]
+    },
+    "AppComposition": {
+      "allowedImports": ["Foundation", "SwiftUI", "ChatUI", "UIConnections", "AppAdapters", "AppCoreEngine"]
+    },
+    "AppCompositionTests": {
+      "allowedImports": ["Foundation", "XCTest", "AppComposition", "ChatUI", "UIConnections", "AppAdapters", "AppCoreEngine"]
+    },
+    "AppAdapters": {
+      "allowedImports": ["Foundation", "os", "os.log", "Dispatch", "AppCoreEngine", "Security", "UniformTypeIdentifiers", "CoreServices", "AppKit"]
+    },
+    "AppAdaptersTests": {
+      "allowedImports": ["Foundation", "XCTest", "AppAdapters", "AppCoreEngine", "UniformTypeIdentifiers"]
+    },
+    "AppCoreEngine": {
+      "allowedImports": ["Foundation", "Dispatch"]
+    },
+    "AppCoreEngineTests": {
+      "allowedImports": ["Foundation", "XCTest", "AppCoreEngine"]
+    },
+    "OntologyCore": {
+      "allowedImports": ["Foundation", "Dispatch"]
+    },
+    "OntologyAct": {
+      "allowedImports": ["Foundation", "Dispatch", "OntologyCore"]
+    },
+    "OntologyState": {
+      "allowedImports": ["Foundation", "Dispatch", "OntologyAct", "OntologyCore"]
+    },
+    "OntologyTeleology": {
+      "allowedImports": ["Foundation", "Dispatch", "OntologyState", "OntologyAct", "OntologyCore"]
+    },
+    "OntologyIntelligence": {
+      "allowedImports": ["Foundation", "Dispatch", "OntologyTeleology", "OntologyState", "OntologyAct", "OntologyCore"]
+    },
+    "OntologyFractal": {
+      "allowedImports": ["Foundation", "Dispatch", "OntologyIntelligence", "OntologyTeleology", "OntologyState", "OntologyAct", "OntologyCore"]
+    },
+    "OntologyIntegration": {
+      "allowedImports": ["Foundation", "Dispatch", "OntologyFractal", "OntologyIntelligence", "OntologyTeleology", "OntologyState", "OntologyAct", "OntologyCore"]
+    },
+    "OntologyDomain": {
+      "allowedImports": ["Foundation", "Dispatch", "OntologyIntegration", "OntologyFractal", "OntologyIntelligence", "OntologyTeleology", "OntologyState", "OntologyAct", "OntologyCore"]
+    }
+  },
+  "globalForbidden": [
+    {
+      "regex": "WorkspaceEngineImpl\\(",
+      "message": "WorkspaceEngineImpl must only be constructed in AppComposition.",
+      "excludedTargets": ["AppComposition"]
+    },
+    {
+      "regex": "ProjectEngineImpl\\(",
+      "message": "ProjectEngineImpl must only be constructed in AppComposition.",
+      "excludedTargets": ["AppComposition"]
+    },
+    {
+      "regex": "ConversationEngineLive\\(",
+      "message": "ConversationEngineLive must only be constructed in AppComposition.",
+      "excludedTargets": ["AppComposition"]
+    },
+    {
+      "regex": "CodexService\\(",
+      "message": "CodexService must be composed in AppComposition.",
+      "excludedTargets": ["AppComposition"]
+    },
+    {
+      "regex": "FileMutationAuthority\\(",
+      "message": "FileMutationAuthority must be composed in AppComposition.",
+      "excludedTargets": ["AppComposition"]
+    },
+    {
+      "regex": "ProjectStoreRealAdapter\\(",
+      "message": "ProjectStoreRealAdapter must be composed in AppComposition.",
+      "excludedTargets": ["AppComposition"]
+    }
+  ]
 }
-
-

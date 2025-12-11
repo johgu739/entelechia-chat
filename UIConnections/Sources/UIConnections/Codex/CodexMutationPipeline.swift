@@ -1,8 +1,9 @@
 import Foundation
-import AppAdapters
 import AppCoreEngine
 
 /// Coordinates diff application for Codex mutations.
+/// Marked `@unchecked Sendable` because internal state is accessed only via async methods
+/// and mutation authority is thread-safe.
 final class CodexMutationPipeline: @unchecked Sendable {
     private let authority: FileMutationAuthorizing
 

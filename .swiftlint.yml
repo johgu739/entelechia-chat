@@ -1,0 +1,158 @@
+disabled_rules:
+  - trailing_comma
+  - trailing_whitespace
+  - redundant_string_enum_value
+
+included:
+  - ChatUI
+  - UIConnections
+  - AppComposition
+
+opt_in_rules: []
+
+custom_rules:
+  forbidden_chatui_apis:
+    included: "ChatUI/**/*.swift"
+    name: "Forbidden API in ChatUI"
+    regex: "(NSApp|NSEvent|NotificationCenter|DispatchQueue|\\bTimer\\b|\\.onReceive\\(|\\.fixedSize\\s*\\(|GeometryReader|\\bprint\\(|\\bdebugPrint\\(|FileManager|JSONEncoder|JSONDecoder|WorkspaceEngine|ProjectEngine|ConversationEngine|CodexService|CodexMutationPipeline|ContextSnapshot|FileDescriptor)"
+    message: "Forbidden API usage in ChatUI."
+    severity: error
+
+  forbidden_magic_numbers:
+    included: "ChatUI/**/*.swift"
+    name: "Magic numbers"
+    regex: "\\b(?!(?:0|4|8|12|16|20)\\b)\\d+\\b"
+    message: "Use design tokens, never hard-coded numbers."
+    severity: error
+
+  stateobject_instantiation:
+    included: "ChatUI/**/*.swift"
+    name: "No StateObject instantiation"
+    regex: "@StateObject\\s+var\\s+\\w+\\s*="
+    message: "View-model instantiation is forbidden in ChatUI."
+    severity: error
+
+  viewmodel_initializer:
+    included: "ChatUI/**/*.swift"
+    name: "No ViewModel init"
+    regex: "\\w+ViewModel\\s*\\("
+    message: "ChatUI may not initialize view models."
+    severity: error
+
+  business_logic_forbidden:
+    included: "ChatUI/**/*.swift"
+    name: "No business logic"
+    regex: "\\b(URLSession|URLRequest|URL\\(|hash\\(|sha\\w*\\(|crypto|\\.fileExists\\(|token\\w*count|parse\\w*)"
+    message: "Business logic is forbidden in ChatUI."
+    severity: error
+
+  geometryreader_restricted:
+    included: "ChatUI/**/*.swift"
+    excluded:
+      - "ChatUI/Sources/ChatUI/Shared/SizeReader.swift"
+    name: "GeometryReader restricted"
+    regex: "\\bGeometryReader\\b"
+    message: "GeometryReader only allowed in ChatUI/Shared/SizeReader.swift."
+    severity: error
+
+  task_forbidden_chatui:
+    included: "ChatUI/**/*.swift"
+    name: "Task forbidden in ChatUI"
+    regex: "\\bTask\\s*\\{"
+    message: "Use view-model async flows; Task blocks are forbidden in ChatUI."
+    severity: error
+
+  fixedsize_forbidden_chatui:
+    included: "ChatUI/**/*.swift"
+    name: "No fixedSize"
+    regex: "\\.fixedSize\\s*\\("
+    message: "Use design tokens and layout guides; fixedSize is forbidden."
+    severity: error
+
+  onreceive_forbidden_chatui:
+    included: "ChatUI/**/*.swift"
+    name: "No onReceive"
+    regex: "\\.onReceive\\s*\\("
+    message: "Move event handling to view models; onReceive is forbidden in ChatUI."
+    severity: error
+
+  forbidden_imports_chatui:
+    included: "ChatUI/**/*.swift"
+    name: "Forbidden imports in ChatUI"
+    regex: "^import\\s+(AppCoreEngine|AppAdapters)\\b"
+    message: "ChatUI must not import AppCoreEngine or AppAdapters."
+    severity: error
+
+  forbidden_swiftui_in_uiconnections:
+    included: "UIConnections/**/*.swift"
+    name: "No SwiftUI in UIConnections"
+    regex: "^import\\s+SwiftUI\\b"
+    message: "UIConnections cannot import SwiftUI."
+    severity: error
+
+  forbidden_appkit_chatui:
+    included: "ChatUI/**/*.swift"
+    excluded:
+      - "ChatUI/Sources/ChatUI/Shared/AppKitBridge/**"
+    name: "AppKit only in bridge"
+    regex: "^import\\s+AppKit\\b"
+    message: "AppKit is only allowed in ChatUI/Shared/AppKitBridge."
+    severity: error
+
+  fatalerror_forbidden_chatui:
+    included: "ChatUI/**/*.swift"
+    name: "No fatalError in ChatUI"
+    regex: "\\bfatalError\\s*\\("
+    message: "fatalError is forbidden in ChatUI views."
+    severity: error
+
+  try_question_forbidden_chatui:
+    included: "ChatUI/**/*.swift"
+    name: "No try? in ChatUI"
+    regex: "try\\?"
+    message: "Use explicit error handling; try? is forbidden in ChatUI."
+    severity: error
+
+  empty_catch_forbidden_chatui:
+    included: "ChatUI/**/*.swift"
+    name: "No empty catch"
+    regex: "catch\\s*\\{\\s*\\}"
+    message: "Empty catch blocks are forbidden in ChatUI."
+    severity: error
+
+  forbidden_chatui_lifecycle_side_effects:
+    included: "ChatUI/**/*.swift"
+    excluded:
+      - "ChatUI/Tests/**"
+    name: "Forbidden side effects in lifecycle modifiers"
+    regex: "\\.(onAppear|onChange|task|onReceive)\\s*\\([^}]*\\b(WorkspaceViewModel|ChatViewModel|ConversationCoordinator|CodexService)\\b"
+    message: "Lifecycle modifiers must not contain side effects with engines, coordinators, or domain mutators. Move logic to view models."
+    severity: error
+
+  onchange_async_forbidden:
+    included: "ChatUI/**/*.swift"
+    excluded:
+      - "ChatUI/Tests/**"
+    name: "No async in onChange"
+    regex: "\\.onChange\\s*\\([^}]*\\bawait\\b"
+    message: ".onChange blocks must not contain await. Use view-model async flows instead."
+    severity: error
+
+  task_forbidden_chatui_strict:
+    included: "ChatUI/**/*.swift"
+    excluded:
+      - "ChatUI/Tests/**"
+    name: "Task forbidden in ChatUI (strict)"
+    regex: "\\.task\\s*\\("
+    message: ".task modifier is forbidden in ChatUI. Use view-model async flows instead."
+    severity: error
+
+  onreceive_forbidden_chatui_strict:
+    included: "ChatUI/**/*.swift"
+    excluded:
+      - "ChatUI/Tests/**"
+      - "ChatUI/Sources/ChatUI/Design/KeyboardAdaptiveInset.swift"
+    name: "No onReceive in ChatUI (strict)"
+    regex: "\\.onReceive\\s*\\("
+    message: ".onReceive is forbidden in ChatUI except for keyboard/animation/size publishers. Move event handling to view models."
+    severity: error

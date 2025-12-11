@@ -23,7 +23,10 @@ public final class ConversationEngineBox: ConversationStreaming {
         try await engine.ensureConversation(for: url)
     }
 
-    public func ensureConversation(forDescriptorIDs ids: [FileID], pathResolver: (FileID) -> String?) async throws -> Conversation {
+    public func ensureConversation(
+        forDescriptorIDs ids: [FileID],
+        pathResolver: (FileID) -> String?
+    ) async throws -> Conversation {
         try await engine.ensureConversation(forDescriptorIDs: ids, pathResolver: pathResolver)
     }
 
@@ -37,7 +40,12 @@ public final class ConversationEngineBox: ConversationStreaming {
         context: ConversationContextRequest?,
         onStream: ((ConversationDelta) -> Void)?
     ) async throws -> (Conversation, ContextBuildResult) {
-        try await engine.sendMessage(text, in: conversation, context: context, onStream: onStream)
+        try await engine.sendMessage(
+            text,
+            in: conversation,
+            context: context,
+            onStream: onStream
+        )
     }
 }
 

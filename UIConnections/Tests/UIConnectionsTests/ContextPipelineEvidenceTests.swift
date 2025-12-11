@@ -96,6 +96,7 @@ final class ContextPipelineEvidenceTests: XCTestCase {
                 }
             },
             fileLoader: fileLoader,
+            retryPolicy: RetryPolicyImpl(),
             mutationAuthority: mutationAuthority
         )
 
@@ -185,4 +186,5 @@ private actor StreamRecorder {
 
     var count: Int { calls.count }
 }
+
 

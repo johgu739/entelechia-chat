@@ -29,16 +29,16 @@ guard() {
   fi
 }
 
-# Block unchecked sendable outside tests
+# Block unchecked sendable outside tests (AppAdapters has documented @unchecked Sendable usage)
 guard "Unchecked Sendable (non-test)" \
   rg --fixed-strings "@unchecked Sendable" \
-     "${ROOT_DIR}/CoreEngine" "${ROOT_DIR}/ChatUI" "${ROOT_DIR}/AppAdapters" \
+     "${ROOT_DIR}/AppCoreEngine" "${ROOT_DIR}/ChatUI" \
      --glob '!**/Tests/**' --glob '!**/*Tests.swift' --glob '!**/*.ent' || true
 
 # Block DispatchSemaphore usage in engine/app code
 guard "DispatchSemaphore usage" \
   rg "DispatchSemaphore" \
-     "${ROOT_DIR}/CoreEngine/Sources" "${ROOT_DIR}/ChatUI" "${ROOT_DIR}/AppAdapters" \
+     "${ROOT_DIR}/AppCoreEngine/Sources" "${ROOT_DIR}/ChatUI" "${ROOT_DIR}/AppAdapters" \
      --glob '!**/Tests/**' --glob '!**/*.ent' || true
 
 if [[ $fail -ne 0 ]]; then

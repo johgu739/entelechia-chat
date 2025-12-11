@@ -13,7 +13,6 @@
 
 import SwiftUI
 import AppKit
-import UniformTypeIdentifiers
 import UIConnections
 
 @MainActor
@@ -21,20 +20,27 @@ struct XcodeNavigatorRepresentable: NSViewRepresentable {
     @EnvironmentObject var workspaceViewModel: WorkspaceViewModel
     
     func makeNSView(context: Context) -> NSView {
-        let scrollView = NSScrollView()
+        let dataSource = NavigatorDataSource(diffApplier: NavigatorDiffApplier())
+        dataSource.workspaceViewModel = workspaceViewModel
+
+        let outlineView = configuredOutlineView(dataSource: dataSource)
+        let scrollView = configuredScrollView(containing: outlineView)
+        let containerView = containerWrapping(scrollView)
+
+        context.coordinator.dataSource = dataSource
+        context.coordinator.outlineView = outlineView
+        context.coordinator.lastRootURL = workspaceViewModel.rootDirectory
+        context.coordinator.lastFilterText = workspaceViewModel.filterText
+
+        // Perform an initial data load now that everything is wired up.
+        dataSource.reloadData()
+        outlineView.reloadData()
+        
+        return containerView
+    }
+    
+    private func configuredOutlineView(dataSource: NavigatorDataSource) -> NSOutlineView {
         let outlineView = NSOutlineView()
-        
-        // Configure scroll view - completely transparent
-        scrollView.hasVerticalScroller = true
-        scrollView.hasHorizontalScroller = false
-        scrollView.autohidesScrollers = true
-        scrollView.borderType = .noBorder
-        scrollView.drawsBackground = false
-        scrollView.backgroundColor = .clear
-        scrollView.wantsLayer = true
-        scrollView.layer?.backgroundColor = NSColor.clear.cgColor
-        
-        // Configure outline view (Xcode style) - completely transparent
         outlineView.headerView = nil
         outlineView.rowHeight = 20
         if #available(macOS 12.0, *) {
@@ -50,33 +56,38 @@ struct XcodeNavigatorRepresentable: NSViewRepresentable {
         outlineView.indentationMarkerFollowsCell = true
         outlineView.autoresizesOutlineColumn = true
         outlineView.columnAutoresizingStyle = .firstColumnOnlyAutoresizingStyle
-        
-        // Create single column
+
         let column = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("MainColumn"))
         column.title = ""
         column.resizingMask = [.autoresizingMask, .userResizingMask]
         outlineView.addTableColumn(column)
         outlineView.outlineTableColumn = column
-        
-        // Set data source and delegate
-        let dataSource = NavigatorDataSource()
-        dataSource.workspaceViewModel = workspaceViewModel
+
         outlineView.dataSource = dataSource
         outlineView.delegate = dataSource
-        
-        // Store reference
-        context.coordinator.dataSource = dataSource
-        context.coordinator.outlineView = outlineView
-        
+        return outlineView
+    }
+
+    private func configuredScrollView(containing outlineView: NSOutlineView) -> NSScrollView {
+        let scrollView = NSScrollView()
+        scrollView.hasVerticalScroller = true
+        scrollView.hasHorizontalScroller = false
+        scrollView.autohidesScrollers = true
+        scrollView.borderType = .noBorder
+        scrollView.drawsBackground = false
+        scrollView.backgroundColor = .clear
+        scrollView.wantsLayer = true
+        scrollView.layer?.backgroundColor = NSColor.clear.cgColor
         scrollView.documentView = outlineView
-        
-        // The visual effect background is handled by the parent ZStack in XcodeNavigatorView
-        // So we just return the scrollView wrapped in a container
+        return scrollView
+    }
+
+    private func containerWrapping(_ scrollView: NSScrollView) -> NSView {
         let containerView = NSView()
         containerView.wantsLayer = true
         containerView.layer?.backgroundColor = NSColor.clear.cgColor
         containerView.addSubview(scrollView)
-        
+
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: containerView.topAnchor),
@@ -84,15 +95,6 @@ struct XcodeNavigatorRepresentable: NSViewRepresentable {
             scrollView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
         ])
-        
-        // Initial coordinator state
-        context.coordinator.lastRootURL = workspaceViewModel.rootDirectory
-        context.coordinator.lastFilterText = workspaceViewModel.filterText
-
-        // Perform an initial data load now that everything is wired up.
-        dataSource.reloadData()
-        outlineView.reloadData()
-        
         return containerView
     }
     
@@ -162,8 +164,10 @@ class NavigatorDataSource: NSObject, NSOutlineViewDataSource, NSOutlineViewDeleg
     var rootNode: FileNode?
     /// Cache to avoid recomputing paths repeatedly.
     private var descriptorPathCache: [FileID: [FileNode]] = [:]
+    private let diffApplier: NavigatorDiffApplier
 
-    override init() {
+    init(diffApplier: NavigatorDiffApplier) {
+        self.diffApplier = diffApplier
         super.init()
     }
     
@@ -218,7 +222,10 @@ class NavigatorDataSource: NSObject, NSOutlineViewDataSource, NSOutlineViewDeleg
     func outlineView(_ outlineView: NSOutlineView, viewFor tableColumn: NSTableColumn?, item: Any) -> NSView? {
         guard let fileNode = item as? FileNode else { return nil }
         
-        let cellView = outlineView.makeView(withIdentifier: NSUserInterfaceItemIdentifier("NavigatorCell"), owner: nil) as? NavigatorCellView
+        let cellView = outlineView.makeView(
+            withIdentifier: NSUserInterfaceItemIdentifier("NavigatorCell"),
+            owner: nil
+        ) as? NavigatorCellView
             ?? NavigatorCellView()
         
         // Ensure cell view is completely transparent
@@ -326,85 +333,7 @@ class NavigatorDataSource: NSObject, NSOutlineViewDataSource, NSOutlineViewDeleg
 
     /// Apply a lightweight diff between current tree and new tree to avoid full reloads.
     func applyDiff(from oldRoot: FileNode, to newRoot: FileNode, in outlineView: NSOutlineView) {
-        NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0
-            outlineView.beginUpdates()
-            reconcile(node: oldRoot, with: newRoot, parentItem: nil, in: outlineView)
-            outlineView.endUpdates()
-        }
-    }
-
-    /// Reconcile a subtree by removing/adding children in place.
-    private func reconcile(node oldNode: FileNode, with newNode: FileNode, parentItem: Any?, in outlineView: NSOutlineView) {
-        // Prefer descriptor identity; fall back to path when missing.
-        let sameIdentity: Bool = {
-            if let lhs = oldNode.descriptorID, let rhs = newNode.descriptorID {
-                return lhs == rhs
-            }
-            return oldNode.path == newNode.path
-        }()
-        guard sameIdentity else { return }
-
-        let oldChildren = oldNode.children ?? []
-        let newChildren = newNode.children ?? []
-
-        var updatedChildren: [FileNode] = []
-        var removals: [Int] = []
-        var insertions: [(Int, FileNode)] = []
-
-        var oldByIdentity: [AnyHashable: (Int, FileNode)] = [:]
-        for (idx, child) in oldChildren.enumerated() {
-            if let did = child.descriptorID {
-                oldByIdentity[AnyHashable(did)] = (idx, child)
-            } else {
-                oldByIdentity[AnyHashable(child.path)] = (idx, child)
-            }
-        }
-
-        // Determine removals
-        let newKeys: Set<AnyHashable> = Set(newChildren.map { child in
-            child.descriptorID.map { AnyHashable($0) } ?? AnyHashable(child.path)
-        })
-        for (idx, child) in oldChildren.enumerated() {
-            let key: AnyHashable = child.descriptorID.map { AnyHashable($0) } ?? AnyHashable(child.path)
-            if !newKeys.contains(key) {
-                removals.append(idx)
-            }
-        }
-
-        // Determine updated ordering and insertions
-        for (newIndex, newChild) in newChildren.enumerated() {
-            let key: AnyHashable = newChild.descriptorID.map { AnyHashable($0) } ?? AnyHashable(newChild.path)
-            if let (_, existing) = oldByIdentity[key] {
-                updatedChildren.append(existing)
-            } else {
-                updatedChildren.append(newChild)
-                insertions.append((newIndex, newChild))
-            }
-        }
-
-        // Apply removals first (from highest index to lowest)
-        if !removals.isEmpty {
-            let indexSet = IndexSet(removals)
-            outlineView.removeItems(at: indexSet, inParent: parentItem, withAnimation: [])
-        }
-
-        // Update children array to reflect new state
-        oldNode.children = updatedChildren
-
-        // Apply insertions
-        if !insertions.isEmpty {
-            let indexSet = IndexSet(insertions.map { $0.0 })
-            outlineView.insertItems(at: indexSet, inParent: parentItem, withAnimation: [])
-        }
-
-        // Recurse into matched children
-        for newChild in newChildren {
-            let key: AnyHashable = newChild.descriptorID.map { AnyHashable($0) } ?? AnyHashable(newChild.path)
-            if let existing = oldByIdentity[key]?.1 {
-                reconcile(node: existing, with: newChild, parentItem: existing, in: outlineView)
-            }
-        }
+        diffApplier.applyDiff(from: oldRoot, to: newRoot, in: outlineView)
     }
 
     /// Expand tree to the provided descriptor ID (preferred) or URL (fallback) and select it.
@@ -464,76 +393,5 @@ private extension NavigatorDataSource {
     @MainActor
     func loadChildren(for node: FileNode) -> [FileNode]? {
         return node.children
-    }
-}
-
-// MARK: - Navigator Cell View
-
-class NavigatorCellView: NSTableCellView {
-    private let iconView = NSImageView()
-    private let nameTextField = NSTextField()
-    
-    override init(frame frameRect: NSRect) {
-        super.init(frame: frameRect)
-        setupViews()
-    }
-    
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setupViews()
-    }
-    
-    private func setupViews() {
-        // Make cell view completely transparent
-        wantsLayer = true
-        layer?.backgroundColor = NSColor.clear.cgColor
-        
-        // Configure icon view
-        iconView.imageScaling = .scaleProportionallyDown
-        iconView.imageAlignment = .alignCenter
-        iconView.translatesAutoresizingMaskIntoConstraints = false
-        
-        // Configure text field
-        nameTextField.isEditable = false
-        nameTextField.isSelectable = false
-        nameTextField.isBordered = false
-        nameTextField.drawsBackground = false
-        nameTextField.backgroundColor = .clear
-        nameTextField.font = NSFont.systemFont(ofSize: 12)
-        nameTextField.translatesAutoresizingMaskIntoConstraints = false
-        
-        addSubview(iconView)
-        addSubview(nameTextField)
-        
-        imageView = iconView
-        textField = nameTextField
-        
-        NSLayoutConstraint.activate([
-            iconView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 4),
-            iconView.centerYAnchor.constraint(equalTo: centerYAnchor),
-            // Allow width to shrink if cell becomes very narrow to avoid constraint conflicts
-            iconView.widthAnchor.constraint(lessThanOrEqualToConstant: 16),
-            iconView.heightAnchor.constraint(equalToConstant: 16),
-            
-            nameTextField.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 6),
-            nameTextField.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -4),
-            nameTextField.centerYAnchor.constraint(equalTo: centerYAnchor)
-        ])
-    }
-    
-    func configure(with node: FileNode) {
-        nameTextField.stringValue = node.name
-        
-        // Use native macOS icons (Xcode style) - they already have proper colors and are system-native
-        let icon = NSWorkspace.shared.icon(forFile: node.path.path)
-        icon.size = NSSize(width: 16, height: 16)
-        iconView.image = icon
-        
-        // Style for parent directory
-        if node.isParentDirectory {
-            nameTextField.textColor = .secondaryLabelColor
-        } else {
-            nameTextField.textColor = .labelColor
-        }
     }
 }

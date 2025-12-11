@@ -57,7 +57,7 @@ public final class FileNode: Identifiable {
     public let descriptorID: FileID?
     public let name: String
     public let path: URL
-    public var children: [FileNode]? = nil
+    public var children: [FileNode]?
     public let icon: String
     public let isParentDirectory: Bool // Special flag for ".." navigation
     public let isDirectory: Bool
@@ -116,7 +116,10 @@ public final class FileNode: Identifiable {
             let resourceValues = try url.resourceValues(forKeys: [.isDirectoryKey])
             isDirectory = resourceValues.isDirectory == true
         } catch {
-            FileNode.logger.error("Could not read resource values for \(url.path, privacy: .private): \(error.localizedDescription, privacy: .public)")
+            FileNode.logger.error(
+                "Could not read resource values for \(url.path, privacy: .private): " +
+                "\(error.localizedDescription, privacy: .public)"
+            )
             isDirectory = false
         }
         

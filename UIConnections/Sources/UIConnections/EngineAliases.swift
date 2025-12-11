@@ -1,5 +1,4 @@
 @_exported import AppCoreEngine
-import AppCoreEngine
 
 public typealias Conversation = AppCoreEngine.Conversation
 public typealias Message = AppCoreEngine.Message

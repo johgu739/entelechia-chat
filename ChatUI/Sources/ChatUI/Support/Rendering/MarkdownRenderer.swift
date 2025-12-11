@@ -98,10 +98,13 @@ struct MarkdownRenderer {
         guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else { return }
         
         let string = attributedString.string as NSString
-        let matches = regex.matches(in: string as String, options: [], range: NSRange(location: 0, length: string.length))
+        let matches = regex.matches(
+            in: string as String,
+            options: [],
+            range: NSRange(location: 0, length: string.length)
+        )
         
-        for match in matches.reversed() {
-            if match.numberOfRanges >= 2 {
+        for match in matches.reversed() where match.numberOfRanges >= 2 {
                 let fullRange = match.range
                 attributedString.addAttributes([
                     .font: NSFont.monospacedSystemFont(ofSize: 13, weight: .regular),
@@ -116,11 +119,19 @@ struct MarkdownRenderer {
         guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else { return }
         
         let string = attributedString.string as NSString
-        let matches = regex.matches(in: string as String, options: [], range: NSRange(location: 0, length: string.length))
+        let matches = regex.matches(
+            in: string as String,
+            options: [],
+            range: NSRange(location: 0, length: string.length)
+        )
         
         for match in matches.reversed() {
             let fullRange = match.range
-            attributedString.addAttribute(.font, value: NSFont.systemFont(ofSize: 15, weight: .semibold), range: fullRange)
+            attributedString.addAttribute(
+                .font,
+                value: NSFont.systemFont(ofSize: 15, weight: .semibold),
+                range: fullRange
+            )
         }
     }
     
@@ -129,7 +140,8 @@ struct MarkdownRenderer {
         guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else { return }
         
         let string = attributedString.string as NSString
-        let matches = regex.matches(in: string as String, options: [], range: NSRange(location: 0, length: string.length))
+        let range = NSRange(location: 0, length: string.length)
+        let matches = regex.matches(in: string as String, options: [], range: range)
         
         for match in matches.reversed() {
             let fullRange = match.range
@@ -140,21 +152,37 @@ struct MarkdownRenderer {
     }
     
     private static func parseHeaders(in attributedString: NSMutableAttributedString) {
-        let patterns: [(String, CGFloat, NSFont.Weight)] = [
-            (#"^### (.*)$"#, 18, .semibold),
-            (#"^## (.*)$"#, 20, .semibold),
-            (#"^# (.*)$"#, 24, .bold)
+        struct HeaderPattern {
+            let pattern: String
+            let size: CGFloat
+            let weight: NSFont.Weight
+        }
+        let patterns: [HeaderPattern] = [
+            HeaderPattern(pattern: #"^### (.*)$"#, size: 18, weight: .semibold),
+            HeaderPattern(pattern: #"^## (.*)$"#, size: 20, weight: .semibold),
+            HeaderPattern(pattern: #"^# (.*)$"#, size: 24, weight: .bold)
         ]
         
         let string = attributedString.string as NSString
         
-        for (pattern, size, weight) in patterns {
-            guard let regex = try? NSRegularExpression(pattern: pattern, options: [.anchorsMatchLines]) else { continue }
-            let matches = regex.matches(in: string as String, options: [], range: NSRange(location: 0, length: string.length))
+        for pattern in patterns {
+            guard let regex = try? NSRegularExpression(
+                pattern: pattern.pattern,
+                options: [.anchorsMatchLines]
+            ) else { continue }
+            let matches = regex.matches(
+                in: string as String,
+                options: [],
+                range: NSRange(location: 0, length: string.length)
+            )
             
             for match in matches.reversed() {
                 let headerRange = match.range
-                attributedString.addAttribute(.font, value: NSFont.systemFont(ofSize: size, weight: weight), range: headerRange)
+                attributedString.addAttribute(
+                    .font,
+                    value: NSFont.systemFont(ofSize: pattern.size, weight: pattern.weight),
+                    range: headerRange
+                )
             }
         }
     }
@@ -164,10 +192,13 @@ struct MarkdownRenderer {
         guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else { return }
         
         let string = attributedString.string as NSString
-        let matches = regex.matches(in: string as String, options: [], range: NSRange(location: 0, length: string.length))
+        let matches = regex.matches(
+            in: string as String,
+            options: [],
+            range: NSRange(location: 0, length: string.length)
+        )
         
-        for match in matches.reversed() {
-            if match.numberOfRanges >= 3 {
+        for match in matches.reversed() where match.numberOfRanges >= 3 {
                 let linkRange = match.range
                 let urlRange = match.range(at: 2)
                 let urlString = string.substring(with: urlRange)

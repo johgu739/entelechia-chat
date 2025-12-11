@@ -59,25 +59,29 @@ struct OntologyTodosView: View {
     }
     
     private func todoRow(text: String) -> some View {
-        HStack(alignment: .top, spacing: 8) {
+        HStack(alignment: .top, spacing: DS.s8) {
             Image(systemName: "smallcircle.filled.circle")
                 .font(.system(size: 8))
                 .foregroundColor(.accentColor)
-                .padding(.top, 3)
+                .padding(.top, DS.s4 / 2)
             Text(text)
                 .font(.system(size: 12))
                 .foregroundColor(.primary)
             Spacer()
         }
-        .padding(8)
+        .padding(DS.s8)
         .background(
-            RoundedRectangle(cornerRadius: 6)
-                .fill(Color(nsColor: .textBackgroundColor).opacity(0.6))
+            RoundedRectangle(cornerRadius: DS.r12)
+                .fill(DS.background)
+                .overlay(
+                    RoundedRectangle(cornerRadius: DS.r12)
+                        .stroke(DS.stroke, lineWidth: 1)
+                )
         )
     }
     
     private func stateCard(systemImage: String, title: String, detail: String) -> some View {
-        HStack(alignment: .top, spacing: 10) {
+        HStack(alignment: .top, spacing: DS.s10) {
             Image(systemName: systemImage)
                 .foregroundColor(.secondary)
             VStack(alignment: .leading, spacing: 4) {
@@ -89,10 +93,14 @@ struct OntologyTodosView: View {
             }
             Spacer()
         }
-        .padding(10)
+        .padding(DS.s10)
         .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color(nsColor: .textBackgroundColor).opacity(0.6))
+            RoundedRectangle(cornerRadius: DS.r12)
+                .fill(DS.background)
+                .overlay(
+                    RoundedRectangle(cornerRadius: DS.r12)
+                        .stroke(DS.stroke, lineWidth: 1)
+                )
         )
     }
 }

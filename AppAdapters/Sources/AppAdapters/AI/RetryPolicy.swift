@@ -1,4 +1,5 @@
 import Foundation
+import AppCoreEngine
 
 public struct BackoffPolicy: Sendable {
     public let baseDelay: TimeInterval
@@ -17,7 +18,7 @@ public struct BackoffPolicy: Sendable {
     }
 }
 
-public struct RetryPolicy: Sendable {
+public struct RetryPolicyImpl: AppCoreEngine.RetryPolicy, Sendable {
     public let maxRetries: Int
     public let backoff: BackoffPolicy
 
@@ -25,6 +26,13 @@ public struct RetryPolicy: Sendable {
         self.maxRetries = maxRetries
         self.backoff = backoff
     }
+    
+    public func delay(for attempt: Int) -> TimeInterval {
+        backoff.delay(for: attempt)
+    }
 }
+
+// Type alias for backward compatibility
+public typealias RetryPolicy = RetryPolicyImpl
 
 

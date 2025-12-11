@@ -56,7 +56,12 @@ public extension FileNode {
                 let childURL = descriptorPaths[child.id].map {
                     URL(fileURLWithPath: $0, isDirectory: child.type == .directory)
                 } ?? url.appendingPathComponent(child.name, isDirectory: child.type == .directory)
-                return buildNode(descriptor: child, url: childURL, descriptorMap: descriptorMap, descriptorPaths: descriptorPaths)
+                return buildNode(
+                    descriptor: child,
+                    url: childURL,
+                    descriptorMap: descriptorMap,
+                    descriptorPaths: descriptorPaths
+                )
             }
             children = childNodes.sorted(by: sortNodes)
         } else {
@@ -88,7 +93,10 @@ public extension FileNode {
             name: projection.name,
             path: URL(fileURLWithPath: projection.path, isDirectory: projection.isDirectory),
             children: children.isEmpty ? nil : children.sorted(by: sortNodes),
-            icon: FileTypeClassifier.icon(for: URL(fileURLWithPath: projection.path), isDirectory: projection.isDirectory),
+            icon: FileTypeClassifier.icon(
+                for: URL(fileURLWithPath: projection.path),
+                isDirectory: projection.isDirectory
+            ),
             isDirectory: projection.isDirectory
         )
     }

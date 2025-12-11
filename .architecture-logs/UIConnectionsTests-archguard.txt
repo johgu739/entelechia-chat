@@ -1,1 +1,21 @@
-ok
+/Users/johangunnarsson/Developer/entelechia-chat/UIConnections/Tests/UIConnectionsTests/TestDoubles.swift: illegal import 'CryptoKit' in target 'UIConnectionsTests'. Allowed: Foundation, XCTest, UIConnections, Combine, os, os.log, AppCoreEngine, AppAdapters
+/Users/johangunnarsson/Developer/entelechia-chat/UIConnections/Tests/UIConnectionsTests/ContextPipelineEvidenceTests.swift: WorkspaceEngineImpl must only be constructed in AppComposition.
+/Users/johangunnarsson/Developer/entelechia-chat/UIConnections/Tests/UIConnectionsTests/WorkspaceBootstrapTests.swift: WorkspaceEngineImpl must only be constructed in AppComposition.
+/Users/johangunnarsson/Developer/entelechia-chat/UIConnections/Tests/UIConnectionsTests/AskCodexTraceTests.swift: WorkspaceEngineImpl must only be constructed in AppComposition.
+/Users/johangunnarsson/Developer/entelechia-chat/UIConnections/Tests/UIConnectionsTests/NegativeBehaviorTests.swift: WorkspaceEngineImpl must only be constructed in AppComposition.
+/Users/johangunnarsson/Developer/entelechia-chat/UIConnections/Tests/UIConnectionsTests/AskCodexPipelineTests.swift: WorkspaceEngineImpl must only be constructed in AppComposition.
+/Users/johangunnarsson/Developer/entelechia-chat/UIConnections/Tests/UIConnectionsTests/NavigatorIntegrationTests.swift: WorkspaceEngineImpl must only be constructed in AppComposition.
+/Users/johangunnarsson/Developer/entelechia-chat/UIConnections/Tests/UIConnectionsTests/ContextPipelineEvidenceTests.swift: CodexService must be composed in AppComposition.
+/Users/johangunnarsson/Developer/entelechia-chat/UIConnections/Tests/UIConnectionsTests/WorkspaceViewModelContextTests.swift: CodexService must be composed in AppComposition.
+/Users/johangunnarsson/Developer/entelechia-chat/UIConnections/Tests/UIConnectionsTests/ConversationEngineBoxIsolationTests.swift: CodexService must be composed in AppComposition.
+/Users/johangunnarsson/Developer/entelechia-chat/UIConnections/Tests/UIConnectionsTests/CodexServiceTests.swift: CodexService must be composed in AppComposition.
+/Users/johangunnarsson/Developer/entelechia-chat/UIConnections/Tests/UIConnectionsTests/WorkspaceViewModelBehaviorTests.swift: CodexService must be composed in AppComposition.
+/Users/johangunnarsson/Developer/entelechia-chat/UIConnections/Tests/UIConnectionsTests/WorkspaceViewModelMutationSafetyTests.swift: CodexService must be composed in AppComposition.
+/Users/johangunnarsson/Developer/entelechia-chat/UIConnections/Tests/UIConnectionsTests/AskCodexTraceTests.swift: CodexService must be composed in AppComposition.
+/Users/johangunnarsson/Developer/entelechia-chat/UIConnections/Tests/UIConnectionsTests/WorkspaceViewModelLifecycleEnforcementTests.swift: CodexService must be composed in AppComposition.
+/Users/johangunnarsson/Developer/entelechia-chat/UIConnections/Tests/UIConnectionsTests/NegativeBehaviorTests.swift: CodexService must be composed in AppComposition.
+/Users/johangunnarsson/Developer/entelechia-chat/UIConnections/Tests/UIConnectionsTests/ContextSnapshotPresentationTests.swift: CodexService must be composed in AppComposition.
+/Users/johangunnarsson/Developer/entelechia-chat/UIConnections/Tests/UIConnectionsTests/AskCodexPipelineTests.swift: CodexService must be composed in AppComposition.
+/Users/johangunnarsson/Developer/entelechia-chat/UIConnections/Tests/UIConnectionsTests/WorkspaceViewModelLifecycleTests.swift: CodexService must be composed in AppComposition.
+/Users/johangunnarsson/Developer/entelechia-chat/UIConnections/Tests/UIConnectionsTests/ModelAndScopeBindingTests.swift: CodexService must be composed in AppComposition.
+/Users/johangunnarsson/Developer/entelechia-chat/UIConnections/Tests/UIConnectionsTests/ContextPipelineEvidenceTests.swift: FileMutationAuthority must be composed in AppComposition.

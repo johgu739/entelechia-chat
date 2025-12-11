@@ -21,43 +21,26 @@ struct CodeBlockView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Header with language and copy button
-            HStack {
-                if let language = language, !language.isEmpty {
-                    Text(language.uppercased())
-                        .font(.system(size: 11, weight: .medium, design: .monospaced))
-                        .foregroundColor(.secondary)
-                }
-                Spacer()
-                Button(action: {
-                    copyToClipboard()
-                }) {
-                    Image(systemName: copied ? "checkmark" : "doc.on.doc")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(.secondary)
-                        .frame(width: 24, height: 24)
-                }
-                .buttonStyle(.plain)
+            CodeBlockHeader(language: language, copied: copied) {
+                copyToClipboard()
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(Color.secondary.opacity(0.08))
             
-            // Code content
             ScrollView(.horizontal, showsIndicators: true) {
                 Text(code)
                     .font(.system(size: 13, weight: .regular, design: .monospaced))
                     .foregroundColor(.primary)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
+                    .padding(.horizontal, DS.s16)
+                    .padding(.vertical, DS.s12)
             }
         }
-        .background(Color(white: 0.97))
-        .cornerRadius(12)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+        .background(
+            RoundedRectangle(cornerRadius: DS.r12)
+                .fill(DS.background)
+                .overlay(
+                    RoundedRectangle(cornerRadius: DS.r12)
+                        .stroke(DS.stroke, lineWidth: 1)
+                )
         )
     }
     

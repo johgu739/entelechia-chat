@@ -6,7 +6,7 @@ struct CodexStatusBanner: View {
     @EnvironmentObject var workspaceViewModel: WorkspaceViewModel
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: DS.s8) {
             Image(systemName: codexStatusModel.icon)
                 .foregroundColor(accentColor)
                 .font(.system(size: 12, weight: .semibold))
@@ -26,12 +26,12 @@ struct CodexStatusBanner: View {
             }
             Spacer()
         }
-        .padding(8)
+        .padding(DS.s8)
         .background(
-            RoundedRectangle(cornerRadius: 6)
-                .fill(Color(nsColor: .textBackgroundColor).opacity(0.9))
+            RoundedRectangle(cornerRadius: DS.r12)
+                .fill(DS.background)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 6)
+                    RoundedRectangle(cornerRadius: DS.r12)
                         .stroke(accentColor.opacity(0.6), lineWidth: 1)
                 )
         )
@@ -45,5 +45,3 @@ struct CodexStatusBanner: View {
         }
     }
 }
-
-

@@ -153,7 +153,7 @@ private final class FakeCodexClient: CodexClient, @unchecked Sendable {
             throw error
         case .success(let tokens, let output):
             return AsyncThrowingStream { continuation in
-                for t in tokens { continuation.yield(.token(t)) }
+                for token in tokens { continuation.yield(.token(token)) }
                 if let output { continuation.yield(.output(ModelResponse(content: output))) }
                 continuation.yield(.done)
                 continuation.finish()
@@ -162,7 +162,7 @@ private final class FakeCodexClient: CodexClient, @unchecked Sendable {
             return AsyncThrowingStream { continuation in
                 Task {
                     try await Task.sleep(nanoseconds: delay)
-                    for t in tokens { continuation.yield(.token(t)) }
+                    for token in tokens { continuation.yield(.token(token)) }
                     continuation.yield(.done)
                     continuation.finish()
                 }
@@ -196,4 +196,5 @@ private final class ConversationEngineStub: ConversationStreaming {
         (conversation, ContextBuildResult(attachments: [], truncatedFiles: [], excludedFiles: [], totalBytes: 0, totalTokens: 0, budget: .default, encodedSegments: []))
     }
 }
+
 

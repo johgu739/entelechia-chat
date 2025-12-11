@@ -15,98 +15,87 @@ import SwiftUI
 import UIConnections
 
 struct MainWorkspaceView: View {
-    private let workspaceEngine: WorkspaceEngine
-    private let conversationEngine: ConversationStreaming
-    private let projectTodosLoader: ProjectTodosLoading
-    private let codexService: CodexQuerying
-    @EnvironmentObject var projectSession: ProjectSession
-    @EnvironmentObject var alertCenter: AlertCenter
-    @EnvironmentObject var codexStatusModel: CodexStatusModel
-    @StateObject private var workspaceViewModel: WorkspaceViewModel
+    let context: WorkspaceContext
+    @ObservedObject var workspaceViewModel: WorkspaceViewModel
+    @State private var inspectorTab: InspectorTab = .files
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
-    @State private var conversation: Conversation = Conversation(contextFilePaths: [])
-
-    init(
-        workspaceEngine: WorkspaceEngine,
-        conversationEngine: ConversationStreaming,
-        projectTodosLoader: ProjectTodosLoading,
-        codexService: CodexQuerying
-    ) {
-        self.workspaceEngine = workspaceEngine
-        self.conversationEngine = conversationEngine
-        self.projectTodosLoader = projectTodosLoader
-        self.codexService = codexService
-        _workspaceViewModel = StateObject(
-            wrappedValue: WorkspaceViewModel(
-                workspaceEngine: workspaceEngine,
-                conversationEngine: conversationEngine,
-                projectTodosLoader: projectTodosLoader,
-                codexService: codexService
-            )
-        )
+    
+    init(context: WorkspaceContext) {
+        self.context = context
+        _workspaceViewModel = ObservedObject(wrappedValue: context.workspaceViewModel)
     }
     
     var body: some View {
+        navigationLayout
+            .background(AppTheme.windowBackground)
+    }
+    
+    private var navigationLayout: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
-            // LEFT: Xcode-like Navigator
-            XcodeNavigatorView()
-                .environmentObject(workspaceViewModel)
-                .navigationSplitViewColumnWidth(min: 200, ideal: 240, max: 320)
+            navigatorColumn
         } content: {
-            chatContent
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            chatColumn
         } detail: {
-            // RIGHT: Inspector
-            ContextInspector()
+            inspectorColumn
+        }
+        .overlay(statusOverlay, alignment: .top)
+        .animation(.easeInOut, value: context.codexStatusModel.state)
+        .toolbar { toolbarItems }
+    }
+    
+    private var navigatorColumn: some View {
+        XcodeNavigatorView()
+            .environmentObject(workspaceViewModel)
+            .navigationSplitViewColumnWidth(
+                min: DS.s20 * CGFloat(10),
+                ideal: DS.s20 * CGFloat(12),
+                max: DS.s20 * CGFloat(16)
+            )
+    }
+    
+    private var chatColumn: some View {
+        chatContent
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    private var inspectorColumn: some View {
+        ContextInspector(selectedInspectorTab: $inspectorTab)
+            .environmentObject(workspaceViewModel)
+            .navigationSplitViewColumnWidth(
+                min: DS.s20 * CGFloat(11),
+                ideal: DS.s20 * CGFloat(13),
+                max: DS.s20 * CGFloat(16)
+            )
+    }
+    
+    @ToolbarContentBuilder
+    private var toolbarItems: some ToolbarContent {
+        ToolbarItem(placement: .automatic) {
+            Button { toggleSidebar() } label: {
+                Image(systemName: "sidebar.leading")
+                    .foregroundColor(isSidebarVisible ? .primary : .secondary)
+            }
+            .help("Toggle File Explorer")
+        }
+        
+        ToolbarItem(placement: .automatic) {
+            Button { toggleInspector() } label: {
+                Image(systemName: "sidebar.trailing")
+                    .foregroundColor(isInspectorVisible ? .primary : .secondary)
+            }
+            .help("Toggle Inspector")
+        }
+    }
+    
+    @ViewBuilder
+    private var statusOverlay: some View {
+        if context.codexStatusModel.state != .connected {
+            CodexStatusBanner()
+                .environmentObject(context.codexStatusModel)
                 .environmentObject(workspaceViewModel)
-                .navigationSplitViewColumnWidth(min: 220, ideal: 260, max: 320)
-        }
-        .overlay(alignment: .top) {
-            if codexStatusModel.state != .connected {
-                CodexStatusBanner()
-                    .environmentObject(codexStatusModel)
-                    .environmentObject(workspaceViewModel)
-                    .padding(.horizontal, 12)
-                    .padding(.top, 8)
-                    .transition(.move(edge: .top).combined(with: .opacity))
-            }
-        }
-        .animation(.easeInOut, value: codexStatusModel.state)
-        .toolbar {
-            // File Explorer toggle
-            ToolbarItem(placement: .automatic) {
-                Button {
-                    toggleSidebar()
-                } label: {
-                    Image(systemName: "sidebar.leading")
-                        .foregroundColor(isSidebarVisible ? .primary : .secondary)
-                }
-                .help("Toggle File Explorer")
-            }
-            
-            // Inspector toggle
-            ToolbarItem(placement: .automatic) {
-                Button {
-                    toggleInspector()
-                } label: {
-                    Image(systemName: "sidebar.trailing")
-                        .foregroundColor(isInspectorVisible ? .primary : .secondary)
-                }
-                .help("Toggle Inspector")
-            }
-        }
-        .background(AppTheme.windowBackground)
-        .onAppear {
-            workspaceViewModel.setAlertCenter(alertCenter)
-            projectSession.setAlertCenter(alertCenter)
-            if let url = projectSession.activeProjectURL {
-                workspaceViewModel.setRootDirectory(url)
-            }
-        }
-        .onChange(of: projectSession.activeProjectURL) { _, newValue in
-            if let url = newValue {
-                workspaceViewModel.setRootDirectory(url)
-            }
+                .padding(.horizontal, DS.s12)
+                .padding(.top, DS.s8)
+                .transition(.move(edge: .top).combined(with: .opacity))
         }
     }
     
@@ -137,23 +126,19 @@ struct MainWorkspaceView: View {
     @ViewBuilder
     private var chatContent: some View {
         if let selectedNode = workspaceViewModel.selectedNode {
-            ChatView(conversation: conversation)
-                .environmentObject(workspaceViewModel)
-                .navigationTitle(selectedNode.name)
-                .task(id: selectedNode.path) {
-                    if let descriptorID = selectedNode.descriptorID {
-                        await workspaceViewModel.ensureConversation(forDescriptorID: descriptorID)
-                        if let convo = await workspaceViewModel.conversation(forDescriptorID: descriptorID) {
-                            conversation = convo
-                        }
-                    } else {
-                        await workspaceViewModel.ensureConversation(for: selectedNode.path)
-                        conversation = await workspaceViewModel.conversation(for: selectedNode.path)
-                    }
-                }
+            ChatView(
+                workspaceViewModel: workspaceViewModel,
+                chatViewModel: context.chatViewModelFactory(UUID()),
+                inspectorTab: $inspectorTab
+            )
+            .navigationTitle(selectedNode.name)
         } else {
             NoFileSelectedView()
-                .navigationTitle(projectSession.projectName.isEmpty ? "No Selection" : projectSession.projectName)
+                .navigationTitle(
+                    context.projectSession.projectName.isEmpty
+                        ? "No Selection"
+                        : context.projectSession.projectName
+                )
         }
     }
 }

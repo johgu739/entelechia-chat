@@ -16,136 +16,122 @@ import UIConnections
 import AppKit
 
 struct ChatView: View {
-    @State private var conversation: Conversation
-    @EnvironmentObject var workspaceViewModel: WorkspaceViewModel
-    @State private var inputText: String = ""
+    @ObservedObject var workspaceViewModel: WorkspaceViewModel
+    @ObservedObject var chatViewModel: ChatViewModel
+    @State private var conversation: Conversation = Conversation(contextFilePaths: [])
     @State private var showMessageContextPopover = false
-    @State private var showContextPopover = false
     @State private var contextPopoverData: ContextBuildResult?
+    @Binding private var selectedInspectorTab: InspectorTab
     
-    init(conversation: Conversation) {
-        _conversation = State(initialValue: conversation)
+    init(
+        workspaceViewModel: WorkspaceViewModel,
+        chatViewModel: ChatViewModel,
+        inspectorTab: Binding<InspectorTab>
+    ) {
+        self.workspaceViewModel = workspaceViewModel
+        self.chatViewModel = chatViewModel
+        _selectedInspectorTab = inspectorTab
     }
     
     var body: some View {
-        ScrollViewReader { proxy in
-            VStack(spacing: 0) {
-                contextBar
-                    .padding(.horizontal, 16)
-                    .padding(.top, 12)
-            ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 4) {
-                    if conversation.messages.isEmpty && currentStreamingText.isEmpty {
-                        emptyStateView
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .padding(.top, 60)
-                    } else {
-                        ForEach(conversation.messages) { message in
-                                MessageBubbleView(
-                                    message: message,
-                                    isAssistant: message.role == .assistant,
-                                    contextSummary: message.role == .assistant ? contextSummary(for: message) : nil,
-                                    errorMessage: nil,
-                                    onViewContext: {
-                                        if let ctx = workspaceViewModel.contextForMessage(message.id) {
-                                            contextPopoverData = ctx
-                                            showMessageContextPopover = true
-                                        }
-                                    },
-                                    onReask: {
-                                        reask(message)
-                                    }
-                                )
-                                .id(message.id)
-                                .transition(.opacity.combined(with: .move(edge: .bottom)))
-                        }
-                        
-                        if !currentStreamingText.isEmpty {
-                            StreamingChip(text: "Assistant is thinking…")
-                                .id("streaming")
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 8)
-                        }
-                        
-                        if workspaceViewModel.isLoading {
-                            HStack {
-                                ProgressView()
-                                    .scaleEffect(0.8)
-                                    .padding(.leading, 20)
-                                    .padding(.top, 16)
-                                Spacer()
-                            }
-                        }
-                    }
-                }
-                .padding(.horizontal, 24)
-                .padding(.vertical, 20)
-                .frame(minHeight: 400)
+        VStack(spacing: 0) {
+            ChatMessagesList(
+                messages: chatViewModel.messages,
+                streamingText: chatViewModel.streamingText ?? "",
+                isLoading: chatViewModel.isSending,
+                onMessageContext: { handleMessageContext($0) },
+                onReask: { reask($0) },
+                emptyView: AnyView(emptyState)
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(AppTheme.editorBackground)
+            .safeAreaInset(edge: .bottom) { footer }
+            .onChange(of: conversation.id) { _, _ in
+                // Load conversation messages into view model when conversation changes
+                chatViewModel.loadConversation(conversation)
             }
-                .onChange(of: conversation.messages.count) { _, _ in
-                if let lastMessage = conversation.messages.last {
-                    withAnimation(.easeOut(duration: 0.3)) {
-                        proxy.scrollTo(lastMessage.id, anchor: .bottom)
-                    }
-                }
-            }
-                .onChange(of: currentStreamingText) { _, newValue in
-                if !newValue.isEmpty {
-                    withAnimation {
-                        proxy.scrollTo("streaming", anchor: .bottom)
-                        }
-                    }
-                }
-            }
-            .safeAreaInset(edge: .bottom) {
-                ChatInputView(
-                    text: $inputText,
-                    onSend: { sendMessage() },
-                    onAttachFile: { /* handled elsewhere */ },
-                    onAskCodex: { askCodex() },
-                    isAskEnabled: workspaceViewModel.selectedNode != nil,
-                    currentTarget: workspaceViewModel.selectedNode?.path.path,
-                    sendShortcut: "⌘⏎",
-                    askShortcut: "⌥⏎"
-                )
-                .padding(.horizontal, 20)
-                .padding(.bottom, 12)
-                .popover(isPresented: $showMessageContextPopover) {
-                    if let ctx = contextPopoverData {
-                        contextPopover(ctx)
-                            .frame(width: 380, height: 320)
-                            .padding()
-                    }
-                }
+            .onAppear {
+                // Load initial conversation
+                chatViewModel.loadConversation(conversation)
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(AppTheme.editorBackground)
+    }
+    
+    private var footer: some View {
+        ChatFooter(
+            contextSnapshot: workspaceViewModel.lastContextSnapshot,
+            activeScope: chatViewModel.contextScope,
+            onViewDetails: { selectedInspectorTab = .context },
+            inputBar: chatInputBar,
+            contextPopover: contextPopoverData
+        )
+        .popover(isPresented: $showMessageContextPopover) {
+            if let ctx = contextPopoverData {
+                ContextPopoverView(context: ctx)
+                    .frame(
+                        width: DS.s20 * CGFloat(19),
+                        height: DS.s20 * CGFloat(16)
+                    )
+                    .padding()
+            }
+        }
+    }
+    
+    private var chatInputBar: ChatInputBar {
+        ChatInputBar(
+            text: $chatViewModel.text,
+            isAskEnabled: workspaceViewModel.selectedNode != nil,
+            isSending: chatViewModel.isSending || chatViewModel.isAsking,
+            modelSelection: Binding(
+                get: { chatViewModel.model },
+                set: { chatViewModel.selectModel($0) }
+            ),
+            scopeSelection: Binding(
+                get: { chatViewModel.contextScope },
+                set: { chatViewModel.selectScope($0) }
+            ),
+            onSend: { sendMessage() },
+            onAsk: { askCodex() },
+            onAttach: { },
+            onMic: { }
+        )
+    }
+    
+    private var emptyState: some View {
+        ChatEmptyStateView(
+            selectedNode: workspaceViewModel.selectedNode,
+            onQuickAction: { chatViewModel.text = $0 }
+        )
     }
     
     private func sendMessage() {
-        let text = inputText
-        inputText = ""
+        // Commit message optimistically (appears instantly in UI)
+        guard let userMessage = chatViewModel.commitMessage() else { return }
         
+        // Start streaming through coordinator
         Task { @MainActor in
-            await workspaceViewModel.sendMessage(text, for: conversation)
+            await chatViewModel.coordinator.stream(userMessage.text, in: conversation)
+            
+            // Refresh conversation after streaming completes
             if let descriptorID = workspaceViewModel.selectedDescriptorID,
                let refreshed = await workspaceViewModel.conversation(forDescriptorID: descriptorID) {
                 conversation = refreshed
+                chatViewModel.loadConversation(refreshed)
             } else {
-                let targetURL = workspaceViewModel.selectedNode?.path ?? conversation.contextURL ?? conversation.contextFilePaths.first.map { URL(fileURLWithPath: $0) }
+                let targetURL = workspaceViewModel.selectedNode?.path
+                    ?? conversation.contextURL
+                    ?? conversation.contextFilePaths.first.map { URL(fileURLWithPath: $0) }
                 if let url = targetURL {
-                    conversation = await workspaceViewModel.conversation(for: url)
+                    let refreshed = await workspaceViewModel.conversation(for: url)
+                    conversation = refreshed
+                    chatViewModel.loadConversation(refreshed)
                 }
             }
         }
     }
-
+    
     private func askCodex() {
-        let text = inputText
-        inputText = ""
-        Task { @MainActor in
-            let updated = await workspaceViewModel.askCodex(text, for: conversation)
+        chatViewModel.askCodex(conversation: conversation) { updated in
             conversation = updated
         }
     }
@@ -154,200 +140,19 @@ struct ChatView: View {
         workspaceViewModel.streamingText(for: conversation.id)
     }
     
-    // Per-message context summary placeholder (uses last context result for now)
-    private func contextSummary(for message: Message) -> String? {
-        guard let ctx = workspaceViewModel.lastContextResult else { return nil }
-        let files = ctx.attachments.map { $0.url.lastPathComponent }
-        let trimmed = ctx.truncatedFiles.map { $0.url.lastPathComponent }
-        var parts: [String] = []
-        if !files.isEmpty { parts.append("files: \(files.joined(separator: ", "))") }
-        if !trimmed.isEmpty { parts.append("trimmed: \(trimmed.joined(separator: ", "))") }
-        if ctx.excludedFiles.count > 0 { parts.append("excluded: \(ctx.excludedFiles.count)") }
-        return parts.isEmpty ? nil : parts.joined(separator: " · ")
-    }
-
     private func reask(_ message: Message) {
         let text = message.text
         Task { @MainActor in
-            inputText = text
+            chatViewModel.text = text
             let updated = await workspaceViewModel.askCodex(text, for: conversation)
             conversation = updated
         }
     }
     
-    @ViewBuilder
-    private var emptyStateView: some View {
-        if let selectedNode = workspaceViewModel.selectedNode {
-            let isFolder = selectedNode.children != nil && !(selectedNode.children?.isEmpty ?? true)
-            
-            if isFolder {
-                // Folder selected - show summary
-                VStack(spacing: 16) {
-                    Image(systemName: "folder.fill")
-                        .font(.system(size: 48))
-                        .foregroundColor(.secondary)
-                    
-                    Text("Start chatting about this folder")
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundColor(.primary)
-                    if let children = selectedNode.children, !children.isEmpty {
-                        let files = children.filter { $0.children == nil || $0.children?.isEmpty == true }
-                        Text("\(children.count) items (\(files.count) files)")
-                            .font(.system(size: 12))
-                            .foregroundColor(.secondary)
-                    }
-                    quickActions([
-                        "Summarize this folder",
-                        "List key files in this folder",
-                        "Identify risks in this folder"
-                    ])
-                }
-            } else {
-                // File selected - show prompt
-                VStack(spacing: 16) {
-                    Image(systemName: "doc.text")
-                        .font(.system(size: 48))
-                        .foregroundColor(.secondary)
-                    
-                    Text("No chat yet for this file")
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundColor(.primary)
-                    Text("Start by asking something about this file")
-                        .font(.system(size: 12))
-                        .foregroundColor(.secondary)
-                    quickActions([
-                        "Summarize this file",
-                        "List risky areas in this file",
-                        "Explain the main logic in this file"
-                    ])
-                }
-            }
-        } else {
-            VStack(spacing: 16) {
-                Image(systemName: "doc.text")
-                    .font(.system(size: 48))
-                    .foregroundColor(.secondary)
-                
-                Text("Select a file or folder to begin chatting")
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(.primary)
-            }
-        }
-    }
-
-    private func quickActions(_ prompts: [String]) -> some View {
-        HStack(spacing: 12) {
-            ForEach(prompts.prefix(3), id: \.self) { prompt in
-                Button(prompt) {
-                    inputText = prompt
-                }
-                .buttonStyle(.bordered)
-            }
-        }
-        .padding(.top, 8)
-    }
-
-    private var contextBar: some View {
-        let target = workspaceViewModel.selectedNode?.name ?? "No selection"
-        let ctx = workspaceViewModel.lastContextResult
-        let segments = ctx?.encodedSegments.count ?? 0
-        let attachments = ctx?.attachments.count ?? 0
-        let tokens = ctx?.totalTokens ?? 0
-        let bytes = ctx?.totalBytes ?? 0
-        return HStack(spacing: 12) {
-            Label(target, systemImage: "doc.text.magnifyingglass")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(target == "No selection" ? .secondary : .primary)
-            Spacer()
-            contextMetric("Segments", "\(segments)")
-            contextMetric("Files", "\(attachments)")
-            contextMetric("Tokens", "\(tokens)")
-            contextMetric("Bytes", ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .binary))
-            if let ctx {
-                Button {
-                    showContextPopover.toggle()
-                } label: {
-                    Image(systemName: "info.circle")
-                        .foregroundColor(.secondary)
-                }
-                .buttonStyle(.plain)
-                .popover(isPresented: $showContextPopover) {
-                    contextPopover(ctx)
-                        .frame(width: 380, height: 320)
-                        .padding()
-                }
-            }
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background(
-            RoundedRectangle(cornerRadius: 14)
-                .fill(Color(.windowBackgroundColor))
-                .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
-        )
-    }
-
-    private func contextMetric(_ title: String, _ value: String) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(title)
-                .font(.system(size: 11))
-                .foregroundColor(.secondary)
-            Text(value)
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(.primary)
-        }
-    }
-
-    @ViewBuilder
-    private func contextPopover(_ ctx: ContextBuildResult) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Context Sent to Codex")
-                .font(.system(size: 14, weight: .semibold))
-            ScrollView {
-                VStack(alignment: .leading, spacing: 8) {
-                    ForEach(ctx.attachments, id: \.id) { file in
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(file.url.lastPathComponent)
-                                .font(.system(size: 13, weight: .semibold))
-                            Text(file.url.path)
-                                .font(.system(size: 11))
-                                .foregroundColor(.secondary)
-                            HStack(spacing: 8) {
-                                Text(ByteCountFormatter.string(fromByteCount: Int64(file.byteCount), countStyle: .binary))
-                                    .font(.system(size: 11))
-                                    .foregroundColor(.secondary)
-                                if let note = file.contextNote {
-                                    Text(note)
-                                        .font(.system(size: 11))
-                                        .foregroundColor(.orange)
-                                }
-                            }
-                        }
-                        .padding(8)
-                        .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.08)))
-                    }
-                    if !ctx.truncatedFiles.isEmpty {
-                        Divider()
-                        Text("Truncated")
-                            .font(.system(size: 12, weight: .semibold))
-                        ForEach(ctx.truncatedFiles, id: \.id) { file in
-                            Text("\(file.url.lastPathComponent) trimmed to \(ByteCountFormatter.string(fromByteCount: Int64(file.byteCount), countStyle: .binary))")
-                                .font(.system(size: 11))
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    if !ctx.excludedFiles.isEmpty {
-                        Divider()
-                        Text("Excluded")
-                            .font(.system(size: 12, weight: .semibold))
-                        ForEach(ctx.excludedFiles, id: \.id) { exclusion in
-                            Text(verbatim: "\(exclusion.file.url.lastPathComponent) – \(exclusion.reason)")
-                                .font(.system(size: 11))
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                }
-            }
+    private func handleMessageContext(_ message: Message) {
+        if let ctx = workspaceViewModel.contextForMessage(message.id) {
+            contextPopoverData = ctx
+            showMessageContextPopover = true
         }
     }
 }

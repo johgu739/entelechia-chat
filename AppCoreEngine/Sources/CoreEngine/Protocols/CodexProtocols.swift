@@ -12,3 +12,9 @@ public protocol CodexClient: Sendable {
     ) async throws -> AsyncThrowingStream<StreamChunk<OutputPayload>, Error>
 }
 
+/// Protocol for retry policy configuration.
+public protocol RetryPolicy: Sendable {
+    var maxRetries: Int { get }
+    func delay(for attempt: Int) -> TimeInterval
+}
+

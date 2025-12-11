@@ -15,14 +15,14 @@ import SwiftUI
 
 struct NoFileSelectedView: View {
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: DS.s16) {
             Image(systemName: "doc.text")
-                .font(.system(size: 48))
+                .font(.system(size: DS.s16 * 3))
                 .foregroundColor(.secondary)
             
             Text("Select a file or folder to begin chatting")
-                .font(.system(size: 15))
-                .foregroundColor(.secondary)
+                .font(DS.body)
+                .foregroundColor(DS.secondaryText)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppTheme.editorBackground)

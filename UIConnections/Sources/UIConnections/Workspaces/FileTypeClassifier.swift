@@ -6,10 +6,25 @@ public enum FileKind: String {
     case image
     case pdf
     case other
+    
+    public var localizedDescription: String {
+        switch self {
+        case .sourceCode:
+            return "Source Code"
+        case .text:
+            return "Text"
+        case .image:
+            return "Image"
+        case .pdf:
+            return "PDF"
+        case .other:
+            return "File"
+        }
+    }
 }
 
-struct FileTypeClassifier {
-    static func kind(for url: URL) -> FileKind {
+public struct FileTypeClassifier {
+    public static func kind(for url: URL) -> FileKind {
         let ext = url.pathExtension.lowercased()
         if sourceExtensions.contains(ext) { return .sourceCode }
         if textExtensions.contains(ext) { return .text }
@@ -18,7 +33,7 @@ struct FileTypeClassifier {
         return .other
     }
 
-    static func icon(for url: URL, isDirectory: Bool) -> String {
+    public static func icon(for url: URL, isDirectory: Bool) -> String {
         guard !isDirectory else { return "folder" }
         switch kind(for: url) {
         case .sourceCode, .text:
@@ -32,8 +47,12 @@ struct FileTypeClassifier {
         }
     }
 
-    static func isTextLike(_ kind: FileKind) -> Bool {
+    public static func isTextLike(_ kind: FileKind) -> Bool {
         kind == .text || kind == .sourceCode
+    }
+    
+    public static func description(for url: URL) -> String {
+        kind(for: url).localizedDescription
     }
 
     private static let sourceExtensions: Set<String> = [

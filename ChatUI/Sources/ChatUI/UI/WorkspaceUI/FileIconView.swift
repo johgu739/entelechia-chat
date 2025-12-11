@@ -13,7 +13,6 @@
 
 import SwiftUI
 import AppKit
-import UniformTypeIdentifiers
 
 /// SwiftUI view that displays native macOS file/folder icons
 struct FileIconView: View {

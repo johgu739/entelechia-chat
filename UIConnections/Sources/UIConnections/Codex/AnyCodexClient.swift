@@ -7,9 +7,17 @@ public struct AnyCodexClient: AppCoreEngine.CodexClient {
     public typealias ContextFileType = AppCoreEngine.LoadedFile
     public typealias OutputPayload = ModelResponse
 
-    private let streamHandler: @Sendable ([MessageType], [ContextFileType]) async throws -> AsyncThrowingStream<AppCoreEngine.StreamChunk<OutputPayload>, Error>
+    private let streamHandler: @Sendable (
+        [MessageType],
+        [ContextFileType]
+    ) async throws -> AsyncThrowingStream<AppCoreEngine.StreamChunk<OutputPayload>, Error>
 
-    public init(_ streamHandler: @escaping @Sendable ([MessageType], [ContextFileType]) async throws -> AsyncThrowingStream<AppCoreEngine.StreamChunk<OutputPayload>, Error>) {
+    public init(
+        _ streamHandler: @escaping @Sendable (
+            [MessageType],
+            [ContextFileType]
+        ) async throws -> AsyncThrowingStream<AppCoreEngine.StreamChunk<OutputPayload>, Error>
+    ) {
         self.streamHandler = streamHandler
     }
 

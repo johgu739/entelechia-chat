@@ -49,8 +49,13 @@ private final class StubWorkspaceEngine: WorkspaceEngine, @unchecked Sendable {
     }
 }
 
-private final class StubTodosLoader: ProjectTodosLoading {
-    var todos: ProjectTodos = .empty
+private final class StubTodosLoader: ProjectTodosLoading, @unchecked Sendable {
+    private let todos: ProjectTodos
+    
+    init(todos: ProjectTodos = .empty) {
+        self.todos = todos
+    }
+    
     func loadTodos(for root: URL) throws -> ProjectTodos { todos }
 }
 
@@ -87,4 +92,5 @@ private final class ConversationEngineStub: ConversationStreaming {
         (conversation, ContextBuildResult(attachments: [], truncatedFiles: [], excludedFiles: [], totalBytes: 0, totalTokens: 0, budget: .default, encodedSegments: []))
     }
 }
+
 

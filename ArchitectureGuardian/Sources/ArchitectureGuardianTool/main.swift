@@ -115,7 +115,7 @@ private func run() {
 
     guard
         let data = try? Data(contentsOf: rulesURL),
-        let rules = try? JSONDecoder().decode([String: [String]].self, from: data)
+        let rules = try? JSONDecoder().decode(ArchitectureRules.self, from: data)
     else {
         fputs("ArchitectureGuardian: failed to load or decode rules at \(rulesURL.path)\n", stderr)
         writeOutput("rules decode failure\n", to: config.output)

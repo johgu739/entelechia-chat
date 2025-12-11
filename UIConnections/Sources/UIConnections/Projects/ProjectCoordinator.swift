@@ -70,7 +70,10 @@ public final class ProjectCoordinator: ObservableObject {
             try projectEngine.save(stored)
             projectSession.open(url, name: rep.name, bookmarkData: bookmarkData)
         } catch {
-            logger.error("Failed to open recent project \(project.representation.rootPath): \(error.localizedDescription)")
+            logger.error(
+                "Failed to open recent project \(project.representation.rootPath): " +
+                "\(error.localizedDescription)"
+            )
             alertCenter.publish(error, fallbackTitle: "Open Recent Failed")
         }
     }
