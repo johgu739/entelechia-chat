@@ -2,11 +2,12 @@ import Foundation
 import Combine
 import AppCoreEngine
 
-/// Pure UI state container for workspace presentation.
+/// Internal UI state container for workspace presentation.
+/// UIConnections uses this internally; external code should not use it.
 /// Power: Descriptive (UI state only, no domain echoes)
 /// Contains only user-controlled UI state, not domain-derived projections.
 @MainActor
-public final class WorkspacePresentationModel: ObservableObject {
+internal final class WorkspacePresentationModel: ObservableObject {
     // MARK: - Published UI State (Pure UI, No Domain Artifacts)
     
     @Published public var selectedNode: FileNode?

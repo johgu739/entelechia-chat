@@ -12,8 +12,8 @@ public final class WorkspaceProjection: ObservableObject {
     
     @Published public var streamingMessages: [UUID: String] = [:]
     @Published public var lastContextResult: UIContracts.UIContextBuildResult?
-    @Published public var lastContextSnapshot: ContextSnapshot?
-    @Published public var workspaceState: WorkspaceViewState = WorkspaceViewState(
+    @Published public var lastContextSnapshot: UIContracts.ContextSnapshot?
+    @Published public var workspaceState: UIContracts.WorkspaceViewState = UIContracts.WorkspaceViewState(
         rootPath: nil,
         selectedDescriptorID: nil,
         selectedPath: nil,

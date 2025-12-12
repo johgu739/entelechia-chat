@@ -1,5 +1,6 @@
 import Foundation
 import AppCoreEngine
+import UIContracts
 
 public enum CodexAvailability {
     case connected
@@ -44,7 +45,7 @@ public final class CodexQueryService: @unchecked Sendable, CodexQuerying {
     }
 
     public func askAboutWorkspaceNode(
-        scope: WorkspaceScope,
+        scope: UIContracts.WorkspaceScope,
         question: String,
         onStream: ((String) -> Void)? = nil
     ) async throws -> CodexAnswer {
@@ -54,7 +55,8 @@ public final class CodexQueryService: @unchecked Sendable, CodexQuerying {
 
         let descriptorIDs: [FileID]? = {
             switch scope {
-            case .descriptor(let id): return [id]
+            case .descriptor(let uiFileID): 
+                return [AppCoreEngine.FileID(rawValue: uiFileID.rawValue)]
             case .path(let path):
                 if let id = snapshot.descriptorPaths.first(where: { $0.value == path })?.key {
                     return [id]

@@ -1,18 +1,19 @@
 import Foundation
 import AppCoreEngine
 
-/// Type eraser for CodexClient that preserves Sendable semantics.
-public struct AnyCodexClient: AppCoreEngine.CodexClient {
-    public typealias MessageType = Message
-    public typealias ContextFileType = AppCoreEngine.LoadedFile
-    public typealias OutputPayload = ModelResponse
+/// Internal type eraser for CodexClient that preserves Sendable semantics.
+/// UIConnections uses this internally; external code should not use it.
+internal struct AnyCodexClient: AppCoreEngine.CodexClient {
+    internal typealias MessageType = Message
+    internal typealias ContextFileType = AppCoreEngine.LoadedFile
+    internal typealias OutputPayload = ModelResponse
 
     private let streamHandler: @Sendable (
         [MessageType],
         [ContextFileType]
     ) async throws -> AsyncThrowingStream<AppCoreEngine.StreamChunk<OutputPayload>, Error>
 
-    public init(
+    internal init(
         _ streamHandler: @escaping @Sendable (
             [MessageType],
             [ContextFileType]
@@ -21,7 +22,7 @@ public struct AnyCodexClient: AppCoreEngine.CodexClient {
         self.streamHandler = streamHandler
     }
 
-    public func stream(
+    internal func stream(
         messages: [MessageType],
         contextFiles: [ContextFileType]
     ) async throws -> AsyncThrowingStream<AppCoreEngine.StreamChunk<OutputPayload>, Error> {
@@ -29,7 +30,7 @@ public struct AnyCodexClient: AppCoreEngine.CodexClient {
     }
 }
 
-public extension AnyCodexClient {
+internal extension AnyCodexClient {
     static func stub() -> AnyCodexClient {
         AnyCodexClient { _, _ in
             AsyncThrowingStream { continuation in

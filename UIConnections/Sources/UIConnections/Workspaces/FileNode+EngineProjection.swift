@@ -3,7 +3,7 @@ import AppCoreEngine
 
 private typealias FileExclusion = AppCoreEngine.FileExclusion
 
-public extension FileNode {
+internal extension FileNode {
     /// Build a UI `FileNode` tree from Engine `FileDescriptor` values.
     /// - Parameters:
     ///   - descriptors: Flat list of descriptors returned from `WorkspaceEngine.descriptors()`.

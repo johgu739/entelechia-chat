@@ -77,13 +77,13 @@ public enum DomainToUIMappers {
         projection: WorkspaceTreeProjection?,
         contextInclusions: [FileID: ContextInclusionState],
         watcherError: String?
-    ) -> WorkspaceViewState {
-        WorkspaceViewState(
+    ) -> UIContracts.WorkspaceViewState {
+        UIContracts.WorkspaceViewState(
             rootPath: rootPath,
-            selectedDescriptorID: selectedDescriptorID?.rawValue,
+            selectedDescriptorID: selectedDescriptorID.map { UIContracts.FileID($0.rawValue) },
             selectedPath: selectedPath,
             projection: projection.map(toUIWorkspaceTree),
-            contextInclusions: Dictionary(uniqueKeysWithValues: contextInclusions.map { ($0.rawValue, toUIContextInclusionState($1)) }),
+            contextInclusions: Dictionary(uniqueKeysWithValues: contextInclusions.map { (UIContracts.FileID($0.rawValue), toUIContextInclusionState($1)) }),
             watcherError: watcherError
         )
     }
@@ -164,20 +164,6 @@ public enum DomainToUIMappers {
         )
     }
     
-    // MARK: - WorkspaceScope
-    
-    // Note: WorkspaceScope in UIConnections uses FileID, UIContracts uses UUID
-    // This conversion happens when passing scope to UI
-    public static func toWorkspaceScope(_ scope: WorkspaceScope) -> UIContracts.WorkspaceScope {
-        switch scope {
-        case .descriptor(let fileID):
-            return .descriptor(fileID.rawValue)
-        case .path(let path):
-            return .path(path)
-        case .selection:
-            return .selection
-        }
-    }
     
     // MARK: - Helpers
     

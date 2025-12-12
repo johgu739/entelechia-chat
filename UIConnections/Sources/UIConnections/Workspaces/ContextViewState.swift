@@ -1,17 +1,17 @@
 import Foundation
-import AppCoreEngine
+import UIContracts
 
 /// Immutable view state for context UI (pure form, no power).
 /// Derived from WorkspaceConversationBindingViewModel, never mutated directly.
 public struct ContextViewState {
-    public let lastContextSnapshot: ContextSnapshot?
-    public let lastContextResult: ContextBuildResult?
+    public let lastContextSnapshot: UIContracts.ContextSnapshot?
+    public let lastContextResult: UIContracts.UIContextBuildResult?
     public let streamingMessages: [UUID: String]
     public let bannerMessage: String?
     
     public init(
-        lastContextSnapshot: ContextSnapshot?,
-        lastContextResult: ContextBuildResult?,
+        lastContextSnapshot: UIContracts.ContextSnapshot?,
+        lastContextResult: UIContracts.UIContextBuildResult?,
         streamingMessages: [UUID: String],
         bannerMessage: String?
     ) {

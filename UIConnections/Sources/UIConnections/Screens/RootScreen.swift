@@ -2,7 +2,6 @@ import SwiftUI
 import Combine
 import UIContracts
 import ChatUI
-import AppCoreEngine
 
 /// Root screen adapter - observes IntentControllers and derives ViewState for ChatUI.RootView.
 /// Handles ProjectSessionViewState and RecentProjectViewState derivation.
@@ -47,15 +46,10 @@ public struct RootScreen: View {
                 projectCoordinator.openProject(url: url, name: name)
             },
             onOpenRecent: { projectViewState in
-                // Convert UIContracts.RecentProjectViewState back to UIConnections.RecentProject
-                let project = UIConnections.RecentProject(
-                    representation: AppCoreEngine.ProjectRepresentation(
-                        rootPath: projectViewState.url.path,
-                        name: projectViewState.name
-                    ),
-                    bookmarkData: nil
-                )
-                projectCoordinator.openRecent(project)
+                // Convert UIContracts.RecentProjectViewState to project URL
+                // ProjectCoordinator will handle the domain type conversion internally
+                let projectURL = projectViewState.url
+                projectCoordinator.openProject(url: projectURL, name: projectViewState.name)
             },
             onChatIntent: { intent in
                 chatController.handle(intent)

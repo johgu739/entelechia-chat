@@ -2,12 +2,6 @@ import Foundation
 import AppCoreEngine
 import UIContracts
 
-public enum WorkspaceScope: Equatable, Sendable {
-    case descriptor(FileID)
-    case path(String)
-    case selection
-}
-
 public struct CodexAnswer: Equatable, Sendable {
     public let text: String
     public let context: UIContracts.UIContextBuildResult
@@ -20,7 +14,7 @@ public struct CodexAnswer: Equatable, Sendable {
 
 public protocol CodexQuerying: Sendable {
     func askAboutWorkspaceNode(
-        scope: WorkspaceScope,
+        scope: UIContracts.WorkspaceScope,
         question: String,
         onStream: ((String) -> Void)?
     ) async throws -> CodexAnswer

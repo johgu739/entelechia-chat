@@ -2,9 +2,10 @@ import Foundation
 import AppCoreEngine
 import Combine
 
-/// Minimal workspace surface required for coordinating chat intents.
+/// Internal workspace surface required for coordinating chat intents.
+/// UIConnections uses this internally; external code should not use it.
 @MainActor
-public protocol ConversationWorkspaceHandling: AnyObject {
+internal protocol ConversationWorkspaceHandling: AnyObject {
     func sendMessage(_ text: String, for conversation: Conversation) async
     func askCodex(_ text: String, for conversation: Conversation) async -> Conversation
     func setContextScope(_ scope: ContextScopeChoice)
@@ -60,7 +61,8 @@ public final class ConversationCoordinator: ObservableObject {
     }
     
     /// Stream a message and forward deltas to ChatViewModel
-    public func stream(_ text: String, in conversation: Conversation) async {
+    /// Internal method - external code should use ChatIntentController
+    internal func stream(_ text: String, in conversation: Conversation) async {
         guard let viewModel = chatViewModel else {
             // Fallback to legacy path if no view model
             await workspace.sendMessage(text, for: conversation)
@@ -112,11 +114,13 @@ public final class ConversationCoordinator: ObservableObject {
         }
     }
     
-    public func sendMessage(_ text: String, in conversation: Conversation) async {
+    /// Internal method - external code should use ChatIntentController
+    internal func sendMessage(_ text: String, in conversation: Conversation) async {
         await stream(text, in: conversation)
     }
     
-    public func askCodex(_ text: String, in conversation: Conversation) async -> Conversation {
+    /// Internal method - external code should use ChatIntentController
+    internal func askCodex(_ text: String, in conversation: Conversation) async -> Conversation {
         await workspace.askCodex(text, for: conversation)
     }
     

@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import AppCoreEngine
+import UIContracts
 
 /// Observes workspace engine updates and projects to presentation model and projection.
 /// Power: Descriptive (observes and projects, does not decide)
@@ -45,7 +46,7 @@ public final class WorkspaceStateObserver {
             case .refreshFailed(let message): return .refreshFailed(message)
             }
         }()
-        let mapped = WorkspaceViewStateMapper.map(update: update, watcherError: notice)
+        let mapped = WorkspaceViewStateMapper.mapToUIContracts(update: update, watcherError: notice)
         projection.workspaceState = mapped
         
         if previousRoot != mapped.rootPath {
@@ -54,17 +55,22 @@ public final class WorkspaceStateObserver {
             presentationModel.selectedDescriptorID = nil
         }
         
-        presentationModel.selectedDescriptorID = mapped.selectedDescriptorID
-        if let selectedDescriptorID = mapped.selectedDescriptorID,
-           let projection = mapped.projection,
-           let node = FileNode.fromProjection(projection).findNode(withDescriptorID: selectedDescriptorID) {
-            presentationModel.selectedNode = node
+        if let selectedDescriptorID = mapped.selectedDescriptorID {
+            presentationModel.selectedDescriptorID = AppCoreEngine.FileID(selectedDescriptorID.rawValue)
         } else {
-            updateSelectedNode()
+            presentationModel.selectedDescriptorID = nil
         }
         
-        if let projection = mapped.projection {
-            presentationModel.rootFileNode = FileNode.fromProjection(projection)
+        // Use domain projection directly from update for FileNode creation
+        // This is temporary - FileNode should be eliminated (violation A6)
+        if let domainProjection = update.projection {
+            if let selectedDescriptorID = mapped.selectedDescriptorID,
+               let node = FileNode.fromProjection(domainProjection).findNode(withDescriptorID: AppCoreEngine.FileID(selectedDescriptorID.rawValue)) {
+                presentationModel.selectedNode = node
+            } else {
+                updateSelectedNode()
+            }
+            presentationModel.rootFileNode = FileNode.fromProjection(domainProjection)
         }
         
         presentationModel.watcherError = mapped.watcherError

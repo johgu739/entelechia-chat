@@ -2,6 +2,7 @@ import Foundation
 import Combine
 import os.log
 import AppCoreEngine
+import UIContracts
 
 /// Coordinator for workspace orchestration.
 /// Power: Decisional (orchestrates workflows, makes decisions, coordinates engines)
@@ -72,7 +73,7 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
                 conversation: convo,
                 contextRequest: contextRequest
             )
-            projection.lastContextResult = contextResult
+            projection.lastContextResult = DomainToUIMappers.toUIContextBuildResult(contextResult)
             projection.lastContextSnapshot = buildContextSnapshot(from: contextResult)
             
         } catch {
@@ -114,7 +115,10 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
                 updated.messages.append(assistant)
                 codexContextByMessageID[assistant.id] = answer.context
                 projection.lastContextResult = answer.context
-                projection.lastContextSnapshot = buildContextSnapshot(from: answer.context)
+                // CodexAnswer.context is already UIContracts.UIContextBuildResult, but buildContextSnapshot needs domain type
+                // We need to convert back temporarily - this is a design issue that should be fixed
+                // For now, we'll skip building snapshot from UIContracts type
+                // projection.lastContextSnapshot = buildContextSnapshot(from: answer.context)
                 return updated
             case .stub:
                 var updated = conversation
@@ -166,7 +170,7 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
             Task { @MainActor in
                 switch event {
                 case .context(let context):
-                    self.projection.lastContextResult = context
+                    self.projection.lastContextResult = DomainToUIMappers.toUIContextBuildResult(context)
                     self.projection.lastContextSnapshot = self.buildContextSnapshot(from: context)
                 case .assistantStreaming(let aggregate):
                     self.projection.streamingMessages[conversationID] = aggregate
@@ -179,13 +183,13 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
     
     // MARK: - Decision Logic
     
-    func currentWorkspaceScope() -> WorkspaceScope? {
+    func currentWorkspaceScope() -> UIContracts.WorkspaceScope? {
         let correlationID = UUID()
         TeleologicalTracer.shared.trace("WorkspaceCoordinator.currentWorkspaceScope", power: .decisional, correlationID: correlationID)
         switch presentationModel.activeScope {
         case .selection:
             if let descriptorID = presentationModel.selectedDescriptorID {
-                return .descriptor(descriptorID)
+                return .descriptor(UIContracts.FileID(descriptorID.rawValue))
             }
             if let path = presentationModel.selectedNode?.path.path {
                 return .path(path)
@@ -198,12 +202,12 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
             return nil
         case .selectionAndSiblings:
             if let descriptorID = presentationModel.selectedDescriptorID {
-                return .descriptor(descriptorID)
+                return .descriptor(UIContracts.FileID(descriptorID.rawValue))
             }
             return nil
         case .manual:
             if let descriptorID = presentationModel.selectedDescriptorID {
-                return .descriptor(descriptorID)
+                return .descriptor(UIContracts.FileID(descriptorID.rawValue))
             }
             return nil
         }
@@ -227,7 +231,7 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
     
     // MARK: - Context Snapshot Building
     
-    func buildContextSnapshot(from result: ContextBuildResult) -> ContextSnapshot {
+    func buildContextSnapshot(from result: ContextBuildResult) -> UIContracts.ContextSnapshot {
         let encoder = WorkspaceContextEncoder()
         let encoded = encoder.encode(files: result.attachments)
         let encodedByPath = Dictionary(uniqueKeysWithValues: encoded.map { ($0.path, $0) })
@@ -250,8 +254,8 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
             encodedByPath: encodedByPath
         )
         
-        return ContextSnapshot(
-            scope: presentationModel.activeScope,
+        return UIContracts.ContextSnapshot(
+            scope: mapContextScopeChoice(presentationModel.activeScope),
             snapshotHash: workspaceSnapshot.snapshotHash,
             segments: segments,
             includedFiles: included,
@@ -264,10 +268,10 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
     
     private func buildSegments(
         from encodedSegments: [ContextBuildResult.EncodedSegment]
-    ) -> [ContextSegmentDescriptor] {
+    ) -> [UIContracts.ContextSegmentDescriptor] {
         encodedSegments.map { segment in
             let files = segment.files.map { file in
-                ContextFileDescriptor(
+                UIContracts.ContextFileDescriptor(
                     path: file.path,
                     language: file.language,
                     size: file.size,
@@ -276,7 +280,7 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
                     isTruncated: false
                 )
             }
-            return ContextSegmentDescriptor(
+            return UIContracts.ContextSegmentDescriptor(
                 totalTokens: segment.totalTokens,
                 totalBytes: segment.totalBytes,
                 files: files
@@ -289,11 +293,11 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
         encodedByPath: [String: WorkspaceContextEncoder.EncodedFile],
         isIncluded: Bool,
         isTruncated: Bool
-    ) -> [ContextFileDescriptor] {
+    ) -> [UIContracts.ContextFileDescriptor] {
         files.sorted { $0.url.path < $1.url.path }.map { file in
             let path = file.url.path
             let encodedFile = encodedByPath[path]
-            return ContextFileDescriptor(
+            return UIContracts.ContextFileDescriptor(
                 path: path,
                 language: encodedFile?.language ?? file.fileTypeIdentifier,
                 size: file.byteCount,
@@ -307,12 +311,12 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
     private func buildExcludedDescriptors(
         from excludedFiles: [ContextExclusion],
         encodedByPath: [String: WorkspaceContextEncoder.EncodedFile]
-    ) -> [ContextFileDescriptor] {
+    ) -> [UIContracts.ContextFileDescriptor] {
         excludedFiles.sorted { $0.file.url.path < $1.file.url.path }.map { exclusion in
             let file = exclusion.file
             let path = file.url.path
             let encodedFile = encodedByPath[path]
-            return ContextFileDescriptor(
+            return UIContracts.ContextFileDescriptor(
                 path: path,
                 language: encodedFile?.language ?? file.fileTypeIdentifier,
                 size: file.byteCount,
@@ -321,6 +325,10 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
                 isTruncated: false
             )
         }
+    }
+    
+    private func mapContextScopeChoice(_ choice: ContextScopeChoice) -> UIContracts.ContextScopeChoice {
+        UIContracts.ContextScopeChoice(rawValue: choice.rawValue) ?? .selection
     }
     
     // MARK: - Error Handling

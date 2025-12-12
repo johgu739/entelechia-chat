@@ -1,8 +1,8 @@
 import Foundation
 
-/// Workspace scope for queries (using UUID instead of FileID).
+/// Workspace scope for queries (pure form, no domain semantics).
 public enum WorkspaceScope: Equatable, Sendable {
-    case descriptor(UUID)
+    case descriptor(FileID)
     case path(String)
     case selection
 }

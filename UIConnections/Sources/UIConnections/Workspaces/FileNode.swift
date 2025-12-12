@@ -17,7 +17,7 @@ import AppCoreEngine
 
 private typealias FileExclusion = AppCoreEngine.FileExclusion
 
-public enum FileNodeError: LocalizedError {
+internal enum FileNodeError: LocalizedError {
     case childCreationFailed(URL)
     case directoryReadFailed(URL, underlying: Error)
     case emptyProject(URL)
@@ -45,10 +45,10 @@ public enum FileNodeError: LocalizedError {
     }
 }
 
-/// Unified file tree node used throughout the application
-/// Can be used in both SwiftUI (OutlineGroup) and AppKit (NSOutlineView)
-/// This is a value/entity type, not a view model, so it does not conform to ObservableObject
-public final class FileNode: Identifiable {
+/// Internal file tree node used for workspace coordination.
+/// UIConnections uses this internally; external code should use UIContracts.FileNode.
+/// This is a class with mutable children for internal coordination.
+internal final class FileNode: Identifiable {
     private static let logger = Logger(subsystem: "UIConnections", category: "FileNode")
 
     /// UI identity (used by SwiftUI lists/outline).
@@ -143,7 +143,7 @@ public final class FileNode: Identifiable {
     
 }
 
-public extension FileNode {
+internal extension FileNode {
     static let mockTree: [FileNode] = [
         FileNode(
             descriptorID: nil,
@@ -179,7 +179,7 @@ public extension FileNode {
     ]
 }
 
-public extension FileNode {
+internal extension FileNode {
     /// Recursively find a node by its ID in the tree
     func findNode(withID id: UUID) -> FileNode? {
         if self.id == id {
@@ -223,7 +223,7 @@ public extension FileNode {
     }
 }
 
-public extension Array where Element == FileNode {
+internal extension Array where Element == FileNode {
     /// Recursively find a node by its ID
     func node(withID id: UUID) -> FileNode? {
         for node in self {

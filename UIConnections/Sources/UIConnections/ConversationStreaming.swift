@@ -1,8 +1,9 @@
 import Foundation
 import AppCoreEngine
 
-/// UI-facing, non-generic surface for conversation orchestration.
-public protocol ConversationStreaming: Sendable {
+/// Internal UI-facing, non-generic surface for conversation orchestration.
+/// UIConnections uses this internally; external code should use domain engines directly.
+internal protocol ConversationStreaming: Sendable {
     func conversation(for url: URL) async -> Conversation?
     func conversation(forDescriptorIDs ids: [FileID]) async -> Conversation?
     func ensureConversation(for url: URL) async throws -> Conversation

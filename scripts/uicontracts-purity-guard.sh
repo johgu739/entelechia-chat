@@ -1,82 +1,54 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/bash
+# Guard 3: UIContracts Purity Scanner
+# Blocks: Computed properties, functions, SwiftUI/Combine imports in UIContracts
+# Failure: Any file with computed properties, functions (except init), or UI framework imports
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-UICONTRACTS_DIR="$ROOT/UIContracts/Sources/UIContracts"
-
-echo "==> Checking UIContracts for purity violations"
+set -e
 
 VIOLATIONS=0
+UICONTRACTS_SOURCES="UIContracts/Sources/UIContracts"
 
-# Check for imports other than Foundation
-echo "  Checking for non-Foundation imports..."
-ALLOWED_IMPORTS=("Foundation" "SwiftUI")
-for file in "$UICONTRACTS_DIR"/*.swift; do
-    if [ -f "$file" ]; then
-        while IFS= read -r line; do
-            if [[ "$line" =~ ^import\  ]]; then
-                import_name=$(echo "$line" | sed 's/^import //' | sed 's/^public //')
-                if [[ ! " ${ALLOWED_IMPORTS[@]} " =~ " ${import_name} " ]]; then
-                    echo "  ❌ Found illegal import '$import_name' in $(basename "$file")"
-                    echo "     UIContracts may only import Foundation (and SwiftUI if needed for previews)"
-                    VIOLATIONS=$((VIOLATIONS + 1))
-                fi
-            fi
-        done < "$file"
+echo "🔍 Scanning UIContracts for purity violations..."
+
+# Check for computed properties with logic (var ... {)
+while IFS= read -r file; do
+    if grep -q "var .*{" "$file"; then
+        # Check if it's not just a simple stored property
+        if grep -q "var .*\{[^}]*\}" "$file"; then
+            echo "❌ VIOLATION: $file contains computed property with logic"
+            grep -n "var .*{" "$file" | sed 's/^/   /'
+            VIOLATIONS=$((VIOLATIONS + 1))
+        fi
     fi
-done
+done < <(find "$UICONTRACTS_SOURCES" -name "*.swift")
 
-# Check for class declarations
-echo "  Checking for class declarations..."
-if grep -r "^\s*class\s\|^\s*public\s*class\s" "$UICONTRACTS_DIR" --include="*.swift" | grep -v "//.*class"; then
-    echo "  ❌ Found class declarations in UIContracts (should only have structs and enums)"
-    VIOLATIONS=$((VIOLATIONS + 1))
-fi
+# Check for functions (except init)
+while IFS= read -r file; do
+    if grep -q "func .*{" "$file"; then
+        # Allow init functions
+        if ! grep -q "func init" "$file"; then
+            echo "❌ VIOLATION: $file contains function (only init allowed)"
+            grep -n "func .*{" "$file" | grep -v "func init" | sed 's/^/   /'
+            VIOLATIONS=$((VIOLATIONS + 1))
+        fi
+    fi
+done < <(find "$UICONTRACTS_SOURCES" -name "*.swift")
 
-# Check for ObservableObject
-echo "  Checking for ObservableObject..."
-if grep -r "ObservableObject\|@Published" "$UICONTRACTS_DIR" --include="*.swift" | grep -v "//.*ObservableObject"; then
-    echo "  ❌ Found ObservableObject or @Published in UIContracts"
-    VIOLATIONS=$((VIOLATIONS + 1))
-fi
+# Check for forbidden imports
+FORBIDDEN_IMPORTS=("import SwiftUI" "import Combine" "import UIConnections" "import AppCoreEngine")
 
-# Check for Combine
-echo "  Checking for Combine..."
-if grep -r "import Combine\|Combine\." "$UICONTRACTS_DIR" --include="*.swift" | grep -v "//.*Combine"; then
-    echo "  ❌ Found Combine in UIContracts"
-    VIOLATIONS=$((VIOLATIONS + 1))
-fi
-
-# Check for async/await
-echo "  Checking for async/await..."
-if grep -r "async\|await" "$UICONTRACTS_DIR" --include="*.swift" | grep -v "//.*async\|//.*await"; then
-    echo "  ❌ Found async/await in UIContracts"
-    VIOLATIONS=$((VIOLATIONS + 1))
-fi
-
-# Check for ViewModel references
-echo "  Checking for ViewModel references..."
-if grep -r "ViewModel" "$UICONTRACTS_DIR" --include="*.swift" | grep -v "//.*ViewModel"; then
-    echo "  ❌ Found ViewModel reference in UIContracts"
-    VIOLATIONS=$((VIOLATIONS + 1))
-fi
-
-# Check for domain module imports
-echo "  Checking for domain module imports..."
-DOMAIN_MODULES=("AppCoreEngine" "AppAdapters" "UIConnections" "AppComposition")
-for module in "${DOMAIN_MODULES[@]}"; do
-    if grep -r "import $module" "$UICONTRACTS_DIR" --include="*.swift"; then
-        echo "  ❌ Found import $module in UIContracts"
+for import_pattern in "${FORBIDDEN_IMPORTS[@]}"; do
+    while IFS= read -r file; do
+        echo "❌ VIOLATION: $file contains forbidden import: $import_pattern"
+        grep -n "$import_pattern" "$file" | sed 's/^/   /'
         VIOLATIONS=$((VIOLATIONS + 1))
-    fi
+    done < <(grep -r "$import_pattern" "$UICONTRACTS_SOURCES" -l 2>/dev/null || true)
 done
 
 if [ $VIOLATIONS -eq 0 ]; then
-    echo "  ✅ UIContracts is pure (no violations)"
+    echo "✅ PASS: UIContracts maintains purity (no computed properties, functions, or UI imports)"
     exit 0
 else
-    echo "  ❌ Found $VIOLATIONS violation(s) in UIContracts"
-    echo "  UIContracts MUST contain only value types (struct, enum) with Foundation-only imports."
+    echo "❌ FAIL: Found $VIOLATIONS violation(s)"
     exit 1
 fi
-

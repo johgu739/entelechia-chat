@@ -54,7 +54,7 @@ public enum WorkspaceViewModelError: LocalizedError {
 public struct NullCodexQuerying: CodexQuerying {
     public init() {}
     public func askAboutWorkspaceNode(
-        scope: WorkspaceScope,
+        scope: UIContracts.WorkspaceScope,
         question: String,
         onStream: ((String) -> Void)?
     ) async throws -> CodexAnswer {
@@ -114,11 +114,11 @@ public final class WorkspaceViewModel: ObservableObject, ConversationWorkspaceHa
     @Published public var todosError: String?
     @Published var streamingMessages: [UUID: String] = [:]
     @Published public var lastContextResult: UIContracts.UIContextBuildResult?
-    @Published public var lastContextSnapshot: ContextSnapshot?
+    @Published public var lastContextSnapshot: UIContracts.ContextSnapshot?
     @Published public var activeScope: UIContracts.ContextScopeChoice = .selection
     @Published public var modelChoice: UIContracts.ModelChoice = .codex
     @Published public var selectedDescriptorID: UIContracts.FileID?
-    @Published var workspaceState: WorkspaceViewState = WorkspaceViewState(
+    @Published var workspaceState: UIContracts.WorkspaceViewState = UIContracts.WorkspaceViewState(
         rootPath: nil,
         selectedDescriptorID: nil,
         selectedPath: nil,
