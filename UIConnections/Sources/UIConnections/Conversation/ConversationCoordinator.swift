@@ -1,6 +1,7 @@
 import Foundation
 import AppCoreEngine
 import Combine
+import UIContracts
 
 /// Internal workspace surface required for coordinating chat intents.
 /// UIConnections uses this internally; external code should not use it.
@@ -8,8 +9,8 @@ import Combine
 internal protocol ConversationWorkspaceHandling: AnyObject {
     func sendMessage(_ text: String, for conversation: Conversation) async
     func askCodex(_ text: String, for conversation: Conversation) async -> Conversation
-    func setContextScope(_ scope: ContextScopeChoice)
-    func setModelChoice(_ model: ModelChoice)
+    func setContextScope(_ scope: UIContracts.ContextScopeChoice)
+    func setModelChoice(_ model: UIContracts.ModelChoice)
     func canAskCodex() -> Bool
     var streamingMessages: [UUID: String] { get }
 }
@@ -124,21 +125,21 @@ public final class ConversationCoordinator: ObservableObject {
         await workspace.askCodex(text, for: conversation)
     }
     
-    public func setScopeChoice(_ choice: ContextScopeChoice) {
+    public func setScopeChoice(_ choice: UIContracts.ContextScopeChoice) {
         contextSelection.setScopeChoice(choice)
         workspace.setContextScope(choice)
     }
     
-    public func setModelChoice(_ choice: ModelChoice) {
+    public func setModelChoice(_ choice: UIContracts.ModelChoice) {
         contextSelection.setModelChoice(choice)
         workspace.setModelChoice(choice)
     }
     
-    public func scopeChoice() -> ContextScopeChoice {
+    public func scopeChoice() -> UIContracts.ContextScopeChoice {
         contextSelection.scopeChoice
     }
     
-    public func modelChoice() -> ModelChoice {
+    public func modelChoice() -> UIContracts.ModelChoice {
         contextSelection.modelChoice
     }
     

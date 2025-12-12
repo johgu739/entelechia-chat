@@ -31,7 +31,7 @@ let package = Package(
             dependencies: [
                 "UIConnections",
                 .product(name: "AppCoreEngine", package: "AppCoreEngine"),
-                .product(name: "AppAdapters", package: "AppAdapters")
+                .product(name: "UIContracts", package: "UIContracts")
             ]
         )
     ]

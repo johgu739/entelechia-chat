@@ -30,14 +30,14 @@ public final class ChatViewModel: ObservableObject {
     ) {
         self.coordinator = coordinator
         self.contextSelection = contextSelection
-        self.model = mapModelChoice(contextSelection.modelChoice)
-        self.contextScope = mapContextScopeChoice(contextSelection.scopeChoice)
+        self.model = contextSelection.modelChoice
+        self.contextScope = contextSelection.scopeChoice
         bindSelection()
     }
     
     public func selectModel(_ choice: UIContracts.ModelChoice) {
         if model != choice { model = choice }
-        coordinator.setModelChoice(mapToInternalModelChoice(choice))
+        coordinator.setModelChoice(choice)
     }
     
     public func setModelChoice(_ choice: UIContracts.ModelChoice) {
@@ -46,27 +46,11 @@ public final class ChatViewModel: ObservableObject {
     
     public func selectScope(_ choice: UIContracts.ContextScopeChoice) {
         if contextScope != choice { contextScope = choice }
-        coordinator.setScopeChoice(mapToInternalContextScopeChoice(choice))
+        coordinator.setScopeChoice(choice)
     }
     
     public func setScopeChoice(_ choice: UIContracts.ContextScopeChoice) {
         selectScope(choice)
-    }
-    
-    private func mapModelChoice(_ choice: ModelChoice) -> UIContracts.ModelChoice {
-        UIContracts.ModelChoice(rawValue: choice.rawValue) ?? .codex
-    }
-    
-    private func mapToInternalModelChoice(_ choice: UIContracts.ModelChoice) -> ModelChoice {
-        ModelChoice(rawValue: choice.rawValue) ?? .codex
-    }
-    
-    private func mapContextScopeChoice(_ choice: ContextScopeChoice) -> UIContracts.ContextScopeChoice {
-        UIContracts.ContextScopeChoice(rawValue: choice.rawValue) ?? .selection
-    }
-    
-    private func mapToInternalContextScopeChoice(_ choice: UIContracts.ContextScopeChoice) -> ContextScopeChoice {
-        ContextScopeChoice(rawValue: choice.rawValue) ?? .selection
     }
     
     public func clearText() {
@@ -228,9 +212,8 @@ public final class ChatViewModel: ObservableObject {
         contextSelection.$modelChoice
             .sink { [weak self] choice in
                 guard let self else { return }
-                let uiChoice = self.mapModelChoice(choice)
-                if self.model != uiChoice {
-                    self.model = uiChoice
+                if self.model != choice {
+                    self.model = choice
                 }
             }
             .store(in: &cancellables)
@@ -238,9 +221,8 @@ public final class ChatViewModel: ObservableObject {
         contextSelection.$scopeChoice
             .sink { [weak self] choice in
                 guard let self else { return }
-                let uiChoice = self.mapContextScopeChoice(choice)
-                if self.contextScope != uiChoice {
-                    self.contextScope = uiChoice
+                if self.contextScope != choice {
+                    self.contextScope = choice
                 }
             }
             .store(in: &cancellables)

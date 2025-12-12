@@ -7,6 +7,16 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 echo "==> Architecture layering guard"
 "${ROOT}/scripts/layering-guard.sh"
 
+# Test import guards must pass before any tests
+echo "==> ChatUI test import guard"
+"${ROOT}/scripts/chatui-test-import-guard.sh"
+
+echo "==> UIConnections test import guard"
+"${ROOT}/scripts/uiconnections-test-import-guard.sh"
+
+echo "==> AppCoreEngine test import guard"
+"${ROOT}/scripts/appcoreengine-test-import-guard.sh"
+
 # Canonical, deterministic package order.
 packages=(
   "AppCoreEngine"

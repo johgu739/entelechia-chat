@@ -239,7 +239,7 @@ public final class WorkspaceViewModel: ObservableObject, ConversationWorkspaceHa
     
     private func bindContextSelection(_ contextSelection: ContextSelectionState) {
         contextSelection.$scopeChoice
-            .sink { [weak self] (choice: ContextScopeChoice) in
+            .sink { [weak self] (choice: UIContracts.ContextScopeChoice) in
                 guard let self else { return }
                 self.activeScope = choice
                 self.coordinator.setContextScope(choice)
@@ -247,7 +247,7 @@ public final class WorkspaceViewModel: ObservableObject, ConversationWorkspaceHa
             .store(in: &cancellables)
         
         contextSelection.$modelChoice
-            .sink { [weak self] (choice: ModelChoice) in
+            .sink { [weak self] (choice: UIContracts.ModelChoice) in
                 guard let self else { return }
                 self.modelChoice = choice
                 self.coordinator.setModelChoice(choice)
@@ -269,13 +269,11 @@ public final class WorkspaceViewModel: ObservableObject, ConversationWorkspaceHa
     }
     
     public func setContextScope(_ scope: UIContracts.ContextScopeChoice) {
-        let internalScope = mapToInternalContextScopeChoice(scope)
-        coordinator.setContextScope(internalScope)
+        coordinator.setContextScope(scope)
     }
     
     public func setModelChoice(_ model: UIContracts.ModelChoice) {
-        let internalModel = mapToInternalModelChoice(model)
-        coordinator.setModelChoice(internalModel)
+        coordinator.setModelChoice(model)
     }
     
     public func canAskCodex() -> Bool {
@@ -443,13 +441,5 @@ public final class WorkspaceViewModel: ObservableObject, ConversationWorkspaceHa
     
     private func mapToUIContextBuildResult(_ result: AppCoreEngine.ContextBuildResult) -> UIContracts.UIContextBuildResult {
         DomainToUIMappers.toUIContextBuildResult(result)
-    }
-    
-    private func mapToInternalContextScopeChoice(_ choice: UIContracts.ContextScopeChoice) -> ContextScopeChoice {
-        ContextScopeChoice(rawValue: choice.rawValue) ?? .selection
-    }
-    
-    private func mapToInternalModelChoice(_ choice: UIContracts.ModelChoice) -> ModelChoice {
-        ModelChoice(rawValue: choice.rawValue) ?? .codex
     }
 }

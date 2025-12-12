@@ -41,10 +41,10 @@
       ]
     },
     "ChatUITests": {
-      "allowedImports": ["Foundation", "XCTest", "ChatUI", "UIConnections", "SwiftUI", "AppKit", "Combine", "Darwin"]
+      "allowedImports": ["Foundation", "XCTest", "ChatUI", "UIContracts", "SwiftUI", "AppKit", "Combine", "Darwin"]
     },
     "UIConnections": {
-      "allowedImports": ["Foundation", "Combine", "os", "os.log", "AppCoreEngine", "AppAdapters"],
+      "allowedImports": ["Foundation", "Combine", "os", "os.log", "AppCoreEngine", "AppAdapters", "UIContracts"],
       "forbidden": [
         {
           "regex": "^import\\s+SwiftUI\\b",
@@ -73,7 +73,7 @@
       ]
     },
     "UIConnectionsTests": {
-      "allowedImports": ["Foundation", "XCTest", "UIConnections", "Combine", "os", "os.log", "AppCoreEngine", "AppAdapters"]
+      "allowedImports": ["Foundation", "XCTest", "UIConnections", "Combine", "os", "os.log", "AppCoreEngine", "UIContracts"]
     },
     "AppComposition": {
       "allowedImports": ["Foundation", "SwiftUI", "ChatUI", "UIConnections", "AppAdapters", "AppCoreEngine"]

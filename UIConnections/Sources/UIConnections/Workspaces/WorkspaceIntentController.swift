@@ -326,7 +326,7 @@ public final class WorkspaceIntentController: ObservableObject {
     private static func mapContextSnapshot(_ snapshot: UIConnections.ContextSnapshot?) -> UIContracts.ContextSnapshot? {
         guard let snapshot = snapshot else { return nil }
         return UIContracts.ContextSnapshot(
-            scope: mapContextScopeChoice(snapshot.scope),
+            scope: snapshot.scope,
             snapshotHash: snapshot.snapshotHash,
             segments: snapshot.segments.map { mapContextSegmentDescriptor($0) },
             includedFiles: snapshot.includedFiles.map { mapContextFileDescriptor($0) },
@@ -406,10 +406,6 @@ public final class WorkspaceIntentController: ObservableObject {
             maxTotalBytes: budget.maxTotalBytes,
             maxTotalTokens: budget.maxTotalTokens
         )
-    }
-    
-    private static func mapContextScopeChoice(_ choice: UIConnections.ContextScopeChoice) -> UIContracts.ContextScopeChoice {
-        UIContracts.ContextScopeChoice(rawValue: choice.rawValue) ?? .selection
     }
     
     private func mapFolderStats(_ stats: FileMetadataViewModel.FolderStats) -> UIContracts.FolderStats {

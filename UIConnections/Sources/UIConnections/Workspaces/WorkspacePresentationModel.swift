@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import AppCoreEngine
+import UIContracts
 
 /// Internal UI state container for workspace presentation.
 /// UIConnections uses this internally; external code should not use it.
@@ -18,8 +19,8 @@ internal final class WorkspacePresentationModel: ObservableObject {
     @Published public var expandedDescriptorIDs: Set<FileID> = []
     @Published public var projectTodos: ProjectTodos = .empty
     @Published public var todosError: String?
-    @Published public var activeScope: ContextScopeChoice = .selection
-    @Published public var modelChoice: ModelChoice = .codex
+    @Published public var activeScope: UIContracts.ContextScopeChoice = .selection
+    @Published public var modelChoice: UIContracts.ModelChoice = .codex
     @Published public var selectedDescriptorID: FileID?
     @Published public var watcherError: String?
     

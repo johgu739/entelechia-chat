@@ -217,11 +217,11 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
         currentWorkspaceScope() != nil
     }
     
-    public func setContextScope(_ scope: ContextScopeChoice) {
+    public func setContextScope(_ scope: UIContracts.ContextScopeChoice) {
         presentationModel.activeScope = scope
     }
     
-    public func setModelChoice(_ model: ModelChoice) {
+    public func setModelChoice(_ model: UIContracts.ModelChoice) {
         presentationModel.modelChoice = model
     }
     
@@ -255,7 +255,7 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
         )
         
         return UIContracts.ContextSnapshot(
-            scope: mapContextScopeChoice(presentationModel.activeScope),
+            scope: presentationModel.activeScope,
             snapshotHash: workspaceSnapshot.snapshotHash,
             segments: segments,
             includedFiles: included,
@@ -325,10 +325,6 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
                 isTruncated: false
             )
         }
-    }
-    
-    private func mapContextScopeChoice(_ choice: ContextScopeChoice) -> UIContracts.ContextScopeChoice {
-        UIContracts.ContextScopeChoice(rawValue: choice.rawValue) ?? .selection
     }
     
     // MARK: - Error Handling
