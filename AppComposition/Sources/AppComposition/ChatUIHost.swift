@@ -26,15 +26,12 @@ public struct ChatUIHost: View {
         self.projectTodosLoader = container.projectTodosLoader
         self.codexService = container.codexService
         let contextSelection = ContextSelectionState()
-        // WorkspaceViewModel will create its own coordinator internally
-        // We need to pass errorAuthority to it, but WorkspaceViewModel doesn't accept it yet
-        // For now, WorkspaceViewModel creates its own DomainErrorAuthority internally
-        // This will be refactored in a future step to inject it properly
         let workspaceVM = WorkspaceViewModel(
             workspaceEngine: container.workspaceEngine,
             conversationEngine: container.conversationEngine,
             projectTodosLoader: container.projectTodosLoader,
             codexService: container.codexService,
+            domainErrorAuthority: container.domainErrorAuthority,
             contextSelection: contextSelection
         )
         _workspaceViewModel = StateObject(wrappedValue: workspaceVM)

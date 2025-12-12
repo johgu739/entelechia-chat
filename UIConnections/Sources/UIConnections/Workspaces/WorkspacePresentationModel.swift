@@ -20,14 +20,6 @@ public final class WorkspacePresentationModel: ObservableObject {
     @Published public var activeScope: ContextScopeChoice = .selection
     @Published public var modelChoice: ModelChoice = .codex
     @Published public var selectedDescriptorID: FileID?
-    @Published public var workspaceState: WorkspaceViewState = WorkspaceViewState(
-        rootPath: nil,
-        selectedDescriptorID: nil,
-        selectedPath: nil,
-        projection: nil,
-        contextInclusions: [:],
-        watcherError: nil
-    )
     @Published public var watcherError: String?
     
     public init() {}

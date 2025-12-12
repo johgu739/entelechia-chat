@@ -78,7 +78,7 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
         }
     }
     
-    public func askCodex(_ text: String, for conversation: Conversation) async -> Conversation {
+    public     func askCodex(_ text: String, for conversation: Conversation) async -> Conversation {
         presentationModel.isLoading = true
         projection.streamingMessages[conversation.id] = ""
         defer {
@@ -87,7 +87,10 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
         }
 
         guard let scope = currentWorkspaceScope() else {
-            // Error will be handled by error authority
+            errorAuthority.publish(
+                EngineError.contextLoadFailed("No selection"),
+                context: "Codex Error"
+            )
             return conversation
         }
 
@@ -116,7 +119,7 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
                 return updated
             }
         } catch {
-            // Error will be handled by error authority
+            errorAuthority.publish(error, context: "Codex Error")
             return conversation
         }
     }
@@ -398,8 +401,111 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
         presentationModel.workspaceState.projection?.flattenedPaths ?? [:]
     }
     
-    private func url(for descriptorID: FileID) -> URL? {
+    func url(for descriptorID: FileID) -> URL? {
         descriptorPaths[descriptorID].map { URL(fileURLWithPath: $0) }
+    }
+    
+    // MARK: - Workspace Operations
+    
+    func openWorkspace(at url: URL) async {
+        presentationModel.isLoading = true
+        defer { presentationModel.isLoading = false }
+        do {
+            let snapshot = try await withTimeout(seconds: 30) { [self] in
+                try await workspaceEngine.openWorkspace(rootPath: url.path)
+            }
+            workspaceSnapshot = snapshot
+            let projection = await workspaceEngine.treeProjection()
+            // Update will be handled by WorkspaceStateObserver
+            loadProjectTodos(for: url)
+        } catch let timeout as TimeoutError {
+            errorAuthority.publish(timeout, context: "Load Timed Out")
+        } catch {
+            errorAuthority.publish(error, context: "Failed to Load Project")
+        }
+    }
+    
+    func selectPath(_ url: URL?) async {
+        do {
+            let snapshot = try await withTimeout(seconds: 10) { [self] in
+                try await workspaceEngine.select(path: url?.path)
+            }
+            workspaceSnapshot = snapshot
+            // Update will be handled by WorkspaceStateObserver
+        } catch let timeout as TimeoutError {
+            errorAuthority.publish(timeout, context: "Selection Timed Out")
+        } catch {
+            errorAuthority.publish(error, context: "Failed to Select File")
+        }
+    }
+    
+    func loadProjectTodos(for root: URL?) {
+        guard let root else {
+            presentationModel.projectTodos = .empty
+            presentationModel.todosError = nil
+            return
+        }
+        Task {
+            do {
+                let todos = try projectTodosLoader.loadTodos(for: root)
+                await MainActor.run {
+                    presentationModel.projectTodos = todos
+                    presentationModel.todosError = nil
+                }
+            } catch {
+                await MainActor.run {
+                    presentationModel.projectTodos = .empty
+                    presentationModel.todosError = "Failed to load ProjectTodos.ent.json: \(error.localizedDescription)"
+                }
+            }
+        }
+    }
+    
+    func setContextInclusion(_ include: Bool, for url: URL) {
+        guard workspaceSnapshot.rootPath != nil else { return }
+        Task {
+            do {
+                let snapshot = try await workspaceEngine.setContextInclusion(path: url.path, included: include)
+                workspaceSnapshot = snapshot
+                let projection = await workspaceEngine.treeProjection()
+                // Update will be handled by WorkspaceStateObserver
+            } catch {
+                errorAuthority.publish(error, context: "Set Context Inclusion")
+            }
+        }
+    }
+    
+    func isPathIncludedInContext(_ url: URL) -> Bool {
+        guard workspaceSnapshot.rootPath != nil else { return true }
+        let path = url.path
+        if let descriptorID = workspaceSnapshot.descriptorPaths.first(where: { $0.value == path })?.key,
+           let inclusion = workspaceSnapshot.contextInclusions[descriptorID] {
+            switch inclusion {
+            case .excluded:
+                return false
+            case .included:
+                return true
+            case .neutral:
+                return true
+            }
+        }
+        return true
+    }
+    
+    func toggleExpanded(descriptorID: FileID) {
+        if presentationModel.expandedDescriptorIDs.contains(descriptorID) {
+            presentationModel.expandedDescriptorIDs.remove(descriptorID)
+        } else {
+            presentationModel.expandedDescriptorIDs.insert(descriptorID)
+        }
+    }
+    
+    func isExpanded(descriptorID: FileID) -> Bool {
+        presentationModel.expandedDescriptorIDs.contains(descriptorID)
+    }
+    
+    func publishFileBrowserError(_ error: Error) {
+        errorAuthority.publish(error, context: "Failed to Read Folder")
     }
     
     // MARK: - Workspace Snapshot Access

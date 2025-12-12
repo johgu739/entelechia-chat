@@ -36,8 +36,8 @@ public final class WorkspaceStateObserver {
     }
     
     private func applyUpdate(_ update: WorkspaceUpdate) {
-        // Project to presentation model (UI state)
-        let previousRoot = presentationModel.workspaceState.rootPath
+        // Project to projection model (domain-derived state)
+        let previousRoot = projection.workspaceState.rootPath
         let notice: WorkspaceErrorNotice? = {
             guard let err = update.error else { return nil }
             switch err {
@@ -46,7 +46,7 @@ public final class WorkspaceStateObserver {
             }
         }()
         let mapped = WorkspaceViewStateMapper.map(update: update, watcherError: notice)
-        presentationModel.workspaceState = mapped
+        projection.workspaceState = mapped
         
         if previousRoot != mapped.rootPath {
             presentationModel.expandedDescriptorIDs.removeAll()

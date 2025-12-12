@@ -122,26 +122,18 @@ public final class WorkspaceViewModel: ObservableObject, ConversationWorkspaceHa
     )
     @Published public var watcherError: String?
     
-    // MARK: - Dependencies (Kept for backward compatibility)
+    // MARK: - Internal State
     
-    let workspaceEngine: WorkspaceEngine
-    let conversationEngine: ConversationStreaming
-    let projectTodosLoader: ProjectTodosLoading
-    let codexService: CodexQuerying
-    var alertCenter: AlertCenter?
-    let contextSelection: ContextSelectionState
-    let logger = Logger(subsystem: "UIConnections", category: "WorkspaceViewModel")
-    let contextErrorSubject = PassthroughSubject<Error, Never>()
-    var cancellables: Set<AnyCancellable> = []
+    private var cancellables: Set<AnyCancellable> = []
     
     // MARK: - Derived State
     
     public var rootDirectory: URL? {
-        presentationModel.workspaceState.rootPath.map { URL(fileURLWithPath: $0, isDirectory: true) }
+        projection.workspaceState.rootPath.map { URL(fileURLWithPath: $0, isDirectory: true) }
     }
     
     var descriptorPaths: [FileID: String] {
-        presentationModel.workspaceState.projection?.flattenedPaths ?? [:]
+        projection.workspaceState.projection?.flattenedPaths ?? [:]
     }
     
     // MARK: - Initialization
@@ -151,25 +143,15 @@ public final class WorkspaceViewModel: ObservableObject, ConversationWorkspaceHa
         conversationEngine: ConversationStreaming,
         projectTodosLoader: ProjectTodosLoading,
         codexService: CodexQuerying = NullCodexQuerying(),
-        alertCenter: AlertCenter? = nil,
+        domainErrorAuthority: DomainErrorAuthority,
         contextSelection: ContextSelectionState = ContextSelectionState()
     ) {
-        self.workspaceEngine = workspaceEngine
-        self.conversationEngine = conversationEngine
-        self.projectTodosLoader = projectTodosLoader
-        self.codexService = codexService
-        self.alertCenter = alertCenter
-        self.contextSelection = contextSelection
-        
         // Create new components
         let presentation = WorkspacePresentationModel()
         let projection = WorkspaceProjection()
         self.presentationModel = presentation
         self.projection = projection
         
-        // Note: DomainErrorAuthority will be injected via ChatUIHost in the future
-        // For now, create a temporary one (this will be fixed when ChatUIHost is updated)
-        let errorAuthority = DomainErrorAuthority()
         let coordinator = WorkspaceCoordinator(
             workspaceEngine: workspaceEngine,
             conversationEngine: conversationEngine,
@@ -177,7 +159,7 @@ public final class WorkspaceViewModel: ObservableObject, ConversationWorkspaceHa
             projectTodosLoader: projectTodosLoader,
             presentationModel: presentation,
             projection: projection,
-            errorAuthority: errorAuthority
+            errorAuthority: domainErrorAuthority
         )
         self.coordinator = coordinator
         
@@ -190,7 +172,7 @@ public final class WorkspaceViewModel: ObservableObject, ConversationWorkspaceHa
         
         // Sync published properties with underlying models
         syncWithUnderlyingModels()
-        bindContextSelection()
+        bindContextSelection(contextSelection)
     }
     
     private func syncWithUnderlyingModels() {
@@ -217,7 +199,7 @@ public final class WorkspaceViewModel: ObservableObject, ConversationWorkspaceHa
             .assign(to: &$modelChoice)
         presentationModel.$selectedDescriptorID
             .assign(to: &$selectedDescriptorID)
-        presentationModel.$workspaceState
+        projection.$workspaceState
             .assign(to: &$workspaceState)
         presentationModel.$watcherError
             .assign(to: &$watcherError)
@@ -248,10 +230,23 @@ public final class WorkspaceViewModel: ObservableObject, ConversationWorkspaceHa
             .sink { [weak self] in self?.presentationModel.expandedDescriptorIDs = $0 }
             .store(in: &cancellables)
     }
-
-    public func setAlertCenter(_ center: AlertCenter) {
-        guard alertCenter == nil else { return }
-        alertCenter = center
+    
+    private func bindContextSelection(_ contextSelection: ContextSelectionState) {
+        contextSelection.$scopeChoice
+            .sink { [weak self] (choice: ContextScopeChoice) in
+                guard let self else { return }
+                self.activeScope = choice
+                self.coordinator.setContextScope(choice)
+            }
+            .store(in: &cancellables)
+        
+        contextSelection.$modelChoice
+            .sink { [weak self] (choice: ModelChoice) in
+                guard let self else { return }
+                self.modelChoice = choice
+                self.coordinator.setModelChoice(choice)
+            }
+            .store(in: &cancellables)
     }
     
     // MARK: - ConversationWorkspaceHandling Protocol
@@ -280,5 +275,81 @@ public final class WorkspaceViewModel: ObservableObject, ConversationWorkspaceHa
     
     public var streamingPublisher: AnyPublisher<(UUID, String?), Never> {
         projection.streamingPublisher
+    }
+    
+    // MARK: - Public API (Thin Delegation)
+    
+    public func setRootDirectory(_ url: URL) {
+        Task { await coordinator.openWorkspace(at: url) }
+    }
+    
+    public func setSelectedURL(_ url: URL?) {
+        guard let url else {
+            Task { await coordinator.selectPath(nil) }
+            return
+        }
+        if let descriptorID = descriptorPaths.first(where: { $0.value == url.path })?.key {
+            setSelectedDescriptorID(descriptorID)
+            return
+        }
+        Task { await coordinator.selectPath(url) }
+    }
+    
+    public func setSelectedDescriptorID(_ id: FileID?) {
+        guard let id else {
+            Task { await coordinator.selectPath(nil) }
+            return
+        }
+        if let path = descriptorPaths[id] {
+            Task { await coordinator.selectPath(URL(fileURLWithPath: path)) }
+        }
+    }
+    
+    public func toggleExpanded(descriptorID: FileID) {
+        coordinator.toggleExpanded(descriptorID: descriptorID)
+    }
+    
+    public func isExpanded(descriptorID: FileID) -> Bool {
+        coordinator.isExpanded(descriptorID: descriptorID)
+    }
+    
+    public func streamingText(for conversationID: UUID) -> String {
+        projection.streamingMessages[conversationID] ?? ""
+    }
+    
+    public func url(for descriptorID: FileID) -> URL? {
+        coordinator.url(for: descriptorID)
+    }
+    
+    public func publishFileBrowserError(_ error: Error) {
+        coordinator.publishFileBrowserError(error)
+    }
+    
+    public func conversation(for url: URL) async -> Conversation {
+        await coordinator.conversation(for: url)
+    }
+    
+    public func conversation(forDescriptorID descriptorID: FileID) async -> Conversation? {
+        await coordinator.conversation(forDescriptorID: descriptorID)
+    }
+    
+    public func ensureConversation(for url: URL) async {
+        await coordinator.ensureConversation(for: url)
+    }
+    
+    public func ensureConversation(forDescriptorID descriptorID: FileID) async {
+        await coordinator.ensureConversation(forDescriptorID: descriptorID)
+    }
+    
+    public func isPathIncludedInContext(_ url: URL) -> Bool {
+        coordinator.isPathIncludedInContext(url)
+    }
+    
+    public func setContextInclusion(_ include: Bool, for url: URL) {
+        coordinator.setContextInclusion(include, for: url)
+    }
+    
+    public func contextForMessage(_ id: UUID) -> ContextBuildResult? {
+        coordinator.contextForMessage(id)
     }
 }

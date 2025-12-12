@@ -12,6 +12,14 @@ public final class WorkspaceProjection: ObservableObject {
     @Published public var streamingMessages: [UUID: String] = [:]
     @Published public var lastContextResult: ContextBuildResult?
     @Published public var lastContextSnapshot: ContextSnapshot?
+    @Published public var workspaceState: WorkspaceViewState = WorkspaceViewState(
+        rootPath: nil,
+        selectedDescriptorID: nil,
+        selectedPath: nil,
+        projection: nil,
+        contextInclusions: [:],
+        watcherError: nil
+    )
     
     // MARK: - Streaming Publisher for Observation
     
