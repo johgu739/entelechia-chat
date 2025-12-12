@@ -12,11 +12,11 @@ final class IntentHandlerContractTests: XCTestCase {
 
     func testChatIntentHandlerReceivesCorrectIntents() {
         // Test that chat intent handler receives various ChatIntent types
+        let conversationID = UUID()
         let chatIntents: [UIContracts.ChatIntent] = [
-            .sendMessage("Hello, world!"),
-            .askCodex("What is the meaning of life?"),
-            .clearMessages,
-            .setModel(.codex),
+            .sendMessage("Hello, world!", conversationID),
+            .askCodex("What is the meaning of life?", conversationID),
+            .setModelChoice(.codex),
             .setContextScope(.workspace)
         ]
 
@@ -34,7 +34,7 @@ final class IntentHandlerContractTests: XCTestCase {
     func testChatIntentHandlerWithComplexData() {
         // Test chat intent handler with complex data structures
         let longMessage = String(repeating: "This is a long message. ", count: 100)
-        let sendIntent = UIContracts.ChatIntent.sendMessage(longMessage)
+        let sendIntent = UIContracts.ChatIntent.sendMessage(longMessage, UUID())
 
         var receivedIntent: UIContracts.ChatIntent?
         let handler: (UIContracts.ChatIntent) -> Void = { receivedIntent = $0 }
@@ -115,8 +115,8 @@ final class IntentHandlerContractTests: XCTestCase {
         var callCount = 0
         let handler: (UIContracts.ChatIntent) -> Void = { _ in callCount += 1 }
 
-        let intent1 = UIContracts.ChatIntent.sendMessage("First")
-        let intent2 = UIContracts.ChatIntent.sendMessage("Second")
+        let intent1 = UIContracts.ChatIntent.sendMessage("First", UUID())
+        let intent2 = UIContracts.ChatIntent.sendMessage("Second", UUID())
 
         handler(intent1)
         handler(intent2)
@@ -189,7 +189,7 @@ final class IntentHandlerContractTests: XCTestCase {
 
         // Test that handlers are properly assigned by calling them directly
         // (In real UI, these would be called by user interactions)
-        let testChatIntent = UIContracts.ChatIntent.sendMessage("test")
+        let testChatIntent = UIContracts.ChatIntent.sendMessage("test", UUID())
         if let chatHandler = mirrorProperty(view, "onChatIntent") as? (UIContracts.ChatIntent) -> Void {
             chatHandler(testChatIntent)
             XCTAssertEqual(chatIntentReceived, testChatIntent, "Chat intent should be received")
@@ -235,11 +235,14 @@ final class IntentHandlerContractTests: XCTestCase {
 
     func testChatIntentParametersAreValidated() {
         // Test that ChatIntent parameters are properly structured
+        let conversationID = UUID()
         let intentsWithParams: [(UIContracts.ChatIntent, String)] = [
-            (.sendMessage(""), "empty message"),
-            (.sendMessage("normal message"), "normal message"),
-            (.askCodex(""), "empty question"),
-            (.askCodex("What is Swift?"), "normal question")
+            (.sendMessage("", conversationID), "empty message"),
+            (.sendMessage("normal message", conversationID), "normal message"),
+            (.askCodex("", conversationID), "empty question"),
+            (.askCodex("What is Swift?", conversationID), "normal question"),
+            (.setModelChoice(.codex), "model choice"),
+            (.setContextScope(.workspace), "context scope")
         ]
 
         for (intent, description) in intentsWithParams {
@@ -277,7 +280,7 @@ final class IntentHandlerContractTests: XCTestCase {
 
     func testIntentHandlersAreSendable() {
         // Test that intent handlers can be used across threads (Sendable requirement)
-        let chatIntent = UIContracts.ChatIntent.sendMessage("thread safe")
+        let chatIntent = UIContracts.ChatIntent.sendMessage("thread safe", UUID())
         let workspaceIntent = UIContracts.WorkspaceIntent.selectFile("/thread/safe.swift")
 
         var chatReceived = false
