@@ -18,7 +18,7 @@ public struct RecentProject: Equatable, Sendable {
 public final class ProjectCoordinator: ObservableObject {
     public let projectEngine: ProjectEngine
     private let projectSession: ProjectSessioning
-    private let alertCenter: AlertCenter
+    private let errorAuthority: DomainErrorAuthority
     private let logger = Logger(subsystem: "UIConnections", category: "ProjectCoordinator")
     private let securityScopeHandler: SecurityScopeHandling
     private let projectMetadataHandler: ProjectMetadataHandling
@@ -26,13 +26,13 @@ public final class ProjectCoordinator: ObservableObject {
     public init(
         projectEngine: ProjectEngine,
         projectSession: ProjectSessioning,
-        alertCenter: AlertCenter,
+        errorAuthority: DomainErrorAuthority,
         securityScopeHandler: SecurityScopeHandling,
         projectMetadataHandler: ProjectMetadataHandling
     ) {
         self.projectEngine = projectEngine
         self.projectSession = projectSession
-        self.alertCenter = alertCenter
+        self.errorAuthority = errorAuthority
         self.securityScopeHandler = securityScopeHandler
         self.projectMetadataHandler = projectMetadataHandler
     }
@@ -50,7 +50,7 @@ public final class ProjectCoordinator: ObservableObject {
             projectSession.open(resolvedURL, name: stored.name, bookmarkData: bookmarkData)
         } catch {
             logger.error("Failed to open project at \(url.path): \(error.localizedDescription)")
-            alertCenter.publish(error, fallbackTitle: "Project Open Failed")
+            errorAuthority.publish(error, context: "Open project")
         }
     }
     
@@ -74,7 +74,7 @@ public final class ProjectCoordinator: ObservableObject {
                 "Failed to open recent project \(project.representation.rootPath): " +
                 "\(error.localizedDescription)"
             )
-            alertCenter.publish(error, fallbackTitle: "Open Recent Failed")
+            errorAuthority.publish(error, context: "Open recent project")
         }
     }
     

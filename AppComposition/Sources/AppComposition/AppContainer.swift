@@ -15,7 +15,11 @@ public struct AppContainer {
     public let alertCenter: AlertCenter
     public let projectTodosLoader: ProjectTodosLoading
     public let projectMetadataHandler: ProjectMetadataHandling
-    public let codexService: CodexService
+    public let codexService: CodexQueryService
+    public let fileMutationService: FileMutationPlanning
+    public let fileMutationAuthority: FileMutationAuthorizing
+    public let domainErrorAuthority: DomainErrorAuthority
+    public let errorRouter: UIPresentationErrorRouter
     public let engines: Engines
 
     public init(
@@ -55,15 +59,15 @@ public struct AppContainer {
             persistence: conversationPersistence,
             fileLoader: fileContentLoader
         )
+        let fileMutationService = FileMutationService()
         let mutationAuthority = FileMutationAuthority()
         let retryPolicy = RetryPolicyImpl()
-        let codexService = CodexService(
+        let codexService = CodexQueryService(
             conversationEngine: ConversationEngineBox(engine: conversationEngine),
             workspaceEngine: workspaceEngine,
             codexClient: codexBuild.client,
             fileLoader: fileContentLoader,
-            retryPolicy: retryPolicy,
-            mutationAuthority: mutationAuthority
+            retryPolicy: retryPolicy
         )
 
         self.securityScope = securityScope
@@ -72,6 +76,17 @@ public struct AppContainer {
         self.projectTodosLoader = projectTodosLoader
         self.projectMetadataHandler = projectMetadataHandler
         self.codexService = codexService
+        self.fileMutationService = fileMutationService
+        self.fileMutationAuthority = mutationAuthority
+        
+        // Error authority
+        let domainErrorAuthority = DomainErrorAuthority()
+        let errorRouter = UIPresentationErrorRouter(
+            alertCenter: alertCenter,
+            domainErrorAuthority: domainErrorAuthority
+        )
+        self.domainErrorAuthority = domainErrorAuthority
+        self.errorRouter = errorRouter
         self.engines = Engines(
             workspace: workspaceEngine,
             project: projectEngine,

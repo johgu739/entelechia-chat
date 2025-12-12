@@ -26,6 +26,10 @@ public struct ChatUIHost: View {
         self.projectTodosLoader = container.projectTodosLoader
         self.codexService = container.codexService
         let contextSelection = ContextSelectionState()
+        // WorkspaceViewModel will create its own coordinator internally
+        // We need to pass errorAuthority to it, but WorkspaceViewModel doesn't accept it yet
+        // For now, WorkspaceViewModel creates its own DomainErrorAuthority internally
+        // This will be refactored in a future step to inject it properly
         let workspaceVM = WorkspaceViewModel(
             workspaceEngine: container.workspaceEngine,
             conversationEngine: container.conversationEngine,
@@ -46,14 +50,15 @@ public struct ChatUIHost: View {
         let session = ProjectSession(
             projectEngine: container.projectEngine,
             workspaceEngine: container.workspaceEngine,
-            securityScopeHandler: container.securityScopeHandler
+            securityScopeHandler: container.securityScopeHandler,
+            errorAuthority: container.domainErrorAuthority
         )
         _projectSession = StateObject(wrappedValue: session)
         
         _projectCoordinator = StateObject(wrappedValue: ProjectCoordinator(
             projectEngine: container.projectEngine,
             projectSession: session,
-            alertCenter: alertCenter,
+            errorAuthority: container.domainErrorAuthority,
             securityScopeHandler: container.securityScopeHandler,
             projectMetadataHandler: container.projectMetadataHandler
         ))
@@ -66,7 +71,7 @@ public struct ChatUIHost: View {
         
         // Bind context error publisher to presentation view model
         coordinator.bind(
-            publisher: workspaceVM.contextErrorPublisher,
+            publisher: container.errorRouter.contextErrorPublisher,
             to: presentationVM
         )
         

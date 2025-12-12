@@ -84,9 +84,19 @@ public enum NavigatorMode: String, CaseIterable {
     }
 }
 
+/// Thin wrapper for backward compatibility.
+/// Delegates to WorkspaceCoordinator, WorkspacePresentationModel, and WorkspaceProjection.
+/// Power: Descriptive (thin mapping/facade only)
 @MainActor
 public final class WorkspaceViewModel: ObservableObject, ConversationWorkspaceHandling {
-    // MARK: - Published State (UI State Only)
+    // MARK: - Internal Components
+    
+    private let coordinator: WorkspaceCoordinator
+    private let presentationModel: WorkspacePresentationModel
+    private let projection: WorkspaceProjection
+    private let stateObserver: WorkspaceStateObserver
+    
+    // MARK: - Published State (Synced with presentationModel and projection)
     
     @Published public var selectedNode: FileNode?
     @Published public var rootFileNode: FileNode?
@@ -111,9 +121,8 @@ public final class WorkspaceViewModel: ObservableObject, ConversationWorkspaceHa
         watcherError: nil
     )
     @Published public var watcherError: String?
-    var updatesTask: Task<Void, Never>?
     
-    // MARK: - Dependencies (Services)
+    // MARK: - Dependencies (Kept for backward compatibility)
     
     let workspaceEngine: WorkspaceEngine
     let conversationEngine: ConversationStreaming
@@ -128,16 +137,12 @@ public final class WorkspaceViewModel: ObservableObject, ConversationWorkspaceHa
     // MARK: - Derived State
     
     public var rootDirectory: URL? {
-        workspaceSnapshot.rootPath.map { URL(fileURLWithPath: $0, isDirectory: true) }
+        presentationModel.workspaceState.rootPath.map { URL(fileURLWithPath: $0, isDirectory: true) }
     }
     
     var descriptorPaths: [FileID: String] {
-        workspaceState.projection?.flattenedPaths ?? [:]
+        presentationModel.workspaceState.projection?.flattenedPaths ?? [:]
     }
-    
-    // MARK: - Private State
-    var workspaceSnapshot: WorkspaceSnapshot = .empty
-    var codexContextByMessageID: [UUID: ContextBuildResult] = [:]
     
     // MARK: - Initialization
     
@@ -155,12 +160,125 @@ public final class WorkspaceViewModel: ObservableObject, ConversationWorkspaceHa
         self.codexService = codexService
         self.alertCenter = alertCenter
         self.contextSelection = contextSelection
+        
+        // Create new components
+        let presentation = WorkspacePresentationModel()
+        let projection = WorkspaceProjection()
+        self.presentationModel = presentation
+        self.projection = projection
+        
+        // Note: DomainErrorAuthority will be injected via ChatUIHost in the future
+        // For now, create a temporary one (this will be fixed when ChatUIHost is updated)
+        let errorAuthority = DomainErrorAuthority()
+        let coordinator = WorkspaceCoordinator(
+            workspaceEngine: workspaceEngine,
+            conversationEngine: conversationEngine,
+            codexService: codexService,
+            projectTodosLoader: projectTodosLoader,
+            presentationModel: presentation,
+            projection: projection,
+            errorAuthority: errorAuthority
+        )
+        self.coordinator = coordinator
+        
+        let observer = WorkspaceStateObserver(
+            workspaceEngine: workspaceEngine,
+            presentationModel: presentation,
+            projection: projection
+        )
+        self.stateObserver = observer
+        
+        // Sync published properties with underlying models
+        syncWithUnderlyingModels()
         bindContextSelection()
-        subscribeToUpdates()
+    }
+    
+    private func syncWithUnderlyingModels() {
+        // Sync presentation model properties
+        presentationModel.$selectedNode
+            .assign(to: &$selectedNode)
+        presentationModel.$rootFileNode
+            .assign(to: &$rootFileNode)
+        presentationModel.$isLoading
+            .assign(to: &$isLoading)
+        presentationModel.$filterText
+            .assign(to: &$filterText)
+        presentationModel.$activeNavigator
+            .assign(to: &$activeNavigator)
+        presentationModel.$expandedDescriptorIDs
+            .assign(to: &$expandedDescriptorIDs)
+        presentationModel.$projectTodos
+            .assign(to: &$projectTodos)
+        presentationModel.$todosError
+            .assign(to: &$todosError)
+        presentationModel.$activeScope
+            .assign(to: &$activeScope)
+        presentationModel.$modelChoice
+            .assign(to: &$modelChoice)
+        presentationModel.$selectedDescriptorID
+            .assign(to: &$selectedDescriptorID)
+        presentationModel.$workspaceState
+            .assign(to: &$workspaceState)
+        presentationModel.$watcherError
+            .assign(to: &$watcherError)
+        
+        // Sync projection properties
+        projection.$streamingMessages
+            .assign(to: &$streamingMessages)
+        projection.$lastContextResult
+            .assign(to: &$lastContextResult)
+        projection.$lastContextSnapshot
+            .assign(to: &$lastContextSnapshot)
+        
+        // Also sync in reverse for user-initiated changes
+        $selectedNode
+            .dropFirst()
+            .sink { [weak self] in self?.presentationModel.selectedNode = $0 }
+            .store(in: &cancellables)
+        $filterText
+            .dropFirst()
+            .sink { [weak self] in self?.presentationModel.filterText = $0 }
+            .store(in: &cancellables)
+        $activeNavigator
+            .dropFirst()
+            .sink { [weak self] in self?.presentationModel.activeNavigator = $0 }
+            .store(in: &cancellables)
+        $expandedDescriptorIDs
+            .dropFirst()
+            .sink { [weak self] in self?.presentationModel.expandedDescriptorIDs = $0 }
+            .store(in: &cancellables)
     }
 
     public func setAlertCenter(_ center: AlertCenter) {
         guard alertCenter == nil else { return }
         alertCenter = center
+    }
+    
+    // MARK: - ConversationWorkspaceHandling Protocol
+    
+    public func sendMessage(_ text: String, for conversation: Conversation) async {
+        await coordinator.sendMessage(text, for: conversation)
+    }
+    
+    public func askCodex(_ text: String, for conversation: Conversation) async -> Conversation {
+        await coordinator.askCodex(text, for: conversation)
+    }
+    
+    public func setContextScope(_ scope: ContextScopeChoice) {
+        coordinator.setContextScope(scope)
+    }
+    
+    public func setModelChoice(_ model: ModelChoice) {
+        coordinator.setModelChoice(model)
+    }
+    
+    public func canAskCodex() -> Bool {
+        coordinator.canAskCodex()
+    }
+    
+    // MARK: - Streaming Publisher Access
+    
+    public var streamingPublisher: AnyPublisher<(UUID, String?), Never> {
+        projection.streamingPublisher
     }
 }

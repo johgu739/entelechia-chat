@@ -13,9 +13,12 @@ public final class FileMutationAuthority: FileMutationAuthorizing {
         self.rootProvider = rootProvider
     }
 
-    public func apply(diffs: [FileDiff], rootPath: String) throws -> [AppliedPatchResult] {
-        let canonical = try rootProvider.canonicalRoot(for: rootPath)
-        return try applier.apply(diffs: diffs, in: URL(fileURLWithPath: canonical))
+    public func execute(_ plan: MutationPlan) throws -> [AppliedPatchResult] {
+        guard plan.isValid else {
+            throw EngineError.invalidMutation("Validation errors: \(plan.validationErrors.joined(separator: ", "))")
+        }
+        let rootURL = URL(fileURLWithPath: plan.canonicalRoot)
+        return try applier.apply(diffs: plan.fileDiffs, in: rootURL)
     }
 }
 

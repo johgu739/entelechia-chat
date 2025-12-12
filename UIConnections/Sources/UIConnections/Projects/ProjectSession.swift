@@ -49,20 +49,18 @@ public final class ProjectSession: ObservableObject, ProjectSessioning {
     private var activeSecurityScopedURL: URL?
     private var hasActiveSecurityScope: Bool = false
     private let logger = Logger(subsystem: "UIConnections", category: "ProjectSession")
-    private var alertCenter: AlertCenter?
+    private let errorAuthority: DomainErrorAuthority
     
     public init(
         projectEngine: ProjectEngine,
         workspaceEngine: WorkspaceEngine,
-        securityScopeHandler: SecurityScopeHandling
+        securityScopeHandler: SecurityScopeHandling,
+        errorAuthority: DomainErrorAuthority
     ) {
         self.projectEngine = projectEngine
         self.workspaceEngine = workspaceEngine
         self.securityScopeHandler = securityScopeHandler
-    }
-    
-    public func setAlertCenter(_ center: AlertCenter) {
-        alertCenter = center
+        self.errorAuthority = errorAuthority
     }
     
     public func open(_ url: URL, name: String? = nil, bookmarkData: Data? = nil) {
@@ -73,14 +71,14 @@ public final class ProjectSession: ObservableObject, ProjectSessioning {
         } catch {
             logger.error("Failed to resolve project directory: \(error.localizedDescription)")
             let wrapped = ProjectSessionError.invalidProjectURL(url, error)
-            alertCenter?.publish(wrapped, fallbackTitle: "Unable to Open Project")
+            errorAuthority.publish(wrapped, context: "Open project")
             return
         }
         
         guard FileManager.default.fileExists(atPath: resolvedURL.path) else {
             logger.error("Project path does not exist: \(resolvedURL.path)")
             let wrapped = ProjectSessionError.missingProjectDirectory(resolvedURL.path)
-            alertCenter?.publish(wrapped, fallbackTitle: "Unable to Open Project")
+            errorAuthority.publish(wrapped, context: "Open project")
             return
         }
         
@@ -107,7 +105,7 @@ public final class ProjectSession: ObservableObject, ProjectSessioning {
         } catch {
             logger.error("Failed to reload files: \(error.localizedDescription)")
             let wrapped = ProjectSessionError.reloadFailed(error)
-            alertCenter?.publish(wrapped, fallbackTitle: "Failed to Reload Project")
+            errorAuthority.publish(wrapped, context: "Reload project")
             return .empty
         }
     }

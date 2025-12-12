@@ -8,9 +8,10 @@ public enum CodexAvailability {
 }
 
 /// Service for querying Codex/AI models with workspace context.
+/// Power: Descriptive (queries LLM) - no file mutation authority.
 /// Marked `@unchecked Sendable` because internal dependencies (engines, clients) are
 /// thread-safe and accessed via async/await boundaries.
-public final class CodexService: @unchecked Sendable, CodexQuerying {
+public final class CodexQueryService: @unchecked Sendable, CodexQuerying {
     private let conversationEngine: ConversationStreaming
     private let workspaceEngine: WorkspaceEngine
     private let codexClient: AnyCodexClient
@@ -19,7 +20,6 @@ public final class CodexService: @unchecked Sendable, CodexQuerying {
     private let segmenter: WorkspaceContextSegmenter
     private let retryPolicy: AppCoreEngine.RetryPolicy
     private let promptShaper: CodexPromptShaper
-    private let mutationPipeline: CodexMutationPipeline
 
     public init(
         conversationEngine: ConversationStreaming,
@@ -27,8 +27,7 @@ public final class CodexService: @unchecked Sendable, CodexQuerying {
         codexClient: AnyCodexClient,
         fileLoader: FileContentLoading,
         contextSegmenter: WorkspaceContextSegmenter = WorkspaceContextSegmenter(),
-        retryPolicy: AppCoreEngine.RetryPolicy,
-        mutationAuthority: FileMutationAuthorizing
+        retryPolicy: AppCoreEngine.RetryPolicy
     ) {
         self.conversationEngine = conversationEngine
         self.workspaceEngine = workspaceEngine
@@ -37,16 +36,11 @@ public final class CodexService: @unchecked Sendable, CodexQuerying {
         self.contextEncoder = WorkspaceContextEncoder()
         self.segmenter = contextSegmenter
         self.retryPolicy = retryPolicy
-        self.mutationPipeline = CodexMutationPipeline(authority: mutationAuthority)
         self.promptShaper = CodexPromptShaper()
     }
 
     public func shapedPrompt(_ text: String) -> String {
         promptShaper.shape(text)
-    }
-
-    public func applyDiff(_ diffText: String, rootPath: String) throws -> [AppliedPatchResult] {
-        try mutationPipeline.applyUnifiedDiff(diffText, rootPath: rootPath)
     }
 
     public func askAboutWorkspaceNode(

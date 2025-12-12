@@ -11,5 +11,6 @@ public enum EngineError: Error, Sendable {
     case contextLoadFailed(String)
     case contextRequired(String)
     case conversationNotFound(String)
+    case invalidMutation(String)
 }
 

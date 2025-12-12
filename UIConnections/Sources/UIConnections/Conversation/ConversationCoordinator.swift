@@ -39,10 +39,23 @@ public final class ConversationCoordinator: ObservableObject {
     }
     
     private func setupStreamingObservation() {
-        // Observe workspace streamingMessages if it's ObservableObject
-        if let observableWorkspace = workspace as? any ObservableObject {
-            // Use Combine to observe streaming updates
-            // Note: This requires WorkspaceViewModel to be ObservableObject (which it is)
+        // Subscribe to streaming publisher if available
+        if let workspaceVM = workspace as? WorkspaceViewModel {
+            streamingObservation = workspaceVM.streamingPublisher
+                .sink { [weak self] conversationID, streamingText in
+                    guard let self = self,
+                          let viewModel = self.chatViewModel,
+                          conversationID == self.currentStreamingConversationID else { return }
+                    
+                    if let text = streamingText, !text.isEmpty {
+                        viewModel.applyDelta(.assistantStreaming(text))
+                    } else {
+                        // Streaming finished
+                        if viewModel.streamingText != nil {
+                            viewModel.finishStreaming()
+                        }
+                    }
+                }
         }
     }
     
@@ -69,76 +82,21 @@ public final class ConversationCoordinator: ObservableObject {
         // Start streaming through workspace
         await workspace.sendMessage(text, for: conversation)
         
-        // Monitor for streaming updates and forward to ChatViewModel
-        // We'll poll workspace.streamingMessages and forward deltas
-        await monitorAndForwardStreaming(
-            conversationID: conversationID,
-            isCodexAvailable: isCodexAvailable
-        )
-    }
-    
-    private func monitorAndForwardStreaming(
-        conversationID: UUID,
-        isCodexAvailable: Bool
-    ) async {
-        var lastStreamingText: String? = nil
-        var hasReceivedResponse = false
-        let maxWaitTime: UInt64 = 5_000_000_000 // 5 seconds
-        let pollInterval: UInt64 = 50_000_000 // 50ms
-        var elapsed: UInt64 = 0
-        
-        while elapsed < maxWaitTime {
-            await MainActor.run {
-                guard let viewModel = chatViewModel else { return }
-                
-                // Check for streaming updates
-                if let workspace = workspace as? WorkspaceViewModel {
-                    let currentStreaming = workspace.streamingMessages[conversationID]
-                    
-                    if let streaming = currentStreaming, !streaming.isEmpty {
-                        hasReceivedResponse = true
-                        if streaming != lastStreamingText {
-                            viewModel.applyDelta(.assistantStreaming(streaming))
-                            lastStreamingText = streaming
-                        }
-                    } else if lastStreamingText != nil && currentStreaming == nil {
-                        // Streaming finished - check if we need to finalize
-                        if viewModel.streamingText != nil {
-                            viewModel.finishStreaming()
-                        }
-                        return
+        // Streaming updates now flow automatically via Combine subscription in setupStreamingObservation()
+        // Set up a timeout to handle cases where no response is received
+        if !isCodexAvailable {
+            // For non-Codex mode, provide fallback after a delay
+            Task {
+                try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+                await MainActor.run {
+                    if chatViewModel?.streamingText == nil && chatViewModel?.messages.last?.role != .assistant {
+                        provideFallbackResponseSync(for: conversationID)
                     }
                 }
             }
-            
-            // If no response and Codex unavailable, provide fallback
-            if !hasReceivedResponse && !isCodexAvailable && elapsed > 500_000_000 {
-                // Wait 0.5s before providing fallback
-                await provideFallbackResponse(for: conversationID)
-                return
-            }
-            
-            try? await Task.sleep(nanoseconds: pollInterval)
-            elapsed += pollInterval
-        }
-        
-        // Finalize if still streaming
-        await MainActor.run {
-            guard let viewModel = chatViewModel else { return }
-            if viewModel.streamingText != nil {
-                viewModel.finishStreaming()
-            } else if !hasReceivedResponse && !isCodexAvailable {
-                // Provide fallback if we never got a response
-                provideFallbackResponseSync(for: conversationID)
-            }
         }
     }
     
-    private func provideFallbackResponse(for conversationID: UUID) async {
-        await MainActor.run {
-            provideFallbackResponseSync(for: conversationID)
-        }
-    }
     
     private func provideFallbackResponseSync(for conversationID: UUID) {
         guard let viewModel = chatViewModel else { return }

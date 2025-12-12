@@ -27,6 +27,6 @@ public protocol AtomicDiffApplying: Sendable {
 }
 
 public protocol FileMutationAuthorizing: Sendable {
-    func apply(diffs: [FileDiff], rootPath: String) throws -> [AppliedPatchResult]
+    func execute(_ plan: MutationPlan) throws -> [AppliedPatchResult]
 }
 

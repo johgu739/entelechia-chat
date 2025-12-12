@@ -46,6 +46,8 @@ public extension WorkspaceViewModel {
         }
     }
     
+    // FROZEN: Orchestration methods will be moved to WorkspaceCoordinator in form recovery Step 3.
+    // Do not add new orchestration logic here.
     func sendMessage(_ text: String, for conversation: Conversation) async {
         isLoading = true
         streamingMessages[conversation.id] = ""
@@ -151,6 +153,8 @@ public extension WorkspaceViewModel {
         lastContextResult = nil
     }
 
+    // FROZEN: Orchestration methods will be moved to WorkspaceCoordinator in form recovery Step 3.
+    // Do not add new orchestration logic here.
     func askCodex(_ text: String, for conversation: Conversation) async -> Conversation {
         isLoading = true
         streamingMessages[conversation.id] = ""

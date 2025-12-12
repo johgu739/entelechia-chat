@@ -23,5 +23,6 @@ public protocol CodexQuerying: Sendable {
         question: String,
         onStream: ((String) -> Void)?
     ) async throws -> CodexAnswer
+    func shapedPrompt(_ text: String) -> String
 }
 

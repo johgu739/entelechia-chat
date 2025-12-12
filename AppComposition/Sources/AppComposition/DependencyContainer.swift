@@ -10,7 +10,11 @@ public protocol DependencyContainer {
     var conversationEngine: ConversationStreaming { get }
     var projectTodosLoader: ProjectTodosLoading { get }
     var projectMetadataHandler: ProjectMetadataHandling { get }
-    var codexService: CodexService { get }
+    var codexService: CodexQueryService { get }
+    var fileMutationService: FileMutationPlanning { get }
+    var fileMutationAuthority: FileMutationAuthorizing { get }
+    var domainErrorAuthority: DomainErrorAuthority { get }
+    var errorRouter: UIPresentationErrorRouter { get }
 }
 
 public struct DefaultContainer: DependencyContainer {
@@ -22,7 +26,9 @@ public struct DefaultContainer: DependencyContainer {
     public let conversationEngine: ConversationStreaming
     public let projectTodosLoader: ProjectTodosLoading
     public let projectMetadataHandler: ProjectMetadataHandling
-    public let codexService: CodexService
+    public let codexService: CodexQueryService
+    public let fileMutationService: FileMutationPlanning
+    public let fileMutationAuthority: FileMutationAuthorizing
     
     public init() {
         let container = AppContainer()
@@ -35,6 +41,10 @@ public struct DefaultContainer: DependencyContainer {
         self.projectTodosLoader = container.projectTodosLoader
         self.projectMetadataHandler = container.projectMetadataHandler
         self.codexService = container.codexService
+        self.fileMutationService = container.fileMutationService
+        self.fileMutationAuthority = container.fileMutationAuthority
+        self.domainErrorAuthority = container.domainErrorAuthority
+        self.errorRouter = container.errorRouter
     }
 }
 
@@ -47,7 +57,9 @@ public struct TestContainer: DependencyContainer {
     public let conversationEngine: ConversationStreaming
     public let projectTodosLoader: ProjectTodosLoading
     public let projectMetadataHandler: ProjectMetadataHandling
-    public let codexService: CodexService
+    public let codexService: CodexQueryService
+    public let fileMutationService: FileMutationPlanning
+    public let fileMutationAuthority: FileMutationAuthorizing
     
     public init(root: URL) {
         let container = AppContainer(baseURL: root, forTesting: true)
@@ -60,6 +72,10 @@ public struct TestContainer: DependencyContainer {
         self.projectTodosLoader = container.projectTodosLoader
         self.projectMetadataHandler = container.projectMetadataHandler
         self.codexService = container.codexService
+        self.fileMutationService = container.fileMutationService
+        self.fileMutationAuthority = container.fileMutationAuthority
+        self.domainErrorAuthority = container.domainErrorAuthority
+        self.errorRouter = container.errorRouter
     }
 }
 

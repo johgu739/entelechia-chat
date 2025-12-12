@@ -39,3 +39,9 @@ public protocol WorkspaceEngine: Sendable {
     func updates() -> AsyncStream<WorkspaceUpdate>
 }
 
+/// File mutation planning facade.
+/// Power: Descriptive (parses) + Decisional (validates, orders)
+public protocol FileMutationPlanning: Sendable {
+    func planMutation(_ diffText: String, rootPath: String) throws -> MutationPlan
+}
+
