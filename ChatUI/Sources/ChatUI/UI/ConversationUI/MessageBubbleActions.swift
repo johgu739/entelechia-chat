@@ -1,5 +1,4 @@
 import SwiftUI
-import UIConnections
 import AppKit
 
 struct MessageBubbleActions: View {
@@ -66,8 +65,7 @@ struct MessageBubbleActions: View {
         withAnimation(.easeInOut(duration: 0.25)) {
             didCopy = true
         }
-        Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 1_000_000_000)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             withAnimation(.easeInOut(duration: 0.25)) {
                 didCopy = false
             }

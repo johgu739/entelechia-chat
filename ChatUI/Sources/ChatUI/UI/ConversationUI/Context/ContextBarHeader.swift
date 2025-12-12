@@ -1,8 +1,8 @@
 import SwiftUI
-import UIConnections
+import UIContracts
 
 struct ContextBarHeader: View {
-    let activeScope: ContextScopeChoice
+    let activeScope: UIContracts.ContextScopeChoice
     let snapshotHash: String?
     let onViewDetails: () -> Void
     

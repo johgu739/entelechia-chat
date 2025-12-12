@@ -47,6 +47,8 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
     // MARK: - ConversationWorkspaceHandling Protocol
     
     public func sendMessage(_ text: String, for conversation: Conversation) async {
+        let correlationID = UUID()
+        TeleologicalTracer.shared.trace("WorkspaceCoordinator.sendMessage", power: .decisional, correlationID: correlationID)
         presentationModel.isLoading = true
         projection.streamingMessages[conversation.id] = ""
         defer {
@@ -78,7 +80,9 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
         }
     }
     
-    public     func askCodex(_ text: String, for conversation: Conversation) async -> Conversation {
+    public func askCodex(_ text: String, for conversation: Conversation) async -> Conversation {
+        let correlationID = UUID()
+        TeleologicalTracer.shared.trace("WorkspaceCoordinator.askCodex", power: .decisional, correlationID: correlationID)
         presentationModel.isLoading = true
         projection.streamingMessages[conversation.id] = ""
         defer {
@@ -176,6 +180,8 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
     // MARK: - Decision Logic
     
     func currentWorkspaceScope() -> WorkspaceScope? {
+        let correlationID = UUID()
+        TeleologicalTracer.shared.trace("WorkspaceCoordinator.currentWorkspaceScope", power: .decisional, correlationID: correlationID)
         switch presentationModel.activeScope {
         case .selection:
             if let descriptorID = presentationModel.selectedDescriptorID {

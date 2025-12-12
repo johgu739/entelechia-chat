@@ -13,14 +13,13 @@
 
 import SwiftUI
 import AppKit
-import UIConnections
-import Combine
+import UIContracts
 
-enum InspectorTab: Int, CaseIterable {
-    case files
-    case quickHelp
-    case context
-    
+// Use UIContracts.InspectorTab instead of local enum
+typealias InspectorTab = UIContracts.InspectorTab
+
+// Helper extension for UI-specific properties
+extension UIContracts.InspectorTab {
     var title: String {
         switch self {
         case .files: return "Files"
@@ -39,23 +38,14 @@ enum InspectorTab: Int, CaseIterable {
 }
 
 struct ContextInspector: View {
-    @EnvironmentObject var workspaceViewModel: WorkspaceViewModel
-    @EnvironmentObject var contextPresentationViewModel: ContextPresentationViewModel
-    @StateObject private var metadataViewModel = FileMetadataViewModel()
-    @StateObject private var filePreviewViewModel = FilePreviewViewModel()
-    @StateObject private var fileStatsViewModel: FileStatsViewModel
-    @StateObject private var folderStatsViewModel: FolderStatsViewModel
+    let workspaceState: UIContracts.WorkspaceUIViewState
+    let contextState: UIContracts.ContextViewState
+    let filePreviewState: (content: String?, isLoading: Bool, error: Error?)
+    let fileStatsState: (size: Int64?, lineCount: Int?, tokenEstimate: Int?, isLoading: Bool)
+    let folderStatsState: (stats: UIContracts.FolderStats?, isLoading: Bool)
     @Binding var selectedInspectorTab: InspectorTab
-    @State private var currentFileURL: URL?
-    @State private var currentFolderURL: URL?
-    
-    init(selectedInspectorTab: Binding<InspectorTab>) {
-        self._selectedInspectorTab = selectedInspectorTab
-        let metadataVM = FileMetadataViewModel()
-        _metadataViewModel = StateObject(wrappedValue: metadataVM)
-        _fileStatsViewModel = StateObject(wrappedValue: FileStatsViewModel(metadataViewModel: metadataVM))
-        _folderStatsViewModel = StateObject(wrappedValue: FolderStatsViewModel(metadataViewModel: metadataVM))
-    }
+    let onWorkspaceIntent: (UIContracts.WorkspaceIntent) -> Void
+    let isPathIncludedInContext: (URL) -> Bool
     
     var body: some View {
         VStack(spacing: 0) {
@@ -66,22 +56,27 @@ struct ContextInspector: View {
         .frame(minWidth: 220, maxWidth: 300)
         .background(Color.clear)
         .overlay(alignment: .top) {
-            if let message = contextPresentationViewModel.bannerMessage {
+            if let message = contextState.bannerMessage {
                 ContextErrorBanner(message: message) {
-                    withAnimation { contextPresentationViewModel.clearBanner() }
+                    withAnimation { onWorkspaceIntent(.clearBanner) }
                 }
                 .transition(.move(edge: .top).combined(with: .opacity))
                 .padding(.horizontal, DS.s8)
                 .padding(.top, DS.s8)
             }
         }
-        .onChange(of: workspaceViewModel.lastContextResult) { _, newValue in
-            if newValue != nil {
-                contextPresentationViewModel.clearBanner()
+        .onChange(of: workspaceState.selectedNode?.path) { _, newURL in
+            if let url = newURL {
+                onWorkspaceIntent(.loadFilePreview(url))
+                onWorkspaceIntent(.loadFileStats(url))
+                if workspaceState.selectedNode?.isDirectory == true {
+                    onWorkspaceIntent(.loadFolderStats(url))
+                }
+            } else {
+                onWorkspaceIntent(.clearFilePreview)
+                onWorkspaceIntent(.clearFileStats)
+                onWorkspaceIntent(.clearFolderStats)
             }
-        }
-        .onChange(of: workspaceViewModel.selectedNode?.path) { _, newURL in
-            handleSelectionChange(newURL)
         }
     }
     
@@ -91,8 +86,7 @@ struct ContextInspector: View {
         case .files:
             filesTab
         case .context:
-            ContextInspectorView()
-                .environmentObject(workspaceViewModel)
+            ContextInspectorView(snapshot: contextState.lastContextSnapshot)
         case .quickHelp:
             quickHelpTab
         }
@@ -100,10 +94,10 @@ struct ContextInspector: View {
     
     private var filesTab: some View {
         Group {
-            if let node = workspaceViewModel.selectedNode {
+            if let node = workspaceState.selectedNode {
                 ScrollView {
                     VStack(alignment: .leading, spacing: DS.s12) {
-                        if let diagnostics = workspaceViewModel.lastContextResult {
+                        if let diagnostics = contextState.lastContextResult {
                             ContextBudgetDiagnosticsView(
                                 diagnostics: diagnostics,
                                 formatFileSize: formatFileSize,
@@ -163,8 +157,10 @@ struct ContextInspector: View {
             }
             PropertyRow(label: "Size") {
                 AsyncFileStatsRowView(
-                    url: node.path,
-                    viewModel: fileStatsViewModel,
+                    size: fileStatsState.size,
+                    lineCount: fileStatsState.lineCount,
+                    tokenEstimate: fileStatsState.tokenEstimate,
+                    isLoading: fileStatsState.isLoading,
                     formatFileSize: formatFileSize,
                     formatNumber: formatNumber
                 )
@@ -198,7 +194,11 @@ struct ContextInspector: View {
             }
             .buttonStyle(.plain)
             .padding(.bottom, DS.s4)
-            AsyncFilePreviewView(url: node.path, viewModel: filePreviewViewModel)
+            AsyncFilePreviewView(
+                content: filePreviewState.content,
+                isLoading: filePreviewState.isLoading,
+                error: filePreviewState.error
+            )
         }
     }
     
@@ -214,7 +214,10 @@ struct ContextInspector: View {
         }
         InspectorDivider()
         InspectorSection(title: "CONTEXT") {
-            Toggle(isOn: inclusionBinding(for: node.path)) {
+            Toggle(isOn: Binding(
+                get: { isPathIncludedInContext(node.path) },
+                set: { onWorkspaceIntent(.setContextInclusion($0, node.path)) }
+            )) {
                 VStack(alignment: .leading, spacing: DS.s4) {
                     Text("Include in Codex context")
                         .font(.system(size: 12, weight: .semibold))
@@ -239,19 +242,12 @@ struct ContextInspector: View {
                 }
             }
             AsyncFolderStatsView(
-                url: node.path,
-                viewModel: folderStatsViewModel,
+                stats: folderStatsState.stats,
+                isLoading: folderStatsState.isLoading,
                 formatFileSize: formatFileSize,
                 formatNumber: formatNumber
             )
         }
-    }
-    
-    private func inclusionBinding(for url: URL) -> Binding<Bool> {
-        Binding(
-            get: { workspaceViewModel.isPathIncludedInContext(url) },
-            set: { include in workspaceViewModel.setContextInclusion(include, for: url) }
-        )
     }
     
     private func formatFileSize(_ bytes: Int64) -> String {
@@ -266,35 +262,5 @@ struct ContextInspector: View {
         formatter.numberStyle = .decimal
         formatter.groupingSeparator = " "
         return formatter.string(from: NSNumber(value: number)) ?? "\(number)"
-    }
-    
-    private func handleSelectionChange(_ newURL: URL?) {
-        guard let url = newURL else {
-            filePreviewViewModel.clear()
-            fileStatsViewModel.clear()
-            folderStatsViewModel.clear()
-            currentFileURL = nil
-            currentFolderURL = nil
-            return
-        }
-        
-        if workspaceViewModel.selectedNode?.isDirectory == true {
-            if currentFolderURL != url {
-                currentFolderURL = url
-                // Trigger async load - this is explicit, not auto-triggered
-                Task {
-                    await folderStatsViewModel.loadStats(for: url)
-                }
-            }
-        } else {
-            if currentFileURL != url {
-                currentFileURL = url
-                // Trigger async load - this is explicit, not auto-triggered
-                Task {
-                    await filePreviewViewModel.loadPreview(for: url)
-                    await fileStatsViewModel.loadStats(for: url)
-                }
-            }
-        }
     }
 }

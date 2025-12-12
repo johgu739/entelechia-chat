@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import AppCoreEngine
+import UIContracts
 
 /// Read-only projections derived from domain streams.
 /// Power: Descriptive (projects domain state to UI-readable form)
@@ -10,7 +11,7 @@ public final class WorkspaceProjection: ObservableObject {
     // MARK: - Domain Projections (Derived from Domain Streams)
     
     @Published public var streamingMessages: [UUID: String] = [:]
-    @Published public var lastContextResult: ContextBuildResult?
+    @Published public var lastContextResult: UIContracts.UIContextBuildResult?
     @Published public var lastContextSnapshot: ContextSnapshot?
     @Published public var workspaceState: WorkspaceViewState = WorkspaceViewState(
         rootPath: nil,

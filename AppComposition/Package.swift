@@ -18,6 +18,7 @@ let package = Package(
         .package(name: "OntologyIntegration", path: "../OntologyIntegration"),
         .package(name: "OntologyDomain", path: "../OntologyDomain"),
         .package(name: "UIConnections", path: "../UIConnections"),
+        .package(name: "UIContracts", path: "../UIContracts"),
         .package(name: "ChatUI", path: "../ChatUI")
     ],
     targets: [
@@ -29,6 +30,7 @@ let package = Package(
                 .product(name: "OntologyIntegration", package: "OntologyIntegration"),
                 .product(name: "OntologyDomain", package: "OntologyDomain"),
                 .product(name: "UIConnections", package: "UIConnections"),
+                .product(name: "UIContracts", package: "UIContracts"),
                 .product(name: "ChatUI", package: "ChatUI")
             ],
             resources: [

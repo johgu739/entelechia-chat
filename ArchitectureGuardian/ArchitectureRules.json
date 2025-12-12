@@ -1,7 +1,7 @@
 {
   "targets": {
     "ChatUI": {
-      "allowedImports": ["Foundation", "SwiftUI", "UIConnections", "AppKit", "Combine"],
+      "allowedImports": ["Foundation", "SwiftUI", "UIConnections", "UIContracts", "AppKit", "Combine"],
       "forbidden": [
         {
           "regex": "GeometryReader",
@@ -11,7 +11,11 @@
         },
         {
           "regex": "^import\\s+(AppCoreEngine|AppAdapters)\\b",
-          "message": "ChatUI must depend on UIConnections, not AppCoreEngine/AppAdapters."
+          "message": "ChatUI must not import AppCoreEngine/AppAdapters."
+        },
+        {
+          "regex": "UIConnections\\.(ContextScopeChoice|ModelChoice|NavigatorMode|InspectorTab|WorkspaceViewState|ConversationViewState|ContextSnapshot|ContextFileDescriptor|ContextSegmentDescriptor|RecentProject|WorkspaceScope)",
+          "message": "ChatUI must use UIContracts types, not UIConnections types. Import UIContracts instead."
         },
         {
           "regex": "\\.(onAppear|onChange|task|onReceive)\\s*\\([^)]*\\)\\s*\\{[^}]*\\b(WorkspaceViewModel|ChatViewModel|ConversationCoordinator|CodexService)\\b[^}]*\\}",
@@ -45,6 +49,26 @@
         {
           "regex": "^import\\s+SwiftUI\\b",
           "message": "UIConnections cannot import SwiftUI."
+        },
+        {
+          "regex": "^import\\s+AppAdapters\\b",
+          "message": "UIConnections cannot import AppAdapters. File mutation must go through AppCoreEngine protocols only."
+        },
+        {
+          "regex": "FileMutationAuthority|AtomicDiffApplying|FileMutationAuthorizing",
+          "message": "UIConnections cannot reference file mutation adapters. Use FileMutationPlanning protocol from AppCoreEngine."
+        },
+        {
+          "regex": "WorkspaceViewModel.*(workspaceEngine|conversationEngine|codexService|projectTodosLoader|alertCenter|DomainErrorAuthority)\\s*[:=]",
+          "message": "WorkspaceViewModel cannot store engine dependencies. Pass to coordinator only."
+        },
+        {
+          "regex": "WorkspaceViewModel.*DomainErrorAuthority\\(\\)",
+          "message": "WorkspaceViewModel cannot create DomainErrorAuthority. Must be injected."
+        },
+        {
+          "regex": "alertCenter\\.publish|contextErrorSubject\\.send",
+          "message": "UIConnections cannot publish errors directly. Use DomainErrorAuthority only."
         }
       ]
     },
@@ -64,7 +88,30 @@
       "allowedImports": ["Foundation", "XCTest", "AppAdapters", "AppCoreEngine", "UniformTypeIdentifiers"]
     },
     "AppCoreEngine": {
-      "allowedImports": ["Foundation", "Dispatch"]
+      "allowedImports": ["Foundation", "Dispatch"],
+      "forbidden": [
+        {
+          "regex": "^import\\s+(SwiftUI|AppKit|UIConnections|ChatUI|UIContracts)\\b",
+          "message": "AppCoreEngine cannot import UI modules."
+        }
+      ]
+    },
+    "UIContracts": {
+      "allowedImports": ["Foundation"],
+      "forbidden": [
+        {
+          "regex": "^import\\s+(SwiftUI|Combine|UIConnections|AppCoreEngine|AppAdapters|ChatUI)\\b",
+          "message": "UIContracts cannot import SwiftUI, Combine, UIConnections, AppCoreEngine, AppAdapters, or ChatUI. Zero dependencies."
+        },
+        {
+          "regex": "ObservableObject|@Published|@StateObject|@ObservedObject",
+          "message": "UIContracts cannot define ObservableObject or @Published properties. Pure value types only."
+        },
+        {
+          "regex": "func\\s+\\w+\\s*\\([^)]*\\)\\s*\\{",
+          "message": "UIContracts cannot define method bodies. Protocols and structs only."
+        }
+      ]
     },
     "AppCoreEngineTests": {
       "allowedImports": ["Foundation", "XCTest", "AppCoreEngine"]
@@ -124,6 +171,11 @@
       "regex": "ProjectStoreRealAdapter\\(",
       "message": "ProjectStoreRealAdapter must be composed in AppComposition.",
       "excludedTargets": ["AppComposition"]
+    },
+    {
+      "regex": "extension WorkspaceViewModel.*\\{[^}]*func (sendMessage|askCodex|openWorkspace|selectPath|currentWorkspaceScope|buildContextSnapshot)",
+      "message": "WorkspaceViewModel extensions cannot contain orchestration logic. All logic must be in WorkspaceCoordinator.",
+      "excludedPaths": ["UIConnections/Sources/UIConnections/Workspaces/WorkspaceViewModel+*.swift"]
     }
   ]
 }

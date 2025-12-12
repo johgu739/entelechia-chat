@@ -1,12 +1,12 @@
 import SwiftUI
-import UIConnections
+import UIContracts
 
 struct ChatInputBar: View {
     @Binding var text: String
     var isAskEnabled: Bool
     var isSending: Bool
-    var modelSelection: Binding<ModelChoice>
-    var scopeSelection: Binding<ContextScopeChoice>
+    var modelSelection: Binding<UIContracts.ModelChoice>
+    var scopeSelection: Binding<UIContracts.ContextScopeChoice>
     var onSend: () -> Void
     var onAsk: () -> Void
     var onAttach: () -> Void

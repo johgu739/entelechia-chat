@@ -12,27 +12,50 @@
 // @EntelechiaHeaderEnd
 
 import SwiftUI
-import UIConnections
+import UIContracts
 
 /// Root view that switches between onboarding and main workspace
 public struct RootView: View {
-    public let context: WorkspaceContext
+    let hasActiveProject: Bool
+    let recentProjects: [UIContracts.RecentProject]
+    let alert: AlertPresentationModifier.AlertItem?
+    let onOpenProject: (URL, String) -> Void
+    let onOpenRecent: (UIContracts.RecentProject) -> Void
+    let onDismissAlert: () -> Void
+    let workspaceContent: () -> AnyView
     
-    public init(context: WorkspaceContext) {
-        self.context = context
+    public init(
+        hasActiveProject: Bool,
+        recentProjects: [UIContracts.RecentProject],
+        alert: AlertPresentationModifier.AlertItem?,
+        onOpenProject: @escaping (URL, String) -> Void,
+        onOpenRecent: @escaping (UIContracts.RecentProject) -> Void,
+        onDismissAlert: @escaping () -> Void,
+        workspaceContent: @escaping () -> AnyView
+    ) {
+        self.hasActiveProject = hasActiveProject
+        self.recentProjects = recentProjects
+        self.alert = alert
+        self.onOpenProject = onOpenProject
+        self.onOpenRecent = onOpenRecent
+        self.onDismissAlert = onDismissAlert
+        self.workspaceContent = workspaceContent
     }
     
     public var body: some View {
         Group {
-            if context.projectSession.activeProjectURL == nil {
-                OnboardingSelectProjectView(
-                    coordinator: context.projectCoordinator,
-                    alertCenter: context.alertCenter
-                )
+            if hasActiveProject {
+                workspaceContent()
             } else {
-                MainWorkspaceView(context: context)
+                OnboardingSelectProjectView(
+                    recentProjects: recentProjects,
+                    alert: alert,
+                    onOpenProject: onOpenProject,
+                    onOpenRecent: onOpenRecent,
+                    onDismissAlert: onDismissAlert
+                )
             }
         }
-        .alertPresentation(alertCenter: context.alertCenter)
+        .alertPresentation(alert: alert, onDismiss: onDismissAlert)
     }
 }

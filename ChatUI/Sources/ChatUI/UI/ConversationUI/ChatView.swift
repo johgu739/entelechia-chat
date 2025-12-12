@@ -12,33 +12,43 @@
 // @EntelechiaHeaderEnd
 
 import SwiftUI
-import UIConnections
+import UIContracts
 import AppKit
 
 struct ChatView: View {
-    @ObservedObject var workspaceViewModel: WorkspaceViewModel
-    @ObservedObject var chatViewModel: ChatViewModel
-    @State private var conversation: Conversation = Conversation(contextFilePaths: [])
+    let chatState: UIContracts.ChatViewState
+    let workspaceState: UIContracts.WorkspaceUIViewState
+    let contextState: UIContracts.ContextViewState
+    let onChatIntent: (UIContracts.ChatIntent) -> Void
+    let onWorkspaceIntent: (UIContracts.WorkspaceIntent) -> Void
+    @Binding var selectedInspectorTab: UIContracts.InspectorTab
+    
     @State private var showMessageContextPopover = false
-    @State private var contextPopoverData: ContextBuildResult?
-    @Binding private var selectedInspectorTab: InspectorTab
+    @State private var contextPopoverData: UIContracts.UIContextBuildResult?
+    @State private var localText: String = ""
     
     init(
-        workspaceViewModel: WorkspaceViewModel,
-        chatViewModel: ChatViewModel,
-        inspectorTab: Binding<InspectorTab>
+        chatState: UIContracts.ChatViewState,
+        workspaceState: UIContracts.WorkspaceUIViewState,
+        contextState: UIContracts.ContextViewState,
+        onChatIntent: @escaping (UIContracts.ChatIntent) -> Void,
+        onWorkspaceIntent: @escaping (UIContracts.WorkspaceIntent) -> Void,
+        inspectorTab: Binding<UIContracts.InspectorTab>
     ) {
-        self.workspaceViewModel = workspaceViewModel
-        self.chatViewModel = chatViewModel
+        self.chatState = chatState
+        self.workspaceState = workspaceState
+        self.contextState = contextState
+        self.onChatIntent = onChatIntent
+        self.onWorkspaceIntent = onWorkspaceIntent
         _selectedInspectorTab = inspectorTab
     }
     
     var body: some View {
         VStack(spacing: 0) {
             ChatMessagesList(
-                messages: chatViewModel.messages,
-                streamingText: chatViewModel.streamingText ?? "",
-                isLoading: chatViewModel.isSending,
+                messages: chatState.messages,
+                streamingText: chatState.streamingText ?? "",
+                isLoading: chatState.isSending,
                 onMessageContext: { handleMessageContext($0) },
                 onReask: { reask($0) },
                 emptyView: AnyView(emptyState)
@@ -46,22 +56,14 @@ struct ChatView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(AppTheme.editorBackground)
             .safeAreaInset(edge: .bottom) { footer }
-            .onChange(of: conversation.id) { _, _ in
-                // Load conversation messages into view model when conversation changes
-                chatViewModel.loadConversation(conversation)
-            }
-            .onAppear {
-                // Load initial conversation
-                chatViewModel.loadConversation(conversation)
-            }
         }
     }
     
     private var footer: some View {
         ChatFooter(
-            contextSnapshot: workspaceViewModel.lastContextSnapshot,
-            activeScope: chatViewModel.contextScope,
-            onViewDetails: { selectedInspectorTab = .context },
+            contextSnapshot: contextState.lastContextSnapshot,
+            activeScope: chatState.contextScope,
+            onViewDetails: { selectedInspectorTab = UIContracts.InspectorTab.context },
             inputBar: chatInputBar,
             contextPopover: contextPopoverData
         )
@@ -79,16 +81,19 @@ struct ChatView: View {
     
     private var chatInputBar: ChatInputBar {
         ChatInputBar(
-            text: $chatViewModel.text,
-            isAskEnabled: workspaceViewModel.selectedNode != nil,
-            isSending: chatViewModel.isSending || chatViewModel.isAsking,
+            text: Binding(
+                get: { localText.isEmpty ? chatState.text : localText },
+                set: { localText = $0 }
+            ),
+            isAskEnabled: workspaceState.selectedNode != nil,
+            isSending: chatState.isSending || chatState.isAsking,
             modelSelection: Binding(
-                get: { chatViewModel.model },
-                set: { chatViewModel.selectModel($0) }
+                get: { chatState.model },
+                set: { onChatIntent(.setModelChoice($0)) }
             ),
             scopeSelection: Binding(
-                get: { chatViewModel.contextScope },
-                set: { chatViewModel.selectScope($0) }
+                get: { chatState.contextScope },
+                set: { onChatIntent(.setContextScope($0)) }
             ),
             onSend: { sendMessage() },
             onAsk: { askCodex() },
@@ -99,58 +104,34 @@ struct ChatView: View {
     
     private var emptyState: some View {
         ChatEmptyStateView(
-            selectedNode: workspaceViewModel.selectedNode,
-            onQuickAction: { chatViewModel.text = $0 }
+            selectedNode: workspaceState.selectedNode,
+            onQuickAction: { text in
+                localText = text
+            }
         )
     }
     
     private func sendMessage() {
-        // Commit message optimistically (appears instantly in UI)
-        guard let userMessage = chatViewModel.commitMessage() else { return }
-        
-        // Start streaming through coordinator
-        Task { @MainActor in
-            await chatViewModel.coordinator.stream(userMessage.text, in: conversation)
-            
-            // Refresh conversation after streaming completes
-            if let descriptorID = workspaceViewModel.selectedDescriptorID,
-               let refreshed = await workspaceViewModel.conversation(forDescriptorID: descriptorID) {
-                conversation = refreshed
-                chatViewModel.loadConversation(refreshed)
-            } else {
-                let targetURL = workspaceViewModel.selectedNode?.path
-                    ?? conversation.contextURL
-                    ?? conversation.contextFilePaths.first.map { URL(fileURLWithPath: $0) }
-                if let url = targetURL {
-                    let refreshed = await workspaceViewModel.conversation(for: url)
-                    conversation = refreshed
-                    chatViewModel.loadConversation(refreshed)
-                }
-            }
-        }
+        let text = localText.isEmpty ? chatState.text : localText
+        let conversationID = workspaceState.selectedNode?.id ?? UUID()
+        localText = ""
+        onChatIntent(.sendMessage(text, conversationID))
     }
     
     private func askCodex() {
-        chatViewModel.askCodex(conversation: conversation) { updated in
-            conversation = updated
-        }
+        let text = localText.isEmpty ? chatState.text : localText
+        let conversationID = workspaceState.selectedNode?.id ?? UUID()
+        localText = ""
+        onChatIntent(.askCodex(text, conversationID))
     }
     
-    private var currentStreamingText: String {
-        workspaceViewModel.streamingText(for: conversation.id)
+    private func reask(_ message: UIContracts.UIMessage) {
+        let conversationID = workspaceState.selectedNode?.id ?? UUID()
+        onChatIntent(.askCodex(message.text, conversationID))
     }
     
-    private func reask(_ message: Message) {
-        let text = message.text
-        Task { @MainActor in
-            chatViewModel.text = text
-            let updated = await workspaceViewModel.askCodex(text, for: conversation)
-            conversation = updated
-        }
-    }
-    
-    private func handleMessageContext(_ message: Message) {
-        if let ctx = workspaceViewModel.contextForMessage(message.id) {
+    private func handleMessageContext(_ message: UIContracts.UIMessage) {
+        if let ctx = contextState.contextForMessage(message.id) {
             contextPopoverData = ctx
             showMessageContextPopover = true
         }

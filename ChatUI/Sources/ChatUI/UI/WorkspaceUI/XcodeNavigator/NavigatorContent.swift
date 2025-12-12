@@ -1,17 +1,25 @@
 import SwiftUI
-import UIConnections
+import UIContracts
 
 struct NavigatorContent: View {
-    @EnvironmentObject var workspaceViewModel: WorkspaceViewModel
+    let activeNavigator: UIContracts.NavigatorMode
+    let workspaceState: UIContracts.WorkspaceUIViewState
+    let presentationState: UIContracts.PresentationViewState
+    let onWorkspaceIntent: (UIContracts.WorkspaceIntent) -> Void
     
     var body: some View {
-        switch workspaceViewModel.activeNavigator {
+        switch activeNavigator {
         case .project:
-            XcodeNavigatorRepresentable()
-                .environmentObject(workspaceViewModel)
+            XcodeNavigatorRepresentable(
+                workspaceState: workspaceState,
+                presentationState: presentationState,
+                onWorkspaceIntent: onWorkspaceIntent
+            )
         case .todos:
-            OntologyTodosView()
-                .environmentObject(workspaceViewModel)
+            OntologyTodosView(
+                projectTodos: workspaceState.projectTodos,
+                todosError: workspaceState.todosErrorDescription
+            )
         default:
             PlaceholderNavigator()
         }

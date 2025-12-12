@@ -1,8 +1,8 @@
 import SwiftUI
-import UIConnections
+import UIContracts
 
 struct MessageBubbleContent: View {
-    let message: Message
+    let message: UIContracts.UIMessage
     let isAssistant: Bool
     let contextSummary: String?
     let errorMessage: String?

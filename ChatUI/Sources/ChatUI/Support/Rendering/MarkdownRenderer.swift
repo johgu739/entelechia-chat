@@ -14,7 +14,19 @@
 import Foundation
 import SwiftUI
 import AppKit
-import UIConnections
+
+/// Content block type for markdown parsing.
+enum ContentBlockType {
+    case text
+    case codeBlock
+}
+
+/// A parsed content block (text or code).
+struct ContentBlock {
+    let type: ContentBlockType
+    let content: String
+    let language: String?
+}
 
 struct MarkdownRenderer {
     /// Parse markdown content into blocks (text and code blocks)
@@ -105,12 +117,11 @@ struct MarkdownRenderer {
         )
         
         for match in matches.reversed() where match.numberOfRanges >= 2 {
-                let fullRange = match.range
-                attributedString.addAttributes([
-                    .font: NSFont.monospacedSystemFont(ofSize: 13, weight: .regular),
-                    .backgroundColor: NSColor(white: 0.95, alpha: 1.0)
-                ], range: fullRange)
-            }
+            let fullRange = match.range
+            attributedString.addAttributes([
+                .font: NSFont.monospacedSystemFont(ofSize: 13, weight: .regular),
+                .backgroundColor: NSColor(white: 0.95, alpha: 1.0)
+            ], range: fullRange)
         }
     }
     
@@ -199,16 +210,15 @@ struct MarkdownRenderer {
         )
         
         for match in matches.reversed() where match.numberOfRanges >= 3 {
-                let linkRange = match.range
-                let urlRange = match.range(at: 2)
-                let urlString = string.substring(with: urlRange)
-                
-                if let url = URL(string: urlString) {
-                    attributedString.addAttributes([
-                        .link: url,
-                        .foregroundColor: NSColor.systemBlue
-                    ], range: linkRange)
-                }
+            let linkRange = match.range
+            let urlRange = match.range(at: 2)
+            let urlString = string.substring(with: urlRange)
+            
+            if let url = URL(string: urlString) {
+                attributedString.addAttributes([
+                    .link: url,
+                    .foregroundColor: NSColor.systemBlue
+                ], range: linkRange)
             }
         }
     }

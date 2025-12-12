@@ -13,10 +13,12 @@
 
 import SwiftUI
 import AppKit
-import UIConnections
+import UIContracts
 
 struct XcodeNavigatorView: View {
-    @EnvironmentObject var workspaceViewModel: WorkspaceViewModel
+    let workspaceState: UIContracts.WorkspaceUIViewState
+    let presentationState: UIContracts.PresentationViewState
+    let onWorkspaceIntent: (UIContracts.WorkspaceIntent) -> Void
     
     var body: some View {
         ZStack {
@@ -26,19 +28,28 @@ struct XcodeNavigatorView: View {
             
             VStack(spacing: 0) {
                 // Navigator mode tabs (like Xcode)
-                NavigatorModeBar()
-                    .environmentObject(workspaceViewModel)
+                NavigatorModeBar(
+                    activeNavigator: presentationState.activeNavigator,
+                    projectTodos: workspaceState.projectTodos,
+                    onWorkspaceIntent: onWorkspaceIntent
+                )
                 
                 // Main navigator content
-                NavigatorContent()
-                    .environmentObject(workspaceViewModel)
+                NavigatorContent(
+                    activeNavigator: presentationState.activeNavigator,
+                    workspaceState: workspaceState,
+                    presentationState: presentationState,
+                    onWorkspaceIntent: onWorkspaceIntent
+                )
                 
-                if workspaceViewModel.activeNavigator == .project {
+                if presentationState.activeNavigator == UIContracts.NavigatorMode.project {
                     Divider()
                     
                     // Filter field at bottom (like Xcode)
-                    NavigatorFilterField()
-                        .environmentObject(workspaceViewModel)
+                    NavigatorFilterField(
+                        filterText: presentationState.filterText,
+                        onWorkspaceIntent: onWorkspaceIntent
+                    )
                 }
                 
             }

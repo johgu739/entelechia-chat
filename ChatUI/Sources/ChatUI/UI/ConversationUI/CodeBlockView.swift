@@ -52,8 +52,7 @@ struct CodeBlockView: View {
             copied = true
         }
         
-        Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 1_500_000_000) // 1.5 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             withAnimation {
                 copied = false
             }

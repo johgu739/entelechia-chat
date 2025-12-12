@@ -1,8 +1,8 @@
 import SwiftUI
-import UIConnections
+import UIContracts
 
 struct ChatEmptyStateView: View {
-    let selectedNode: FileNode?
+    let selectedNode: UIContracts.FileNode?
     let onQuickAction: (String) -> Void
     
     var body: some View {
@@ -16,7 +16,7 @@ struct ChatEmptyStateView: View {
     }
     
     @ViewBuilder
-    private func selectedNodeView(_ node: FileNode) -> some View {
+    private func selectedNodeView(_ node: UIContracts.FileNode) -> some View {
         let isFolder = node.children != nil && !(node.children?.isEmpty ?? true)
         if isFolder {
             folderView(node)
@@ -44,7 +44,7 @@ struct ChatEmptyStateView: View {
         }
     }
     
-    private func folderView(_ node: FileNode) -> some View {
+    private func folderView(_ node: UIContracts.FileNode) -> some View {
         VStack(spacing: DS.s16) {
             Image(systemName: "folder.fill")
                 .font(.system(size: 48))

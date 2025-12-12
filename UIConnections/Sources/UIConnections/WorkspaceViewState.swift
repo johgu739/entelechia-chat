@@ -1,7 +1,11 @@
 import Foundation
 import AppCoreEngine
+import UIContracts
 
 /// UI-ready representation of the workspace tree and selection.
+/// This is a legacy type - new code should use UIContracts.WorkspaceViewState.
+/// This type is kept for backward compatibility during migration.
+@available(*, deprecated, message: "Use UIContracts.WorkspaceViewState instead")
 public struct WorkspaceViewState: Sendable {
     public let rootPath: String?
     public let selectedDescriptorID: FileID?
@@ -25,6 +29,18 @@ public struct WorkspaceViewState: Sendable {
         self.contextInclusions = contextInclusions
         self.watcherError = watcherError
     }
+    
+    /// Convert to UIContracts.WorkspaceViewState
+    public func toUIContracts() -> UIContracts.WorkspaceViewState {
+        DomainToUIMappers.toWorkspaceViewState(
+            rootPath: rootPath,
+            selectedDescriptorID: selectedDescriptorID,
+            selectedPath: selectedPath,
+            projection: projection,
+            contextInclusions: contextInclusions,
+            watcherError: watcherError
+        )
+    }
 }
 
 public enum WorkspaceErrorNotice: Sendable {
@@ -33,11 +49,33 @@ public enum WorkspaceErrorNotice: Sendable {
 }
 
 public enum WorkspaceViewStateMapper {
+    /// Map to legacy WorkspaceViewState (deprecated)
+    @available(*, deprecated, message: "Use mapToUIContracts instead")
     public static func map(
         update: WorkspaceUpdate,
         watcherError: WorkspaceErrorNotice?
     ) -> WorkspaceViewState {
         WorkspaceViewState(
+            rootPath: update.snapshot.rootPath,
+            selectedDescriptorID: update.snapshot.selectedDescriptorID,
+            selectedPath: update.snapshot.selectedPath,
+            projection: update.projection,
+            contextInclusions: update.snapshot.contextInclusions,
+            watcherError: watcherError.map { notice in
+                switch notice {
+                case .watcherUnavailable: return "Workspace watcher stopped (root missing or inaccessible)."
+                case .refreshFailed(let message): return "Workspace refresh failed: \(message)"
+                }
+            }
+        )
+    }
+    
+    /// Map to UIContracts.WorkspaceViewState
+    public static func mapToUIContracts(
+        update: WorkspaceUpdate,
+        watcherError: WorkspaceErrorNotice?
+    ) -> UIContracts.WorkspaceViewState {
+        DomainToUIMappers.toWorkspaceViewState(
             rootPath: update.snapshot.rootPath,
             selectedDescriptorID: update.snapshot.selectedDescriptorID,
             selectedPath: update.snapshot.selectedPath,

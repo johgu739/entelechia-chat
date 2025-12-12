@@ -12,17 +12,45 @@
 // @EntelechiaHeaderEnd
 
 import SwiftUI
-import UIConnections
+import UIContracts
 
 struct MainWorkspaceView: View {
-    let context: WorkspaceContext
-    @ObservedObject var workspaceViewModel: WorkspaceViewModel
-    @State private var inspectorTab: InspectorTab = .files
+    let workspaceState: UIContracts.WorkspaceUIViewState
+    let contextState: UIContracts.ContextViewState
+    let presentationState: UIContracts.PresentationViewState
+    let chatState: UIContracts.ChatViewState
+    let filePreviewState: (content: String?, isLoading: Bool, error: Error?)
+    let fileStatsState: (size: Int64?, lineCount: Int?, tokenEstimate: Int?, isLoading: Bool)
+    let folderStatsState: (stats: UIContracts.FolderStats?, isLoading: Bool)
+    let onWorkspaceIntent: (UIContracts.WorkspaceIntent) -> Void
+    let onChatIntent: (UIContracts.ChatIntent) -> Void
+    let isPathIncludedInContext: (URL) -> Bool
+    
+    @State private var inspectorTab: UIContracts.InspectorTab = .files
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
     
-    init(context: WorkspaceContext) {
-        self.context = context
-        _workspaceViewModel = ObservedObject(wrappedValue: context.workspaceViewModel)
+    init(
+        workspaceState: UIContracts.WorkspaceUIViewState,
+        contextState: UIContracts.ContextViewState,
+        presentationState: UIContracts.PresentationViewState,
+        chatState: UIContracts.ChatViewState,
+        filePreviewState: (content: String?, isLoading: Bool, error: Error?),
+        fileStatsState: (size: Int64?, lineCount: Int?, tokenEstimate: Int?, isLoading: Bool),
+        folderStatsState: (stats: UIContracts.FolderStats?, isLoading: Bool),
+        onWorkspaceIntent: @escaping (UIContracts.WorkspaceIntent) -> Void,
+        onChatIntent: @escaping (UIContracts.ChatIntent) -> Void,
+        isPathIncludedInContext: @escaping (URL) -> Bool
+    ) {
+        self.workspaceState = workspaceState
+        self.contextState = contextState
+        self.presentationState = presentationState
+        self.chatState = chatState
+        self.filePreviewState = filePreviewState
+        self.fileStatsState = fileStatsState
+        self.folderStatsState = folderStatsState
+        self.onWorkspaceIntent = onWorkspaceIntent
+        self.onChatIntent = onChatIntent
+        self.isPathIncludedInContext = isPathIncludedInContext
     }
     
     var body: some View {
@@ -39,18 +67,19 @@ struct MainWorkspaceView: View {
             inspectorColumn
         }
         .overlay(statusOverlay, alignment: .top)
-        .animation(.easeInOut, value: context.codexStatusModel.state)
         .toolbar { toolbarItems }
     }
     
     private var navigatorColumn: some View {
-        XcodeNavigatorView()
-            .environmentObject(workspaceViewModel)
-            .navigationSplitViewColumnWidth(
-                min: DS.s20 * CGFloat(10),
-                ideal: DS.s20 * CGFloat(12),
-                max: DS.s20 * CGFloat(16)
-            )
+        XcodeNavigatorView(
+            workspaceState: workspaceState,
+            onWorkspaceIntent: onWorkspaceIntent
+        )
+        .navigationSplitViewColumnWidth(
+            min: DS.s20 * CGFloat(10),
+            ideal: DS.s20 * CGFloat(12),
+            max: DS.s20 * CGFloat(16)
+        )
     }
     
     private var chatColumn: some View {
@@ -59,8 +88,16 @@ struct MainWorkspaceView: View {
     }
     
     private var inspectorColumn: some View {
-        ContextInspector(selectedInspectorTab: $inspectorTab)
-            .environmentObject(workspaceViewModel)
+        ContextInspector(
+            workspaceState: workspaceState,
+            contextState: contextState,
+            filePreviewState: filePreviewState,
+            fileStatsState: fileStatsState,
+            folderStatsState: folderStatsState,
+            selectedInspectorTab: $inspectorTab,
+            onWorkspaceIntent: onWorkspaceIntent,
+            isPathIncludedInContext: isPathIncludedInContext
+        )
             .navigationSplitViewColumnWidth(
                 min: DS.s20 * CGFloat(11),
                 ideal: DS.s20 * CGFloat(13),
@@ -89,14 +126,9 @@ struct MainWorkspaceView: View {
     
     @ViewBuilder
     private var statusOverlay: some View {
-        if context.codexStatusModel.state != .connected {
-            CodexStatusBanner()
-                .environmentObject(context.codexStatusModel)
-                .environmentObject(workspaceViewModel)
-                .padding(.horizontal, DS.s12)
-                .padding(.top, DS.s8)
-                .transition(.move(edge: .top).combined(with: .opacity))
-        }
+        // Status overlay - CodexStatusBanner needs refactoring to use ViewState
+        // For now, this is a placeholder
+        EmptyView()
     }
     
     private var isSidebarVisible: Bool {
@@ -125,20 +157,19 @@ struct MainWorkspaceView: View {
 
     @ViewBuilder
     private var chatContent: some View {
-        if let selectedNode = workspaceViewModel.selectedNode {
+        if let selectedNode = workspaceState.selectedNode {
             ChatView(
-                workspaceViewModel: workspaceViewModel,
-                chatViewModel: context.chatViewModelFactory(UUID()),
+                chatState: chatState,
+                workspaceState: workspaceState,
+                contextState: contextState,
+                onChatIntent: onChatIntent,
+                onWorkspaceIntent: onWorkspaceIntent,
                 inspectorTab: $inspectorTab
             )
             .navigationTitle(selectedNode.name)
         } else {
             NoFileSelectedView()
-                .navigationTitle(
-                    context.projectSession.projectName.isEmpty
-                        ? "No Selection"
-                        : context.projectSession.projectName
-                )
+            .navigationTitle("No Selection")
         }
     }
 }

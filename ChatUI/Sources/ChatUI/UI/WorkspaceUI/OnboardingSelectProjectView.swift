@@ -12,12 +12,16 @@
 // @EntelechiaHeaderEnd
 
 import SwiftUI
-import UIConnections
+import UIContracts
 
 /// Onboarding view shown when no project is open
 struct OnboardingSelectProjectView: View {
-    @ObservedObject var coordinator: ProjectCoordinator
-    let alertCenter: AlertCenter
+    let recentProjects: [UIContracts.RecentProject]
+    let alert: AlertPresentationModifier.AlertItem?
+    let onOpenProject: (URL, String) -> Void
+    let onOpenRecent: (UIContracts.RecentProject) -> Void
+    let onDismissAlert: () -> Void
+    
     @State private var selectedURL: URL?
     @State private var projectName: String = ""
     @State private var showingFilePicker = false
@@ -82,7 +86,7 @@ struct OnboardingSelectProjectView: View {
                         .frame(maxWidth: DS.s20 * CGFloat(25))
                     
                     Button(
-                        action: { coordinator.openProject(url: url, name: projectName) },
+                        action: { onOpenProject(url, projectName) },
                         label: {
                             Text("Open Project")
                                 .font(.system(size: 14, weight: .medium))
@@ -97,7 +101,7 @@ struct OnboardingSelectProjectView: View {
             }
             
             // Recent Projects
-            if !coordinator.recentProjects.isEmpty {
+            if !recentProjects.isEmpty {
                 VStack(alignment: .leading, spacing: DS.s16) {
                     Text("Recent Projects")
                         .font(.system(size: 16, weight: .semibold))
@@ -106,11 +110,11 @@ struct OnboardingSelectProjectView: View {
                     ScrollView {
                         VStack(spacing: DS.s8) {
                             ForEach(
-                                Array(coordinator.recentProjects.prefix(10)),
+                                Array(recentProjects.prefix(10)),
                                 id: \.representation.rootPath
                             ) { project in
                                 RecentProjectRow(project: project) {
-                                    coordinator.openRecent(project)
+                                    onOpenRecent(project)
                                 }
                             }
                         }
@@ -128,20 +132,19 @@ struct OnboardingSelectProjectView: View {
         .fileImporter(
             isPresented: $showingFilePicker,
             allowedContentTypes: [],
-            allowsMultipleSelection: false,
-            onCompletion: { result in
-                switch result {
-                case .success(let urls):
-                    if let url = urls.first {
-                        selectedURL = url
-                        if projectName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            projectName = url.lastPathComponent
-                        }
+            allowsMultipleSelection: false
+        ) { result in
+            switch result {
+            case .success(let urls):
+                if let url = urls.first {
+                    selectedURL = url
+                    if projectName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        projectName = url.lastPathComponent
                     }
-                case .failure(let error):
-                    alertCenter.publish(error, fallbackTitle: "Folder Selection Failed")
                 }
+            case .failure:
+                break
             }
-        )
+        }
     }
 }

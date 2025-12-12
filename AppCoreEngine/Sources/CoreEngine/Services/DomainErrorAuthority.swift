@@ -1,10 +1,10 @@
 import Foundation
-import Combine
+@preconcurrency import Combine
 
 /// Domain authority for error classification.
 /// Power: Decisional (classifies errors, assigns severity/intent)
 /// Does NOT route to UI - emits ClassifiedError for UI layer.
-public final class DomainErrorAuthority: Sendable {
+public final class DomainErrorAuthority: @unchecked Sendable {
     private let errorSubject = PassthroughSubject<ClassifiedError, Never>()
     
     public var errorPublisher: AnyPublisher<ClassifiedError, Never> {
@@ -57,6 +57,8 @@ public final class DomainErrorAuthority: Sendable {
     }
     
     public func publish(_ error: Error, context: String? = nil) {
+        let correlationID = UUID()
+        TeleologicalTracer.shared.trace("DomainErrorAuthority.publish", power: .decisional, correlationID: correlationID)
         let classified = classify(error, context: context)
         errorSubject.send(classified)
     }

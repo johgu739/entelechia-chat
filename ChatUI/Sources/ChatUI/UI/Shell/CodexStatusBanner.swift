@@ -1,19 +1,26 @@
 import SwiftUI
-import UIConnections
 
 struct CodexStatusBanner: View {
-    @EnvironmentObject var codexStatusModel: CodexStatusModel
-    @EnvironmentObject var workspaceViewModel: WorkspaceViewModel
+    let icon: String
+    let message: String
+    let tone: CodexStatusTone
+    let watcherError: String?
+    
+    enum CodexStatusTone {
+        case success
+        case warning
+        case error
+    }
 
     var body: some View {
         HStack(spacing: DS.s8) {
-            Image(systemName: codexStatusModel.icon)
+            Image(systemName: icon)
                 .foregroundColor(accentColor)
                 .font(.system(size: 12, weight: .semibold))
-            Text(codexStatusModel.message)
+            Text(message)
                 .font(.system(size: 11, weight: .medium))
                 .foregroundColor(.primary)
-            if let watcherError = workspaceViewModel.watcherError {
+            if let watcherError = watcherError {
                 Divider()
                 Image(systemName: "exclamationmark.triangle.fill")
                     .foregroundColor(.yellow)
@@ -38,7 +45,7 @@ struct CodexStatusBanner: View {
     }
     
     private var accentColor: Color {
-        switch codexStatusModel.tone {
+        switch tone {
         case .success: return .green
         case .warning: return .orange
         case .error: return .red

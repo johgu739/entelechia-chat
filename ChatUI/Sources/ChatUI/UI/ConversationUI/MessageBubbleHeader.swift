@@ -1,5 +1,4 @@
 import SwiftUI
-import UIConnections
 
 struct MessageBubbleHeader: View {
     let isAssistant: Bool

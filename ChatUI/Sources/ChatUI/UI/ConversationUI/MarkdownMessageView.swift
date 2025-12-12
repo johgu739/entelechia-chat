@@ -12,7 +12,6 @@
 // @EntelechiaHeaderEnd
 
 import SwiftUI
-import UIConnections
 import AppKit
 
 struct MarkdownMessageView: View {
@@ -39,8 +38,7 @@ struct MarkdownMessageView: View {
         }
         
         // Hide after 1 second
-        Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 1_000_000_000)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             withAnimation(.easeInOut(duration: 0.25)) {
                 didCopy = false
             }

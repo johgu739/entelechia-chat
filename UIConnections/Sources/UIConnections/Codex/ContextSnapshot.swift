@@ -1,6 +1,10 @@
 import Foundation
+import UIContracts
 
 /// Lightweight view-facing snapshot of the last built Codex context.
+/// This type is now in UIContracts - this is kept for backward compatibility.
+/// New code should use UIContracts.ContextSnapshot.
+@available(*, deprecated, message: "Use UIContracts.ContextSnapshot instead")
 public struct ContextSnapshot: Equatable {
     public let scope: ContextScopeChoice
     public let snapshotHash: String?
@@ -32,6 +36,7 @@ public struct ContextSnapshot: Equatable {
     }
 }
 
+@available(*, deprecated, message: "Use UIContracts.ContextSegmentDescriptor instead")
 public struct ContextSegmentDescriptor: Equatable, Identifiable {
     public let id = UUID()
     public let totalTokens: Int
@@ -45,6 +50,7 @@ public struct ContextSegmentDescriptor: Equatable, Identifiable {
     }
 }
 
+@available(*, deprecated, message: "Use UIContracts.ContextFileDescriptor instead")
 public struct ContextFileDescriptor: Equatable, Identifiable {
     public let id = UUID()
     public let path: String

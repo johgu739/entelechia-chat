@@ -12,10 +12,11 @@
 // @EntelechiaHeaderEnd
 
 import SwiftUI
-import UIConnections
+import UIContracts
 
 struct OntologyTodosView: View {
-    @EnvironmentObject var workspaceViewModel: WorkspaceViewModel
+    let projectTodos: UIContracts.ProjectTodos
+    let todosError: String?
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -32,7 +33,7 @@ struct OntologyTodosView: View {
             Text("Ontology TODOs")
                 .font(.system(size: 12, weight: .semibold))
             Spacer()
-            if let generatedAt = workspaceViewModel.projectTodos.generatedAt, !generatedAt.isEmpty {
+            if let generatedAt = projectTodos.generatedAt, !generatedAt.isEmpty {
                 Text(generatedAt)
                     .font(.system(size: 10))
                     .foregroundColor(.secondary)
@@ -42,14 +43,14 @@ struct OntologyTodosView: View {
     
     @ViewBuilder
     private var content: some View {
-        if let error = workspaceViewModel.todosError {
+        if let error = todosError {
             stateCard(systemImage: "exclamationmark.triangle", title: "Failed to load", detail: error)
-        } else if workspaceViewModel.projectTodos.totalCount == 0 {
+        } else if projectTodos.totalCount() == 0 {
             stateCard(systemImage: "checkmark.circle", title: "All clear", detail: "No ontology todos found.")
         } else {
             ScrollView {
                 VStack(alignment: .leading, spacing: 8) {
-                    ForEach(workspaceViewModel.projectTodos.flatTodos, id: \.self) { item in
+                    ForEach(projectTodos.flatTodos(), id: \.self) { item in
                         todoRow(text: item)
                     }
                 }

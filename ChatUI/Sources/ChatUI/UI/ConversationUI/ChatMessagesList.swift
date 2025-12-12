@@ -1,12 +1,12 @@
 import SwiftUI
-import UIConnections
+import UIContracts
 
 struct ChatMessagesList: View {
-    let messages: [Message]
+    let messages: [UIContracts.UIMessage]
     let streamingText: String
     let isLoading: Bool
-    let onMessageContext: (Message) -> Void
-    let onReask: (Message) -> Void
+    let onMessageContext: (UIContracts.UIMessage) -> Void
+    let onReask: (UIContracts.UIMessage) -> Void
     let emptyView: AnyView
     
     var body: some View {

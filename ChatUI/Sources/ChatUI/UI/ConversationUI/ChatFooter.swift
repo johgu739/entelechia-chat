@@ -1,12 +1,12 @@
 import SwiftUI
-import UIConnections
+import UIContracts
 
 struct ChatFooter: View {
-    let contextSnapshot: ContextSnapshot?
-    let activeScope: ContextScopeChoice
+    let contextSnapshot: UIContracts.ContextSnapshot?
+    let activeScope: UIContracts.ContextScopeChoice
     let onViewDetails: () -> Void
     let inputBar: ChatInputBar
-    let contextPopover: ContextBuildResult?
+    let contextPopover: UIContracts.UIContextBuildResult?
     
     var body: some View {
         VStack(spacing: DS.s6) {

@@ -1,26 +1,27 @@
 import SwiftUI
-import UIConnections
 
 struct FilePreviewView: View {
-    let file: WorkspaceLoadedFile
+    let fileName: String
+    let content: String
+    let isSourceCode: Bool
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         NavigationStack {
             ScrollView {
-                if file.fileKind == .sourceCode || file.fileKind == .text {
-                    Text(file.content)
+                if isSourceCode {
+                    Text(content)
                         .font(.system(size: 13, design: .monospaced))
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding()
                 } else {
-                    Text(file.content)
+                    Text(content)
                         .font(.system(size: 13))
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding()
                 }
             }
-            .navigationTitle(file.name)
+            .navigationTitle(fileName)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") {

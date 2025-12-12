@@ -1,12 +1,8 @@
 import SwiftUI
-import UIConnections
+import UIContracts
 
 struct ContextInspectorView: View {
-    @EnvironmentObject var workspaceViewModel: WorkspaceViewModel
-    
-    var snapshot: ContextSnapshot? {
-        workspaceViewModel.lastContextSnapshot
-    }
+    let snapshot: UIContracts.ContextSnapshot?
     
     var body: some View {
         ScrollView {

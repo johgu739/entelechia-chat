@@ -13,13 +13,37 @@
 
 import SwiftUI
 import AppKit
-import UIConnections
+import UIContracts
+
+struct FileRowData: Identifiable {
+    let id: UUID
+    let fileName: String
+    let byteCount: Int
+    let tokenEstimate: Int
+    let contextNote: String?
+    let exclusionReason: UIContracts.ContextExclusionReasonView?
+    let iconName: String
+    let isIncludedInContext: Bool
+}
 
 struct FilesSidebarView: View {
-    @ObservedObject var fileViewModel: FileViewModel
+    let files: [FileRowData]
+    let includedCount: Int
+    let includedBytes: Int
+    let includedTokens: Int
+    let budget: UIContracts.ContextBudgetView
+    let errorMessage: String?
     @State private var isFileImporterPresented = false
-    @State private var previewFile: WorkspaceLoadedFile?
+    @State private var previewFileID: UUID?
     @State private var selectedFileID: UUID?
+    
+    let onAddFiles: () -> Void
+    let onClearFiles: () -> Void
+    let onDismissError: () -> Void
+    let onFileSelected: (UUID) -> Void
+    let onToggleFileInclusion: (UUID) -> Void
+    let onPreviewFile: (UUID) -> Void
+    let onDropFiles: ([URL]) -> Void
     
     private let byteFormatter: ByteCountFormatter = {
         let formatter = ByteCountFormatter()
@@ -38,16 +62,16 @@ struct FilesSidebarView: View {
     var body: some View {
         VStack(spacing: 0) {
             FilesSidebarHeader(
-                hasFiles: !fileViewModel.loadedFiles.isEmpty,
+                hasFiles: !files.isEmpty,
                 onAdd: { isFileImporterPresented = true },
-                onClear: { fileViewModel.clearFiles() }
+                onClear: onClearFiles
             )
             
             ContextBudgetSummaryView(
-                includedCount: fileViewModel.includedFiles.count,
-                includedBytes: fileViewModel.includedByteCount,
-                includedTokens: fileViewModel.includedTokenCount,
-                budget: fileViewModel.budget,
+                includedCount: includedCount,
+                includedBytes: includedBytes,
+                includedTokens: includedTokens,
+                budget: budget,
                 byteFormatter: byteFormatter,
                 tokenFormatter: tokenFormatter
             )
@@ -55,27 +79,33 @@ struct FilesSidebarView: View {
             .padding(.vertical, DS.s8)
             
             // Error message display
-            if let errorMessage = fileViewModel.errorMessage {
+            if let errorMessage = errorMessage {
                 FilesSidebarErrorView(
                     message: errorMessage,
-                    onDismiss: { fileViewModel.errorMessage = nil }
+                    onDismiss: onDismissError
                 )
             }
             
             // Files list
-            if fileViewModel.loadedFiles.isEmpty {
+            if files.isEmpty {
                 FilesSidebarEmptyState(onDrop: handleDrop)
             } else {
                 List(selection: $selectedFileID) {
-                    ForEach(fileViewModel.loadedFiles) { file in
+                    ForEach(files) { file in
                         FileRow(
-                            file: file,
-                            fileViewModel: fileViewModel,
+                            fileID: file.id,
+                            fileName: file.fileName,
+                            byteCount: file.byteCount,
+                            tokenEstimate: file.tokenEstimate,
+                            contextNote: file.contextNote,
+                            exclusionReason: file.exclusionReason,
+                            iconName: file.iconName,
+                            isIncludedInContext: file.isIncludedInContext,
                             byteFormatter: byteFormatter,
                             tokenFormatter: tokenFormatter,
-                            onPreview: {
-                            previewFile = file
-                        })
+                            onToggleInclusion: { onToggleFileInclusion(file.id) },
+                            onPreview: { onPreviewFile(file.id) }
+                        )
                         .tag(file.id)
                     }
                 }
@@ -89,59 +119,45 @@ struct FilesSidebarView: View {
             allowedContentTypes: [],
             allowsMultipleSelection: true
         ) { result in
-            handleFileSelection(result: result)
-        }
-        .sheet(item: $previewFile) { file in
-            FilePreviewView(file: file)
-        }
-    }
-    
-    private func handleFileSelection(result: Result<[URL], Error>) {
-        switch result {
-        case .success(let urls):
-            Task {
-                for url in urls {
-                    do {
-                        try await fileViewModel.loadFile(from: url)
-                    } catch {
-                        // Show user-friendly error
-                        fileViewModel.errorMessage = "Failed to load \(url.lastPathComponent): " +
-                            "\(error.localizedDescription)"
-                    }
-                }
+            switch result {
+            case .success(let urls):
+                onDropFiles(urls)
+            case .failure:
+                break
             }
-        case .failure(let error):
-            fileViewModel.errorMessage = "File selection failed: \(error.localizedDescription)"
+        }
+        .sheet(item: Binding(
+            get: { previewFileID.map { id in PreviewFileID(id: id) } },
+            set: { previewFileID = $0?.id }
+        )) { previewID in
+            if let file = files.first(where: { $0.id == previewID.id }) {
+                FilePreviewView(
+                    fileName: file.fileName,
+                    content: "", // Content would come from ViewState
+                    isSourceCode: file.iconName.contains("code") || file.iconName.contains("swift")
+                )
+            }
         }
     }
     
     private func handleDrop(providers: [NSItemProvider]) -> Bool {
         let fileURLIdentifier = "public.file-url"
+        var urls: [URL] = []
         for provider in providers where provider.hasItemConformingToTypeIdentifier(fileURLIdentifier) {
-            provider.loadItem(forTypeIdentifier: fileURLIdentifier, options: nil) { item, error in
-                if let error = error {
-                    Task { @MainActor in
-                        let message = "Failed to load dropped file: \(error.localizedDescription)"
-                        fileViewModel.errorMessage = message
-                    }
-                    return
-                }
-                
+            provider.loadItem(forTypeIdentifier: fileURLIdentifier, options: nil) { item, _ in
                 if let data = item as? Data,
                    let url = URL(dataRepresentation: data, relativeTo: nil) {
-                    Task {
-                        do {
-                            try await fileViewModel.loadFile(from: url)
-                        } catch {
-                            await MainActor.run {
-                                let message = "Failed to load \(url.lastPathComponent): \(error.localizedDescription)"
-                                fileViewModel.errorMessage = message
-                            }
-                        }
-                    }
+                    urls.append(url)
                 }
             }
         }
+        if !urls.isEmpty {
+            onDropFiles(urls)
+        }
         return true
     }
+}
+
+private struct PreviewFileID: Identifiable {
+    let id: UUID
 }

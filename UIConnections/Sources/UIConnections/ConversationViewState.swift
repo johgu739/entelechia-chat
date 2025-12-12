@@ -1,7 +1,11 @@
 import Foundation
 import AppCoreEngine
+import UIContracts
 
 /// UI-ready conversation state for display/streaming.
+/// This is a legacy type - new code should use UIContracts.ConversationViewState.
+/// This type is kept for backward compatibility during migration.
+@available(*, deprecated, message: "Use UIContracts.ConversationViewState instead")
 public struct ConversationViewState: Sendable, Equatable {
     public let id: UUID
     public let messages: [Message]
@@ -18,6 +22,16 @@ public struct ConversationViewState: Sendable, Equatable {
         self.messages = messages
         self.streamingText = streamingText
         self.lastContext = lastContext
+    }
+    
+    /// Convert to UIContracts.ConversationViewState
+    public func toUIContracts() -> UIContracts.ConversationViewState {
+        UIContracts.ConversationViewState(
+            id: id,
+            messages: messages.map(DomainToUIMappers.toUIMessage),
+            streamingText: streamingText,
+            lastContext: lastContext.map(DomainToUIMappers.toUIContextBuildResult)
+        )
     }
 }
 

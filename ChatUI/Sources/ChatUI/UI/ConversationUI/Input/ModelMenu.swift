@@ -1,13 +1,13 @@
 import SwiftUI
-import UIConnections
+import UIContracts
 
 struct ModelMenu: View {
-    let selection: Binding<ModelChoice>
+    let selection: Binding<UIContracts.ModelChoice>
     
     var body: some View {
         Menu {
             Picker("Model", selection: selection) {
-                ForEach(ModelChoice.allCases, id: \.self) { choice in
+                ForEach(UIContracts.ModelChoice.allCases, id: \.self) { choice in
                     Text(choice.displayName).tag(choice)
                 }
             }

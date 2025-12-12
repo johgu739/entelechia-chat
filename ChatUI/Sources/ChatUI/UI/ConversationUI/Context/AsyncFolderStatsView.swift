@@ -1,21 +1,21 @@
 import SwiftUI
-import UIConnections
+import UIContracts
 
 struct AsyncFolderStatsView: View {
-    let url: URL
-    @ObservedObject var viewModel: FolderStatsViewModel
+    let stats: UIContracts.FolderStats?
+    let isLoading: Bool
     let formatFileSize: (Int64) -> String
     let formatNumber: (Int) -> String
     
     var body: some View {
         Group {
-            if viewModel.isLoading {
+            if isLoading {
                 InspectorSection(title: "TOTAL SIZE") {
                     Text("Loading...")
                         .font(.system(size: 13))
                         .foregroundColor(.secondary)
                 }
-            } else if let stats = viewModel.stats {
+            } else if let stats = stats {
                 InspectorSection(title: "TOTAL SIZE") {
                     Text(formatFileSize(stats.totalSize))
                         .font(.system(size: 13))

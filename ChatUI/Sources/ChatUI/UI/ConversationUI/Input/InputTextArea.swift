@@ -1,5 +1,4 @@
 import SwiftUI
-import UIConnections
 import AppKit
 
 struct InputTextArea: View {

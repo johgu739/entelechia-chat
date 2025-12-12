@@ -13,15 +13,20 @@
 
 import SwiftUI
 import AppKit
-import UIConnections
+import UIContracts
 
 @MainActor
 struct XcodeNavigatorRepresentable: NSViewRepresentable {
-    @EnvironmentObject var workspaceViewModel: WorkspaceViewModel
+    let workspaceState: UIContracts.WorkspaceUIViewState
+    let presentationState: UIContracts.PresentationViewState
+    let onWorkspaceIntent: (UIContracts.WorkspaceIntent) -> Void
     
     func makeNSView(context: Context) -> NSView {
-        let dataSource = NavigatorDataSource(diffApplier: NavigatorDiffApplier())
-        dataSource.workspaceViewModel = workspaceViewModel
+        let dataSource = NavigatorDataSource(
+            diffApplier: NavigatorDiffApplier(),
+            onWorkspaceIntent: onWorkspaceIntent
+        )
+        dataSource.rootNode = workspaceState.rootFileNode
 
         let outlineView = configuredOutlineView(dataSource: dataSource)
         let scrollView = configuredScrollView(containing: outlineView)
@@ -29,11 +34,11 @@ struct XcodeNavigatorRepresentable: NSViewRepresentable {
 
         context.coordinator.dataSource = dataSource
         context.coordinator.outlineView = outlineView
-        context.coordinator.lastRootURL = workspaceViewModel.rootDirectory
-        context.coordinator.lastFilterText = workspaceViewModel.filterText
+        context.coordinator.lastRootURL = workspaceState.rootDirectory
+        context.coordinator.lastFilterText = presentationState.filterText
 
         // Perform an initial data load now that everything is wired up.
-        dataSource.reloadData()
+        dataSource.reloadData(rootNode: workspaceState.rootFileNode)
         outlineView.reloadData()
         
         return containerView
@@ -104,35 +109,34 @@ struct XcodeNavigatorRepresentable: NSViewRepresentable {
             let dataSource = context.coordinator.dataSource
         else { return }
 
-        // Håll referensen i sync
-        dataSource.workspaceViewModel = workspaceViewModel
-
-        let currentRoot = workspaceViewModel.rootDirectory
+        let currentRoot = workspaceState.rootDirectory
         let hasProjectRootChanged = context.coordinator.lastRootURL != currentRoot
         if hasProjectRootChanged {
             context.coordinator.lastRootURL = currentRoot
-            dataSource.rootNode = workspaceViewModel.rootFileNode
+            dataSource.rootNode = workspaceState.rootFileNode
+            dataSource.reloadData(rootNode: workspaceState.rootFileNode)
             outlineView.reloadData()
-        } else if let newRoot = workspaceViewModel.rootFileNode,
+        } else if let newRoot = workspaceState.rootFileNode,
                   let existingRoot = dataSource.rootNode,
                   existingRoot.path == newRoot.path {
             // Same project: apply incremental diff to avoid flicker/collapse
             dataSource.applyDiff(from: existingRoot, to: newRoot, in: outlineView)
         } else {
             // Fallback: set and reload
-            dataSource.rootNode = workspaceViewModel.rootFileNode
+            dataSource.rootNode = workspaceState.rootFileNode
+            dataSource.reloadData(rootNode: workspaceState.rootFileNode)
             outlineView.reloadData()
         }
 
-        // Keep selection in sync with view model
-        let currentSelectionID = workspaceViewModel.selectedDescriptorID
+        // Keep selection in sync with view state
+        let currentSelectionID = workspaceState.selectedDescriptorID
         if context.coordinator.lastSelectedDescriptorID != currentSelectionID {
             context.coordinator.lastSelectedDescriptorID = currentSelectionID
             dataSource.applySelection(descriptorID: currentSelectionID, in: outlineView)
         }
 
-        // Keep expansion in sync with view model
-        let currentExpanded = workspaceViewModel.expandedDescriptorIDs
+        // Keep expansion in sync with view state
+        let currentExpanded = presentationState.expandedDescriptorIDs
         if context.coordinator.lastExpandedDescriptorIDs != currentExpanded {
             context.coordinator.lastExpandedDescriptorIDs = currentExpanded
             dataSource.applyExpansionState(currentExpanded, in: outlineView)
@@ -149,8 +153,8 @@ struct XcodeNavigatorRepresentable: NSViewRepresentable {
         var outlineView: NSOutlineView?
         var lastFilterText: String = ""
         var lastRootURL: URL?
-        var lastSelectedDescriptorID: FileID?
-        var lastExpandedDescriptorIDs: Set<FileID> = []
+        var lastSelectedDescriptorID: UIContracts.FileID?
+        var lastExpandedDescriptorIDs: Set<UIContracts.FileID> = []
     }
 }
 
@@ -158,28 +162,24 @@ struct XcodeNavigatorRepresentable: NSViewRepresentable {
 
 @MainActor
 class NavigatorDataSource: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate {
-    weak var workspaceViewModel: WorkspaceViewModel?
+    let onWorkspaceIntent: (UIContracts.WorkspaceIntent) -> Void
     
     /// Rotnod för trädstrukturen (motsvarar vald `rootDirectory`).
-    var rootNode: FileNode?
+    var rootNode: UIContracts.FileNode?
     /// Cache to avoid recomputing paths repeatedly.
-    private var descriptorPathCache: [FileID: [FileNode]] = [:]
+    private var descriptorPathCache: [UIContracts.FileID: [UIContracts.FileNode]] = [:]
     private let diffApplier: NavigatorDiffApplier
 
-    init(diffApplier: NavigatorDiffApplier) {
+    init(diffApplier: NavigatorDiffApplier, onWorkspaceIntent: @escaping (UIContracts.WorkspaceIntent) -> Void) {
         self.diffApplier = diffApplier
+        self.onWorkspaceIntent = onWorkspaceIntent
         super.init()
     }
     
     /// Ladda om hela trädet från aktuell `rootDirectory`.
     @MainActor
-    func reloadData() {
-        guard let root = workspaceViewModel?.rootFileNode else {
-            rootNode = nil
-            return
-        }
-        // Återanvänd det förinlästa trädet från WorkspaceViewModel.
-        rootNode = root
+    func reloadData(rootNode: UIContracts.FileNode?) {
+        self.rootNode = rootNode
         descriptorPathCache.removeAll()
     }
 
@@ -191,7 +191,7 @@ class NavigatorDataSource: NSObject, NSOutlineViewDataSource, NSOutlineViewDeleg
             return loadChildren(for: rootNode)?.count ?? 0
         }
 
-        if let node = item as? FileNode {
+        if let node = item as? UIContracts.FileNode {
             return loadChildren(for: node)?.count ?? 0
         }
 
@@ -206,7 +206,7 @@ class NavigatorDataSource: NSObject, NSOutlineViewDataSource, NSOutlineViewDeleg
             return loadChildren(for: rootNode)?[index] ?? rootNode
         }
 
-        if let node = item as? FileNode {
+        if let node = item as? UIContracts.FileNode {
             return loadChildren(for: node)?[index] ?? node
         }
 
@@ -214,13 +214,13 @@ class NavigatorDataSource: NSObject, NSOutlineViewDataSource, NSOutlineViewDeleg
     }
 
     func outlineView(_ outlineView: NSOutlineView, isItemExpandable item: Any) -> Bool {
-        (item as? FileNode)?.isDirectory == true
+        (item as? UIContracts.FileNode)?.isDirectory == true
     }
     
     // MARK: - NSOutlineViewDelegate
     
     func outlineView(_ outlineView: NSOutlineView, viewFor tableColumn: NSTableColumn?, item: Any) -> NSView? {
-        guard let fileNode = item as? FileNode else { return nil }
+        guard let fileNode = item as? UIContracts.FileNode else { return nil }
         
         let cellView = outlineView.makeView(
             withIdentifier: NSUserInterfaceItemIdentifier("NavigatorCell"),
@@ -245,43 +245,36 @@ class NavigatorDataSource: NSObject, NSOutlineViewDataSource, NSOutlineViewDeleg
         let selectedRow = outlineView.selectedRow
         
         // NSOutlineView callbacks may not be on main thread, ensure we're on main actor
-        Task { @MainActor [weak self] in
-            guard let self = self else { return }
-            if selectedRow >= 0,
-               let node = outlineView.item(atRow: selectedRow) as? FileNode {
-                // Check if this is a parent directory item (should not be selectable)
-               if node.isParentDirectory {
-                   // This is a parent directory - don't set as selected
-                   // Just expand/collapse to navigate
-                   return
-               }
-                if let descriptorID = node.descriptorID {
-                    self.workspaceViewModel?.setSelectedDescriptorID(descriptorID)
-                } else {
-                    // Nodes without descriptor IDs are not part of the canonical engine projection.
-                    self.workspaceViewModel?.setSelectedDescriptorID(nil)
-                }
+        if selectedRow >= 0,
+           let node = outlineView.item(atRow: selectedRow) as? UIContracts.FileNode {
+            // Check if this is a parent directory item (should not be selectable)
+           if node.isParentDirectory {
+               // This is a parent directory - don't set as selected
+               // Just expand/collapse to navigate
+               return
+           }
+            if let descriptorID = node.descriptorID {
+                onWorkspaceIntent(.selectDescriptorID(descriptorID))
             } else {
-                self.workspaceViewModel?.setSelectedDescriptorID(nil)
+                // Nodes without descriptor IDs are not part of the canonical engine projection.
+                onWorkspaceIntent(.selectNode(nil))
             }
+        } else {
+            onWorkspaceIntent(.selectNode(nil))
         }
     }
 
     func outlineViewItemDidExpand(_ notification: Notification) {
-        guard let node = notification.userInfo?["NSObject"] as? FileNode else { return }
-        Task { @MainActor [weak self] in
-            if let descriptorID = node.descriptorID {
-                self?.workspaceViewModel?.expandedDescriptorIDs.insert(descriptorID)
-            }
+        guard let node = notification.userInfo?["NSObject"] as? UIContracts.FileNode else { return }
+        if let descriptorID = node.descriptorID {
+            onWorkspaceIntent(.toggleExpanded(descriptorID))
         }
     }
 
     func outlineViewItemDidCollapse(_ notification: Notification) {
-        guard let node = notification.userInfo?["NSObject"] as? FileNode else { return }
-        Task { @MainActor [weak self] in
-            if let descriptorID = node.descriptorID {
-                self?.workspaceViewModel?.expandedDescriptorIDs.remove(descriptorID)
-            }
+        guard let node = notification.userInfo?["NSObject"] as? UIContracts.FileNode else { return }
+        if let descriptorID = node.descriptorID {
+            onWorkspaceIntent(.toggleExpanded(descriptorID))
         }
     }
     
@@ -332,12 +325,12 @@ class NavigatorDataSource: NSObject, NSOutlineViewDataSource, NSOutlineViewDeleg
     }
 
     /// Apply a lightweight diff between current tree and new tree to avoid full reloads.
-    func applyDiff(from oldRoot: FileNode, to newRoot: FileNode, in outlineView: NSOutlineView) {
+    func applyDiff(from oldRoot: UIContracts.FileNode, to newRoot: UIContracts.FileNode, in outlineView: NSOutlineView) {
         diffApplier.applyDiff(from: oldRoot, to: newRoot, in: outlineView)
     }
 
     /// Expand tree to the provided descriptor ID (preferred) or URL (fallback) and select it.
-    func applySelection(descriptorID: FileID?, in outlineView: NSOutlineView) {
+    func applySelection(descriptorID: UIContracts.FileID?, in outlineView: NSOutlineView) {
         guard let rootNode else { return }
         if let did = descriptorID, let path = findPath(descriptorID: did, in: rootNode) {
             expandAndSelect(path: path, in: outlineView)
@@ -345,7 +338,7 @@ class NavigatorDataSource: NSObject, NSOutlineViewDataSource, NSOutlineViewDeleg
     }
 
     /// Expand nodes that correspond to provided descriptor IDs.
-    func applyExpansionState(_ expanded: Set<FileID>, in outlineView: NSOutlineView) {
+    func applyExpansionState(_ expanded: Set<UIContracts.FileID>, in outlineView: NSOutlineView) {
         guard let rootNode else { return }
         for did in expanded {
             guard let path = findPath(descriptorID: did, in: rootNode) else { continue }
@@ -355,7 +348,7 @@ class NavigatorDataSource: NSObject, NSOutlineViewDataSource, NSOutlineViewDeleg
         }
     }
 
-    private func expandAndSelect(path: [FileNode], in outlineView: NSOutlineView) {
+    private func expandAndSelect(path: [UIContracts.FileNode], in outlineView: NSOutlineView) {
         for ancestor in path.dropLast() {
             outlineView.expandItem(ancestor)
         }
@@ -369,7 +362,7 @@ class NavigatorDataSource: NSObject, NSOutlineViewDataSource, NSOutlineViewDeleg
     }
 
     /// Find path from root to node by descriptor ID (cached).
-    private func findPath(descriptorID: FileID, in node: FileNode) -> [FileNode]? {
+    private func findPath(descriptorID: UIContracts.FileID, in node: UIContracts.FileNode) -> [UIContracts.FileNode]? {
         if let cached = descriptorPathCache[descriptorID] { return cached }
         if let current = node.descriptorID, current == descriptorID {
             let path = [node]
@@ -391,7 +384,7 @@ class NavigatorDataSource: NSObject, NSOutlineViewDataSource, NSOutlineViewDeleg
 
 private extension NavigatorDataSource {
     @MainActor
-    func loadChildren(for node: FileNode) -> [FileNode]? {
+    func loadChildren(for node: UIContracts.FileNode) -> [UIContracts.FileNode]? {
         return node.children
     }
 }

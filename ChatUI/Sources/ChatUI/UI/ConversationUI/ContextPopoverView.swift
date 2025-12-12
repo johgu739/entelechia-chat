@@ -1,8 +1,8 @@
 import SwiftUI
-import UIConnections
+import UIContracts
 
 struct ContextPopoverView: View {
-    let context: ContextBuildResult
+    let context: UIContracts.UIContextBuildResult
     
     var body: some View {
         VStack(alignment: .leading, spacing: DS.s10) {
@@ -44,7 +44,7 @@ struct ContextPopoverView: View {
         }
     }
     
-    private func attachmentRow(_ file: LoadedFile) -> some View {
+    private func attachmentRow(_ file: UIContracts.UILoadedFile) -> some View {
         VStack(alignment: .leading, spacing: DS.s4) {
             Text(file.url.lastPathComponent)
                 .font(.system(size: 13, weight: .semibold))

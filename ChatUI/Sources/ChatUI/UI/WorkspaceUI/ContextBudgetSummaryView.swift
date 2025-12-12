@@ -1,11 +1,11 @@
 import SwiftUI
-import UIConnections
+import UIContracts
 
 struct ContextBudgetSummaryView: View {
     let includedCount: Int
     let includedBytes: Int
     let includedTokens: Int
-    let budget: ContextBudget
+    let budget: UIContracts.ContextBudgetView
     let byteFormatter: ByteCountFormatter
     let tokenFormatter: NumberFormatter
     

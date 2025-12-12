@@ -1,13 +1,13 @@
 import SwiftUI
-import UIConnections
+import UIContracts
 
 struct ContextScopeMenu: View {
-    let selection: Binding<ContextScopeChoice>
+    let selection: Binding<UIContracts.ContextScopeChoice>
     
     var body: some View {
         Menu {
             Picker("Context Scope", selection: selection) {
-                ForEach(ContextScopeChoice.allCases, id: \.self) { choice in
+                ForEach(UIContracts.ContextScopeChoice.allCases, id: \.self) { choice in
                     Text(choice.displayName).tag(choice)
                 }
             }

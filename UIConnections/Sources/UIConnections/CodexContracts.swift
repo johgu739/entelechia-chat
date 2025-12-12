@@ -1,5 +1,6 @@
 import Foundation
 import AppCoreEngine
+import UIContracts
 
 public enum WorkspaceScope: Equatable, Sendable {
     case descriptor(FileID)
@@ -9,9 +10,9 @@ public enum WorkspaceScope: Equatable, Sendable {
 
 public struct CodexAnswer: Equatable, Sendable {
     public let text: String
-    public let context: ContextBuildResult
+    public let context: UIContracts.UIContextBuildResult
     
-    public init(text: String, context: ContextBuildResult) {
+    public init(text: String, context: UIContracts.UIContextBuildResult) {
         self.text = text
         self.context = context
     }

@@ -1,8 +1,8 @@
 import SwiftUI
-import UIConnections
+import UIContracts
 
 struct ContextBudgetDiagnosticsView: View {
-    let diagnostics: ContextBuildResult
+    let diagnostics: UIContracts.UIContextBuildResult
     let formatFileSize: (Int64) -> String
     let formatNumber: (Int) -> String
     
@@ -93,7 +93,7 @@ struct ContextBudgetDiagnosticsView: View {
         }
     }
     
-    private func exclusionMessage(for reason: ContextExclusionReason) -> String {
+    private func exclusionMessage(for reason: UIContracts.ContextExclusionReasonView) -> String {
         switch reason {
         case .exceedsPerFileBytes(let limit):
             return "Removed because it exceeded \(formatFileSize(Int64(limit)))."

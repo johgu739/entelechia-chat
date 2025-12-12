@@ -13,13 +13,13 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(name: "UIConnections", path: "../UIConnections")
+        .package(name: "UIContracts", path: "../UIContracts")
     ],
     targets: [
         .target(
             name: "ChatUI",
             dependencies: [
-                .product(name: "UIConnections", package: "UIConnections")
+                .product(name: "UIContracts", package: "UIContracts")
             ],
             exclude: [],
             resources: [
@@ -38,7 +38,7 @@ let package = Package(
             name: "ChatUITests",
             dependencies: [
                 "ChatUI",
-                .product(name: "UIConnections", package: "UIConnections")
+                .product(name: "UIContracts", package: "UIContracts")
             ]
         )
     ]

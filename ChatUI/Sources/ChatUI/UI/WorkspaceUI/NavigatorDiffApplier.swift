@@ -1,9 +1,9 @@
 import Foundation
 import AppKit
-import UIConnections
+import UIContracts
 
 struct NavigatorDiffApplier {
-    func applyDiff(from oldRoot: FileNode, to newRoot: FileNode, in outlineView: NSOutlineView) {
+    func applyDiff(from oldRoot: UIContracts.FileNode, to newRoot: UIContracts.FileNode, in outlineView: NSOutlineView) {
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0
             outlineView.beginUpdates()
@@ -12,13 +12,13 @@ struct NavigatorDiffApplier {
         }
     }
     
-    private func identityKey(for node: FileNode) -> AnyHashable {
+    private func identityKey(for node: UIContracts.FileNode) -> AnyHashable {
         node.descriptorID.map { AnyHashable($0) } ?? AnyHashable(node.path)
     }
     
     private func reconcile(
-        node oldNode: FileNode,
-        with newNode: FileNode,
+        node oldNode: UIContracts.FileNode,
+        with newNode: UIContracts.FileNode,
         parentItem: Any?,
         in outlineView: NSOutlineView
     ) {
@@ -33,9 +33,9 @@ struct NavigatorDiffApplier {
         let oldChildren = oldNode.children ?? []
         let newChildren = newNode.children ?? []
         
-        var updatedChildren: [FileNode] = []
+        var updatedChildren: [UIContracts.FileNode] = []
         var removals: [Int] = []
-        var insertions: [(Int, FileNode)] = []
+        var insertions: [(Int, UIContracts.FileNode)] = []
         
         let oldByIdentity = identityMap(from: oldChildren)
         
@@ -75,7 +75,7 @@ struct NavigatorDiffApplier {
         }
     }
     
-    private func identityMap(from children: [FileNode]) -> [AnyHashable: (Int, FileNode)] {
+    private func identityMap(from children: [UIContracts.FileNode]) -> [AnyHashable: (Int, UIContracts.FileNode)] {
         Dictionary(
             uniqueKeysWithValues: children.enumerated().map { index, child in
                 (identityKey(for: child), (index, child))

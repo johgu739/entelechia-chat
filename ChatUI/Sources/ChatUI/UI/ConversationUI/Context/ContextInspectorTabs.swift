@@ -1,15 +1,16 @@
 import SwiftUI
+import UIContracts
 
 struct ContextInspectorTabs: View {
-    @Binding var selectedInspectorTab: InspectorTab
+    @Binding var selectedInspectorTab: UIContracts.InspectorTab
     
     var body: some View {
         HStack {
-            ForEach(InspectorTab.allCases, id: \.self) { tab in
+            ForEach(UIContracts.InspectorTab.allCases, id: \.self) { tab in
                 Button(
                     action: { selectedInspectorTab = tab },
                     label: {
-                        Text(tab.title)
+                        Text(title(for: tab))
                             .font(.system(size: 12, weight: .semibold))
                             .foregroundColor(selectedInspectorTab == tab ? .primary : .secondary)
                             .padding(.vertical, DS.s8)
@@ -26,6 +27,14 @@ struct ContextInspectorTabs: View {
         }
         .padding(.horizontal, DS.s12)
         .padding(.vertical, DS.s8)
+    }
+    
+    private func title(for tab: UIContracts.InspectorTab) -> String {
+        switch tab {
+        case .files: return "Files"
+        case .quickHelp: return "Quick Help"
+        case .context: return "Context"
+        }
     }
 }
 

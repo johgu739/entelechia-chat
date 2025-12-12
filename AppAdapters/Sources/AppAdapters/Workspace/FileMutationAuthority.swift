@@ -14,6 +14,8 @@ public final class FileMutationAuthority: FileMutationAuthorizing {
     }
 
     public func execute(_ plan: MutationPlan) throws -> [AppliedPatchResult] {
+        let correlationID = UUID()
+        TeleologicalTracer.shared.trace("FileMutationAuthority.execute", power: .effectual, correlationID: correlationID)
         guard plan.isValid else {
             throw EngineError.invalidMutation("Validation errors: \(plan.validationErrors.joined(separator: ", "))")
         }

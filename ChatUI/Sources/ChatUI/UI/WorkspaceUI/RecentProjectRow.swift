@@ -1,8 +1,8 @@
 import SwiftUI
-import UIConnections
+import UIContracts
 
 struct RecentProjectRow: View {
-    let project: RecentProject
+    let project: UIContracts.RecentProject
     let action: () -> Void
     @State private var isHovered = false
     

@@ -1,8 +1,9 @@
 import SwiftUI
-import UIConnections
+import UIContracts
 
 struct NavigatorFilterField: View {
-    @EnvironmentObject var workspaceViewModel: WorkspaceViewModel
+    let filterText: String
+    let onWorkspaceIntent: (UIContracts.WorkspaceIntent) -> Void
     
     var body: some View {
         HStack(spacing: DS.s6) {
@@ -10,13 +11,16 @@ struct NavigatorFilterField: View {
                 .font(.system(size: 11))
                 .foregroundColor(.secondary)
             
-            TextField("Filter", text: $workspaceViewModel.filterText)
-                .textFieldStyle(.plain)
-                .font(.system(size: 11))
+            TextField("Filter", text: Binding(
+                get: { filterText },
+                set: { onWorkspaceIntent(.setFilterText($0)) }
+            ))
+            .textFieldStyle(.plain)
+            .font(.system(size: 11))
             
-            if !workspaceViewModel.filterText.isEmpty {
+            if !filterText.isEmpty {
                 Button {
-                    workspaceViewModel.filterText = ""
+                    onWorkspaceIntent(.setFilterText(""))
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 10))

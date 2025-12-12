@@ -1,5 +1,5 @@
 import AppKit
-import UIConnections
+import UIContracts
 
 final class NavigatorCellView: NSTableCellView {
     private let iconView = NSImageView()
@@ -49,7 +49,7 @@ final class NavigatorCellView: NSTableCellView {
         ])
     }
     
-    func configure(with node: FileNode) {
+    func configure(with node: UIContracts.FileNode) {
         nameTextField.stringValue = node.name
         let icon = NSWorkspace.shared.icon(forFile: node.path.path)
         icon.size = NSSize(width: 16, height: 16)

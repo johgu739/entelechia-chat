@@ -1,22 +1,15 @@
 import SwiftUI
-import UIConnections
+import UIContracts
 
 struct NavigatorModeButton: View {
-    @EnvironmentObject var workspaceViewModel: WorkspaceViewModel
-    let mode: NavigatorMode
-    
-    private var isActive: Bool {
-        workspaceViewModel.activeNavigator == mode
-    }
-    
-    private var badgeCount: Int {
-        guard mode == .todos else { return 0 }
-        return workspaceViewModel.projectTodos.totalCount
-    }
+    let mode: UIContracts.NavigatorMode
+    let isActive: Bool
+    let badgeCount: Int
+    let onWorkspaceIntent: (UIContracts.WorkspaceIntent) -> Void
     
     var body: some View {
         Button {
-            workspaceViewModel.activeNavigator = mode
+            onWorkspaceIntent(.setActiveNavigator(mode))
         } label: {
             ZStack(alignment: .topTrailing) {
                 Image(systemName: mode.icon)

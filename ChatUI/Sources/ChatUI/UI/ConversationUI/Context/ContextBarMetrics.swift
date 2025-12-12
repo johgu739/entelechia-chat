@@ -1,5 +1,5 @@
 import SwiftUI
-import UIConnections
+import UIContracts
 
 enum ContextBarMetricsDisplay {
     case summary
@@ -7,7 +7,7 @@ enum ContextBarMetricsDisplay {
 }
 
 struct ContextBarMetrics: View {
-    let snapshot: ContextSnapshot?
+    let snapshot: UIContracts.ContextSnapshot?
     let display: ContextBarMetricsDisplay
     
     var body: some View {

@@ -1,8 +1,8 @@
 import SwiftUI
-import UIConnections
+import UIContracts
 
 struct ContextInspectorSegmentList: View {
-    let segments: [ContextSegmentDescriptor]
+    let segments: [UIContracts.ContextSegmentDescriptor]
     
     var body: some View {
         ForEach(segments) { segment in

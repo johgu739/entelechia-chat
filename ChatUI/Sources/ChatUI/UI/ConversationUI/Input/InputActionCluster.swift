@@ -1,11 +1,11 @@
 import SwiftUI
-import UIConnections
+import UIContracts
 
 struct InputActionCluster: View {
     @Binding var text: String
     let isAskEnabled: Bool
-    let modelSelection: Binding<ModelChoice>
-    let scopeSelection: Binding<ContextScopeChoice>
+    let modelSelection: Binding<UIContracts.ModelChoice>
+    let scopeSelection: Binding<UIContracts.ContextScopeChoice>
     let onMic: () -> Void
     let onAsk: () -> Void
     let onSend: () -> Void

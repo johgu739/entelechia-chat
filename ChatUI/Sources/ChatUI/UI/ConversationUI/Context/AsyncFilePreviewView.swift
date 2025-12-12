@@ -1,16 +1,16 @@
 import SwiftUI
-import UIConnections
 
 struct AsyncFilePreviewView: View {
-    let url: URL
-    @ObservedObject var viewModel: FilePreviewViewModel
+    let content: String?
+    let isLoading: Bool
+    let error: Error?
     
     var body: some View {
         InspectorSection(title: "PREVIEW") {
-            if viewModel.isLoading {
+            if isLoading {
                 ProgressView()
                     .frame(maxHeight: 200)
-            } else if let content = viewModel.content {
+            } else if let content = content {
                 ScrollView {
                     Text(content)
                         .font(.system(size: 11, design: .monospaced))
@@ -19,7 +19,7 @@ struct AsyncFilePreviewView: View {
                 }
                 .frame(maxHeight: 200)
             } else {
-                Text(viewModel.error?.localizedDescription ?? "Could not load content")
+                Text(error?.localizedDescription ?? "Could not load content")
                     .font(.system(size: 11))
                     .foregroundColor(.secondary)
             }

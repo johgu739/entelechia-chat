@@ -12,11 +12,11 @@
 // @EntelechiaHeaderEnd
 
 import SwiftUI
-import UIConnections
+import UIContracts
 import AppKit
 
 struct MessageBubbleView: View {
-    let message: Message
+    let message: UIContracts.UIMessage
     let isAssistant: Bool
     var contextSummary: String?
     var errorMessage: String?

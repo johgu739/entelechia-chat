@@ -1,39 +1,46 @@
 import SwiftUI
-import UIConnections
+import UIContracts
 
 struct FileRow: View {
-    let file: WorkspaceLoadedFile
-    @ObservedObject var fileViewModel: FileViewModel
+    let fileID: UUID
+    let fileName: String
+    let byteCount: Int
+    let tokenEstimate: Int
+    let contextNote: String?
+    let exclusionReason: UIContracts.ContextExclusionReasonView?
+    let iconName: String
+    let isIncludedInContext: Bool
     let byteFormatter: ByteCountFormatter
     let tokenFormatter: NumberFormatter
+    let onToggleInclusion: () -> Void
     let onPreview: () -> Void
     
     var body: some View {
         HStack(spacing: DS.s6) {
             Label {
                 VStack(alignment: .leading, spacing: DS.s4) {
-                    Text(file.name)
+                    Text(fileName)
                         .font(.system(size: 12, weight: .medium))
                         .lineLimit(1)
                     
-                    Text("\(byteFormatter.string(fromByteCount: Int64(file.byteCount))) · ~\(formattedTokens) tokens")
+                    Text("\(byteFormatter.string(fromByteCount: Int64(byteCount))) · ~\(formattedTokens) tokens")
                         .font(.system(size: 10))
                         .foregroundColor(.secondary)
                     
-                    if let note = file.contextNote {
+                    if let note = contextNote {
                         Text(note)
                             .font(.system(size: 9))
                             .foregroundColor(.secondary)
                     }
                     
-                    if let reason = file.exclusionReason {
+                    if let reason = exclusionReason {
                         Label(reasonMessage(for: reason), systemImage: "exclamationmark.triangle.fill")
                             .font(.system(size: 9))
                             .foregroundColor(.orange)
                     }
                 }
             } icon: {
-                Image(systemName: file.iconName)
+                Image(systemName: iconName)
                     .font(.system(size: 12))
                     .foregroundColor(.secondary)
                     .frame(width: DS.s12)
@@ -43,8 +50,8 @@ struct FileRow: View {
             Spacer()
             
             Toggle("", isOn: Binding(
-                get: { file.isIncludedInContext },
-                set: { _ in fileViewModel.toggleFileInclusion(file) }
+                get: { isIncludedInContext },
+                set: { _ in onToggleInclusion() }
             ))
             .toggleStyle(.checkbox)
             .help("Include in Codex context (limits enforced automatically)")
@@ -66,10 +73,10 @@ struct FileRow: View {
     }
     
     private var formattedTokens: String {
-        tokenFormatter.string(from: NSNumber(value: file.tokenEstimate)) ?? "\(file.tokenEstimate)"
+        tokenFormatter.string(from: NSNumber(value: tokenEstimate)) ?? "\(tokenEstimate)"
     }
     
-    private func reasonMessage(for reason: ContextExclusionReason) -> String {
+    private func reasonMessage(for reason: UIContracts.ContextExclusionReasonView) -> String {
         switch reason {
         case .exceedsPerFileBytes(let limit):
             return "Trimmed: over \(byteFormatter.string(fromByteCount: Int64(limit)))"

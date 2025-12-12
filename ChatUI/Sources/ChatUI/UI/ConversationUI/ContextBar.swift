@@ -1,9 +1,9 @@
 import SwiftUI
-import UIConnections
+import UIContracts
 
 struct ContextBar: View {
-    var snapshot: ContextSnapshot?
-    var activeScope: ContextScopeChoice
+    var snapshot: UIContracts.ContextSnapshot?
+    var activeScope: UIContracts.ContextScopeChoice
     var onViewDetails: () -> Void
     
     @State private var isCollapsed = false

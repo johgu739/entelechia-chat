@@ -9,6 +9,8 @@ public final class FileMutationService: FileMutationPlanning, Sendable {
     /// Authorizes and plans mutations from unified diff text.
     /// Returns MutationPlan that adapter must execute.
     public func planMutation(_ diffText: String, rootPath: String) throws -> MutationPlan {
+        let correlationID = UUID()
+        TeleologicalTracer.shared.trace("FileMutationService.planMutation", power: .decisional, correlationID: correlationID)
         let fileDiffs = UnifiedDiffParser.parse(diffText: diffText)
         let canonicalRoot = try canonicalizeRoot(rootPath)
         let validationErrors = validateDiffs(fileDiffs, rootPath: canonicalRoot)

@@ -1,8 +1,8 @@
 import SwiftUI
-import UIConnections
+import UIContracts
 
 struct ContextInspectorFileRow: View {
-    let file: ContextFileDescriptor
+    let file: UIContracts.ContextFileDescriptor
     let truncated: Bool
     let excluded: Bool
     

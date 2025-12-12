@@ -15,6 +15,7 @@ import Foundation
 import Combine
 import os.log
 import AppCoreEngine
+import UIContracts
 
 public enum WorkspaceViewModelError: LocalizedError {
     case invalidProjectPath(String)
@@ -98,20 +99,25 @@ public final class WorkspaceViewModel: ObservableObject, ConversationWorkspaceHa
     
     // MARK: - Published State (Synced with presentationModel and projection)
     
-    @Published public var selectedNode: FileNode?
-    @Published public var rootFileNode: FileNode?
+    // Internal domain types for coordination
+    private var internalSelectedNode: FileNode?
+    private var internalRootFileNode: FileNode?
+    private var internalLastContextResult: AppCoreEngine.ContextBuildResult?
+    
+    @Published public var selectedNode: UIContracts.FileNode?
+    @Published public var rootFileNode: UIContracts.FileNode?
     @Published public var isLoading: Bool = false
     @Published public var filterText: String = ""
-    @Published public var activeNavigator: NavigatorMode = .project
-    @Published public var expandedDescriptorIDs: Set<FileID> = []
-    @Published public var projectTodos: ProjectTodos = .empty
+    @Published public var activeNavigator: UIContracts.NavigatorMode = .project
+    @Published public var expandedDescriptorIDs: Set<UIContracts.FileID> = []
+    @Published public var projectTodos: UIContracts.ProjectTodos = .empty
     @Published public var todosError: String?
     @Published var streamingMessages: [UUID: String] = [:]
-    @Published public var lastContextResult: ContextBuildResult?
+    @Published public var lastContextResult: UIContracts.UIContextBuildResult?
     @Published public var lastContextSnapshot: ContextSnapshot?
-    @Published public var activeScope: ContextScopeChoice = .selection
-    @Published public var modelChoice: ModelChoice = .codex
-    @Published public var selectedDescriptorID: FileID?
+    @Published public var activeScope: UIContracts.ContextScopeChoice = .selection
+    @Published public var modelChoice: UIContracts.ModelChoice = .codex
+    @Published public var selectedDescriptorID: UIContracts.FileID?
     @Published var workspaceState: WorkspaceViewState = WorkspaceViewState(
         rootPath: nil,
         selectedDescriptorID: nil,
@@ -251,20 +257,25 @@ public final class WorkspaceViewModel: ObservableObject, ConversationWorkspaceHa
     
     // MARK: - ConversationWorkspaceHandling Protocol
     
-    public func sendMessage(_ text: String, for conversation: Conversation) async {
-        await coordinator.sendMessage(text, for: conversation)
+    public func sendMessage(_ text: String, for conversation: UIContracts.UIConversation) async {
+        let internalConversation = mapToInternalConversation(conversation)
+        await coordinator.sendMessage(text, for: internalConversation)
     }
     
-    public func askCodex(_ text: String, for conversation: Conversation) async -> Conversation {
-        await coordinator.askCodex(text, for: conversation)
+    public func askCodex(_ text: String, for conversation: UIContracts.UIConversation) async -> UIContracts.UIConversation {
+        let internalConversation = mapToInternalConversation(conversation)
+        let result = await coordinator.askCodex(text, for: internalConversation)
+        return mapToUIConversation(result)
     }
     
-    public func setContextScope(_ scope: ContextScopeChoice) {
-        coordinator.setContextScope(scope)
+    public func setContextScope(_ scope: UIContracts.ContextScopeChoice) {
+        let internalScope = mapToInternalContextScopeChoice(scope)
+        coordinator.setContextScope(internalScope)
     }
     
-    public func setModelChoice(_ model: ModelChoice) {
-        coordinator.setModelChoice(model)
+    public func setModelChoice(_ model: UIContracts.ModelChoice) {
+        let internalModel = mapToInternalModelChoice(model)
+        coordinator.setModelChoice(internalModel)
     }
     
     public func canAskCodex() -> Bool {
@@ -295,50 +306,60 @@ public final class WorkspaceViewModel: ObservableObject, ConversationWorkspaceHa
         Task { await coordinator.selectPath(url) }
     }
     
-    public func setSelectedDescriptorID(_ id: FileID?) {
+    public func setSelectedDescriptorID(_ id: UIContracts.FileID?) {
         guard let id else {
             Task { await coordinator.selectPath(nil) }
             return
         }
-        if let path = descriptorPaths[id] {
+        let internalID = AppCoreEngine.FileID(rawValue: id.rawValue)
+        if let path = descriptorPaths[internalID] {
             Task { await coordinator.selectPath(URL(fileURLWithPath: path)) }
         }
     }
     
-    public func toggleExpanded(descriptorID: FileID) {
-        coordinator.toggleExpanded(descriptorID: descriptorID)
+    public func toggleExpanded(descriptorID: UIContracts.FileID) {
+        let internalID = AppCoreEngine.FileID(rawValue: descriptorID.rawValue)
+        coordinator.toggleExpanded(descriptorID: internalID)
     }
     
-    public func isExpanded(descriptorID: FileID) -> Bool {
-        coordinator.isExpanded(descriptorID: descriptorID)
+    public func isExpanded(descriptorID: UIContracts.FileID) -> Bool {
+        let internalID = AppCoreEngine.FileID(rawValue: descriptorID.rawValue)
+        return coordinator.isExpanded(descriptorID: internalID)
     }
     
     public func streamingText(for conversationID: UUID) -> String {
         projection.streamingMessages[conversationID] ?? ""
     }
     
-    public func url(for descriptorID: FileID) -> URL? {
-        coordinator.url(for: descriptorID)
+    public func url(for descriptorID: UIContracts.FileID) -> URL? {
+        let internalID = AppCoreEngine.FileID(rawValue: descriptorID.rawValue)
+        return coordinator.url(for: internalID)
     }
     
     public func publishFileBrowserError(_ error: Error) {
         coordinator.publishFileBrowserError(error)
     }
     
-    public func conversation(for url: URL) async -> Conversation {
-        await coordinator.conversation(for: url)
+    public func conversation(for url: URL) async -> UIContracts.UIConversation {
+        let internalConversation = await coordinator.conversation(for: url)
+        return mapToUIConversation(internalConversation)
     }
     
-    public func conversation(forDescriptorID descriptorID: FileID) async -> Conversation? {
-        await coordinator.conversation(forDescriptorID: descriptorID)
+    public func conversation(forDescriptorID descriptorID: UIContracts.FileID) async -> UIContracts.UIConversation? {
+        let internalID = AppCoreEngine.FileID(rawValue: descriptorID.rawValue)
+        guard let internalConversation = await coordinator.conversation(forDescriptorID: internalID) else {
+            return nil
+        }
+        return mapToUIConversation(internalConversation)
     }
     
     public func ensureConversation(for url: URL) async {
         await coordinator.ensureConversation(for: url)
     }
     
-    public func ensureConversation(forDescriptorID descriptorID: FileID) async {
-        await coordinator.ensureConversation(forDescriptorID: descriptorID)
+    public func ensureConversation(forDescriptorID descriptorID: UIContracts.FileID) async {
+        let internalID = AppCoreEngine.FileID(rawValue: descriptorID.rawValue)
+        await coordinator.ensureConversation(forDescriptorID: internalID)
     }
     
     public func isPathIncludedInContext(_ url: URL) -> Bool {
@@ -349,7 +370,86 @@ public final class WorkspaceViewModel: ObservableObject, ConversationWorkspaceHa
         coordinator.setContextInclusion(include, for: url)
     }
     
-    public func contextForMessage(_ id: UUID) -> ContextBuildResult? {
-        coordinator.contextForMessage(id)
+    public func contextForMessage(_ id: UUID) -> UIContracts.UIContextBuildResult? {
+        guard let internalResult = coordinator.contextForMessage(id) else {
+            return nil
+        }
+        return mapToUIContextBuildResult(internalResult)
+    }
+    
+    // MARK: - Internal Mapping Helpers
+    
+    private func mapToUIConversation(_ conversation: AppCoreEngine.Conversation) -> UIContracts.UIConversation {
+        UIContracts.UIConversation(
+            id: conversation.id,
+            title: conversation.title,
+            createdAt: conversation.createdAt,
+            updatedAt: conversation.updatedAt,
+            messages: conversation.messages.map { mapToUIMessage($0) },
+            contextFilePaths: conversation.contextFilePaths,
+            contextDescriptorIDs: conversation.contextDescriptorIDs?.map { UIContracts.FileID(rawValue: $0.rawValue) }
+        )
+    }
+    
+    private func mapToInternalConversation(_ conversation: UIContracts.UIConversation) -> AppCoreEngine.Conversation {
+        AppCoreEngine.Conversation(
+            id: conversation.id,
+            title: conversation.title,
+            createdAt: conversation.createdAt,
+            updatedAt: conversation.updatedAt,
+            messages: conversation.messages.map { mapToInternalMessage($0) },
+            contextFilePaths: conversation.contextFilePaths,
+            contextDescriptorIDs: conversation.contextDescriptorIDs?.map { AppCoreEngine.FileID(rawValue: $0.rawValue) }
+        )
+    }
+    
+    private func mapToUIMessage(_ message: AppCoreEngine.Message) -> UIContracts.UIMessage {
+        UIContracts.UIMessage(
+            id: message.id,
+            role: UIContracts.UIMessageRole(rawValue: message.role.rawValue) ?? .user,
+            text: message.text,
+            createdAt: message.createdAt,
+            attachments: message.attachments.map { mapToUIAttachment($0) }
+        )
+    }
+    
+    private func mapToInternalMessage(_ message: UIContracts.UIMessage) -> AppCoreEngine.Message {
+        AppCoreEngine.Message(
+            id: message.id,
+            role: AppCoreEngine.MessageRole(rawValue: message.role.rawValue) ?? .user,
+            text: message.text,
+            createdAt: message.createdAt,
+            attachments: message.attachments.map { mapToInternalAttachment($0) }
+        )
+    }
+    
+    private func mapToUIAttachment(_ attachment: AppCoreEngine.Attachment) -> UIContracts.UIAttachment {
+        switch attachment {
+        case .file(let path):
+            return .file(path: path)
+        case .code(let language, let content):
+            return .code(language: language, content: content)
+        }
+    }
+    
+    private func mapToInternalAttachment(_ attachment: UIContracts.UIAttachment) -> AppCoreEngine.Attachment {
+        switch attachment {
+        case .file(let path):
+            return .file(path: path)
+        case .code(let language, let content):
+            return .code(language: language, content: content)
+        }
+    }
+    
+    private func mapToUIContextBuildResult(_ result: AppCoreEngine.ContextBuildResult) -> UIContracts.UIContextBuildResult {
+        DomainToUIMappers.toUIContextBuildResult(result)
+    }
+    
+    private func mapToInternalContextScopeChoice(_ choice: UIContracts.ContextScopeChoice) -> ContextScopeChoice {
+        ContextScopeChoice(rawValue: choice.rawValue) ?? .selection
+    }
+    
+    private func mapToInternalModelChoice(_ choice: UIContracts.ModelChoice) -> ModelChoice {
+        ModelChoice(rawValue: choice.rawValue) ?? .codex
     }
 }

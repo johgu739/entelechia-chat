@@ -14,14 +14,16 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "AppCoreEngine", path: "../AppCoreEngine"),
-        .package(name: "AppAdapters", path: "../AppAdapters")
+        .package(name: "AppAdapters", path: "../AppAdapters"),
+        .package(name: "UIContracts", path: "../UIContracts")
     ],
     targets: [
         .target(
             name: "UIConnections",
             dependencies: [
                 .product(name: "AppCoreEngine", package: "AppCoreEngine"),
-                .product(name: "AppAdapters", package: "AppAdapters")
+                .product(name: "AppAdapters", package: "AppAdapters"),
+                .product(name: "UIContracts", package: "UIContracts")
             ]
         ),
         .testTarget(
