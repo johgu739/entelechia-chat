@@ -10,7 +10,7 @@ public struct RootScreen: View {
     @ObservedObject private var workspaceController: WorkspaceIntentController
     @ObservedObject private var chatController: ChatIntentController
     @ObservedObject private var projectSession: ProjectSession
-    @ObservedObject private var projectCoordinator: ProjectCoordinator
+    @ObservedObject private var projectCoordinator: ProjectCoordinating
     @ObservedObject private var alertCenter: AlertCenter
     @ObservedObject private var workspaceActivityCoordinator: WorkspaceActivityCoordinator
     
@@ -18,7 +18,7 @@ public struct RootScreen: View {
         workspaceController: WorkspaceIntentController,
         chatController: ChatIntentController,
         projectSession: ProjectSession,
-        projectCoordinator: ProjectCoordinator,
+        projectCoordinator: ProjectCoordinating,
         alertCenter: AlertCenter,
         workspaceActivityCoordinator: WorkspaceActivityCoordinator
     ) {
@@ -46,10 +46,17 @@ public struct RootScreen: View {
                 projectCoordinator.openProject(url: url, name: name)
             },
             onOpenRecent: { projectViewState in
-                // Convert UIContracts.RecentProjectViewState to project URL
-                // ProjectCoordinator will handle the domain type conversion internally
-                let projectURL = projectViewState.url
-                projectCoordinator.openProject(url: projectURL, name: projectViewState.name)
+                // Convert UIContracts.RecentProjectViewState to UIContracts.RecentProject
+                let recentProject = UIContracts.RecentProject(
+                    representation: UIContracts.UIProjectRepresentation(
+                        rootPath: projectViewState.url.path,
+                        name: projectViewState.name,
+                        metadata: [:],
+                        linkedFiles: []
+                    ),
+                    bookmarkData: nil
+                )
+                projectCoordinator.openRecent(recentProject)
             },
             onChatIntent: { intent in
                 chatController.handle(intent)

@@ -2,28 +2,20 @@ import Foundation
 import os.log
 import Combine
 import AppCoreEngine
+import UIContracts
 
-public struct RecentProject: Equatable, Sendable {
-    public let representation: ProjectRepresentation
-    public let bookmarkData: Data?
-    
-    public init(representation: ProjectRepresentation, bookmarkData: Data?) {
-        self.representation = representation
-        self.bookmarkData = bookmarkData
-    }
-}
-
-/// Coordinator for project operations (menu commands, file selection).
+/// Internal coordinator for project operations (menu commands, file selection).
+/// Use `createProjectCoordinator` factory function to create instances.
 @MainActor
-public final class ProjectCoordinator: ObservableObject {
-    public let projectEngine: ProjectEngine
+internal final class ProjectCoordinator: ProjectCoordinating {
+    internal let projectEngine: ProjectEngine
     private let projectSession: ProjectSessioning
     private let errorAuthority: DomainErrorAuthority
     private let logger = Logger(subsystem: "UIConnections", category: "ProjectCoordinator")
     private let securityScopeHandler: SecurityScopeHandling
     private let projectMetadataHandler: ProjectMetadataHandling
     
-    public init(
+    internal init(
         projectEngine: ProjectEngine,
         projectSession: ProjectSessioning,
         errorAuthority: DomainErrorAuthority,
@@ -37,7 +29,7 @@ public final class ProjectCoordinator: ObservableObject {
         self.projectMetadataHandler = projectMetadataHandler
     }
     
-    public func openProject(url: URL, name: String) {
+    func openProject(url: URL, name: String) {
         do {
             let rep = try projectEngine.validateProject(at: url)
             let resolvedURL = URL(fileURLWithPath: rep.rootPath)
@@ -54,21 +46,27 @@ public final class ProjectCoordinator: ObservableObject {
         }
     }
     
-    public func closeProject() {
+    func closeProject() {
         projectSession.close()
     }
     
-    public func openRecent(_ project: RecentProject) {
+    func openRecent(_ project: UIContracts.RecentProject) {
         do {
-            let rep = project.representation
-            let url = URL(fileURLWithPath: rep.rootPath)
+            // Map UIContracts.UIProjectRepresentation to AppCoreEngine.ProjectRepresentation
+            let domainRep = AppCoreEngine.ProjectRepresentation(
+                rootPath: project.representation.rootPath,
+                name: project.representation.name,
+                metadata: project.representation.metadata,
+                linkedFiles: project.representation.linkedFiles
+            )
+            let url = URL(fileURLWithPath: domainRep.rootPath)
             let bookmarkData = project.bookmarkData ?? (try? securityScopeHandler.createBookmark(for: url))
             let stored = projectMetadataHandler.withMetadata(
                 projectMetadataHandler.metadata(for: bookmarkData, lastSelection: nil, isLastOpened: true),
-                appliedTo: rep
+                appliedTo: domainRep
             )
             try projectEngine.save(stored)
-            projectSession.open(url, name: rep.name, bookmarkData: bookmarkData)
+            projectSession.open(url, name: domainRep.name, bookmarkData: bookmarkData)
         } catch {
             logger.error(
                 "Failed to open recent project \(project.representation.rootPath): " +
@@ -78,18 +76,64 @@ public final class ProjectCoordinator: ObservableObject {
         }
     }
     
-    public var recentProjects: [RecentProject] {
+    var recentProjects: [UIContracts.RecentProject] {
         engineRecentProjects()
     }
     
-    private func engineRecentProjects() -> [RecentProject] {
+    private func engineRecentProjects() -> [UIContracts.RecentProject] {
         let reps = (try? projectEngine.loadAll()) ?? []
         return reps.map {
-            RecentProject(
+            let internalProject = RecentProject(
                 representation: $0,
                 bookmarkData: projectMetadataHandler.bookmarkData(from: $0.metadata)
             )
+            return DomainToUIMappers.toRecentProject(internalProject)
         }
     }
+}
+
+// MARK: - Internal RecentProject (for mapping)
+
+internal struct RecentProject: Equatable, Sendable {
+    let representation: AppCoreEngine.ProjectRepresentation
+    let bookmarkData: Data?
+    
+    init(representation: AppCoreEngine.ProjectRepresentation, bookmarkData: Data?) {
+        self.representation = representation
+        self.bookmarkData = bookmarkData
+    }
+}
+
+// MARK: - Public Protocol
+
+/// Public protocol for project coordination operations.
+/// Exposes only UIContracts types, hiding internal implementation.
+@MainActor
+public protocol ProjectCoordinating: ObservableObject {
+    func openProject(url: URL, name: String)
+    func closeProject()
+    func openRecent(_ project: UIContracts.RecentProject)
+    var recentProjects: [UIContracts.RecentProject] { get }
+}
+
+// MARK: - Public Factory
+
+/// Public factory function to create ProjectCoordinator.
+/// Returns a ProjectCoordinating protocol that exposes only UIContracts types.
+@MainActor
+public func createProjectCoordinator(
+    projectEngine: ProjectEngine,
+    projectSession: ProjectSessioning,
+    errorAuthority: DomainErrorAuthority,
+    securityScopeHandler: SecurityScopeHandling,
+    projectMetadataHandler: ProjectMetadataHandling
+) -> ProjectCoordinating {
+    ProjectCoordinator(
+        projectEngine: projectEngine,
+        projectSession: projectSession,
+        errorAuthority: errorAuthority,
+        securityScopeHandler: securityScopeHandler,
+        projectMetadataHandler: projectMetadataHandler
+    )
 }
 

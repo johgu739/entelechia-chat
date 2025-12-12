@@ -6,7 +6,7 @@ import Combine
 /// Public entry point for embedding the Chat UI; composition lives here.
 public struct ChatUIHost: View {
     @StateObject private var projectSession: ProjectSession
-    @StateObject private var projectCoordinator: ProjectCoordinator
+    @StateObject private var projectCoordinator: ProjectCoordinating
     @StateObject private var alertCenter: AlertCenter
     @StateObject private var codexStatusModel: CodexStatusModel
     @StateObject private var workspaceViewModel: WorkspaceViewModel
@@ -52,7 +52,7 @@ public struct ChatUIHost: View {
         )
         _projectSession = StateObject(wrappedValue: session)
         
-        _projectCoordinator = StateObject(wrappedValue: ProjectCoordinator(
+        _projectCoordinator = StateObject(wrappedValue: createProjectCoordinator(
             projectEngine: container.projectEngine,
             projectSession: session,
             errorAuthority: container.domainErrorAuthority,
