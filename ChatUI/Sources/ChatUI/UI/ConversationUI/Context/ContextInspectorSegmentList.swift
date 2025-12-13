@@ -15,7 +15,7 @@ struct ContextInspectorSegmentList: View {
                 }
             }
             .padding(DS.s8)
-            .background(RoundedRectangle(cornerRadius: DS.r12).fill(Color.secondary.opacity(0.08)))
+            .background(.thinMaterial)
         }
     }
 }

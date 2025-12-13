@@ -51,7 +51,7 @@ struct ContextBudgetDiagnosticsView: View {
                                 .font(.system(size: 12, weight: .semibold))
                             Text(exclusion.reason)
                                 .font(.system(size: 11))
-                                .foregroundColor(.orange)
+                                .foregroundColor(AppTheme.warningColor)
                         }
                         .padding(.vertical, DS.s4)
                     }
@@ -85,9 +85,9 @@ struct ContextBudgetDiagnosticsView: View {
     private func progressColor(value: Int, limit: Int) -> Color {
         let ratio = Double(value) / Double(limit)
         if ratio >= 1 {
-            return .red
+            return AppTheme.errorColor
         } else if ratio >= 0.85 {
-            return .orange
+            return AppTheme.warningColor
         } else {
             return .accentColor
         }

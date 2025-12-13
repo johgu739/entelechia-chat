@@ -35,4 +35,21 @@ struct AppTheme {
     static var inputBackground: Color {
         Color(nsColor: .controlBackgroundColor)
     }
+    
+    // MARK: - Status Colors (System Semantic)
+    
+    /// Error state color - system semantic
+    static var errorColor: Color {
+        Color(nsColor: .systemRed)
+    }
+    
+    /// Warning state color - system semantic
+    static var warningColor: Color {
+        Color(nsColor: .systemOrange)
+    }
+    
+    /// Success state color - system semantic
+    static var successColor: Color {
+        Color(nsColor: .systemGreen)
+    }
 }

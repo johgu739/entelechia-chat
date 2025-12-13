@@ -54,7 +54,7 @@ struct ContextInspector: View {
             tabContent
         }
         .frame(minWidth: 220, maxWidth: 300)
-        .background(Color.clear)
+        .background(VisualEffectView(material: .sidebar, blendingMode: .withinWindow, state: .active))
         .overlay(alignment: .top) {
             if let message = contextState.bannerMessage {
                 ContextErrorBanner(message: message) {

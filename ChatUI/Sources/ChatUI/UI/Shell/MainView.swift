@@ -54,8 +54,10 @@ public struct MainWorkspaceView: View {
     }
     
     public var body: some View {
+        // Do not apply global material; it collapses surface hierarchy.
+        // Window chrome uses semantic color, sidebars use .sidebar material, editor uses textBackgroundColor.
         navigationLayout
-            .background(AppTheme.windowBackground)
+            .background(Color(nsColor: .windowBackgroundColor))
     }
     
     private var navigationLayout: some View {

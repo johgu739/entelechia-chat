@@ -28,20 +28,17 @@ struct MessageBubbleContent: View {
     private var bubbleBackground: some View {
         RoundedRectangle(cornerRadius: DS.r16)
             .fill(isAssistant ? DS.background : DS.background.opacity(0.95))
-            .overlay(
-                RoundedRectangle(cornerRadius: DS.r16)
-                    .stroke(DS.stroke, lineWidth: 1)
-            )
+            .shadow(color: .black.opacity(0.04), radius: 1)
     }
     
     private func errorRow(_ text: String) -> some View {
         HStack(spacing: DS.s6) {
             Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundColor(.orange)
+                .foregroundColor(AppTheme.warningColor)
                 .font(.system(size: 12, weight: .bold))
             Text(text)
                 .font(.system(size: 11, weight: .semibold))
-                .foregroundColor(.orange)
+                .foregroundColor(AppTheme.warningColor)
         }
     }
 }

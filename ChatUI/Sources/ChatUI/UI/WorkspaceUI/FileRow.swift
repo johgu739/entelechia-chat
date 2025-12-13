@@ -36,7 +36,7 @@ struct FileRow: View {
                     if let reason = exclusionReason {
                         Label(reasonMessage(for: reason), systemImage: "exclamationmark.triangle.fill")
                             .font(.system(size: 9))
-                            .foregroundColor(.orange)
+                            .foregroundColor(AppTheme.warningColor)
                     }
                 }
             } icon: {

@@ -35,12 +35,12 @@ struct ContextInspectorFileRow: View {
                 if truncated {
                     Text("trimmed")
                         .font(.system(size: 10, weight: .semibold))
-                        .foregroundColor(.orange)
+                        .foregroundColor(AppTheme.warningColor)
                 }
                 if excluded {
                     Text("excluded")
                         .font(.system(size: 10, weight: .semibold))
-                        .foregroundColor(.red)
+                        .foregroundColor(AppTheme.errorColor)
                 }
             }
         }

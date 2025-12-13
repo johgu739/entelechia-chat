@@ -113,7 +113,7 @@ struct FilesSidebarView: View {
             }
         }
         .frame(minWidth: DS.s20 * CGFloat(11), maxWidth: DS.s20 * CGFloat(15))
-        .background(AppTheme.panelBackground)
+        .background(VisualEffectView(material: .sidebar, blendingMode: .withinWindow, state: .active))
         .fileImporter(
             isPresented: $isFileImporterPresented,
             allowedContentTypes: [],

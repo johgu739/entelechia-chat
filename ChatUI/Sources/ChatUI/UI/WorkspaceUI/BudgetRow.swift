@@ -11,9 +11,9 @@ struct BudgetRow: View {
         guard limit > 0 else { return .accentColor }
         let ratio = Double(value) / Double(limit)
         if ratio >= 1 {
-            return .red
+            return AppTheme.errorColor
         } else if ratio >= 0.85 {
-            return .orange
+            return AppTheme.warningColor
         } else {
             return .accentColor
         }

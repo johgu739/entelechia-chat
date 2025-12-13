@@ -38,10 +38,7 @@ struct RecentProjectRow: View {
             }
             .padding(.horizontal, DS.s16)
             .padding(.vertical, DS.s12)
-            .background(
-                RoundedRectangle(cornerRadius: DS.r12)
-                    .fill(isHovered ? Color.secondary.opacity(0.15) : Color.secondary.opacity(0.08))
-            )
+            .background(.thinMaterial)
             .overlay(
                 RoundedRectangle(cornerRadius: DS.r12)
                     .stroke(isHovered ? Color.blue.opacity(0.3) : Color.clear, lineWidth: 1)

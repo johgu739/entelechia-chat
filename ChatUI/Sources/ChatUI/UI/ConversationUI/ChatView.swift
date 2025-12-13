@@ -54,7 +54,7 @@ struct ChatView: View {
                 emptyView: AnyView(emptyState)
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(AppTheme.editorBackground)
+            .background(Color(nsColor: .textBackgroundColor))
             .safeAreaInset(edge: .bottom) { footer }
         }
     }

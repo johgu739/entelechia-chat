@@ -7,7 +7,7 @@ struct FilesSidebarErrorView: View {
     var body: some View {
         HStack {
             Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundColor(.orange)
+                .foregroundColor(AppTheme.warningColor)
             Text(message)
                 .font(.system(size: 11))
                 .foregroundColor(.secondary)
@@ -20,7 +20,7 @@ struct FilesSidebarErrorView: View {
         }
         .padding(.horizontal, DS.s12)
         .padding(.vertical, DS.s8)
-        .background(Color.orange.opacity(0.1))
+        .background(AppTheme.warningColor.opacity(0.1))
         .overlay(Divider(), alignment: .bottom)
     }
 }

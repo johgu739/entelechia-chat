@@ -37,10 +37,7 @@ struct CodeBlockView: View {
         .background(
             RoundedRectangle(cornerRadius: DS.r12)
                 .fill(DS.background)
-                .overlay(
-                    RoundedRectangle(cornerRadius: DS.r12)
-                        .stroke(DS.stroke, lineWidth: 1)
-                )
+                .shadow(color: .black.opacity(0.04), radius: 1)
         )
     }
     

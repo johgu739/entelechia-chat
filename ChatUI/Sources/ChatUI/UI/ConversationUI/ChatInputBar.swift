@@ -64,12 +64,17 @@ struct ChatInputBar: View {
     }
     
     private var inputBackground: some View {
+        // Layer 3: Control floating on editor - must be visually lifted
+        // Background: controlBackgroundColor (not textBackgroundColor or windowBackgroundColor)
+        // Inset stroke: separatorColor for subtle separation
+        // Shadow: proper elevation to distinguish from editor floor
         RoundedRectangle(cornerRadius: cornerRadius)
-            .fill(DS.background)
+            .fill(Color(nsColor: .controlBackgroundColor))
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .stroke(DS.stroke, lineWidth: 1)
+                    .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
             )
+            .shadow(color: .black.opacity(0.08), radius: 8, y: 2)
     }
     
     private func send() {

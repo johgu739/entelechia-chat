@@ -14,9 +14,6 @@ struct StreamingChipView: View {
         }
         .padding(.horizontal, DS.s12)
         .padding(.vertical, DS.s8)
-        .background(
-            Capsule()
-                .fill(Color.secondary.opacity(0.1))
-        )
+        .background(.thinMaterial)
     }
 }

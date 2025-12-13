@@ -23,7 +23,7 @@ struct CodexStatusBanner: View {
             if let watcherError = watcherError {
                 Divider()
                 Image(systemName: "exclamationmark.triangle.fill")
-                    .foregroundColor(.yellow)
+                    .foregroundColor(AppTheme.warningColor)
                     .font(.system(size: 12, weight: .semibold))
                 Text(watcherError)
                     .font(.system(size: 11, weight: .medium))
@@ -46,9 +46,9 @@ struct CodexStatusBanner: View {
     
     private var accentColor: Color {
         switch tone {
-        case .success: return .green
-        case .warning: return .orange
-        case .error: return .red
+        case .success: return AppTheme.successColor
+        case .warning: return AppTheme.warningColor
+        case .error: return AppTheme.errorColor
         }
     }
 }

@@ -7,7 +7,7 @@ struct ContextErrorBanner: View {
     var body: some View {
         HStack(alignment: .center, spacing: DS.s8) {
             Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundColor(.yellow)
+                .foregroundColor(AppTheme.warningColor)
             Text(message)
                 .font(.system(size: 12))
                 .foregroundColor(.primary)
@@ -22,8 +22,8 @@ struct ContextErrorBanner: View {
         .padding(DS.s10)
         .background(
             RoundedRectangle(cornerRadius: DS.r12)
-                .fill(Color(NSColor.windowBackgroundColor).opacity(0.9))
-                .shadow(radius: DS.s4)
+                .fill(.thinMaterial)
+                .shadow(color: .black.opacity(0.04), radius: 1)
         )
     }
 }

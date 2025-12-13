@@ -128,7 +128,7 @@ struct OnboardingSelectProjectView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(AppTheme.windowBackground)
+        .background(Color(nsColor: .windowBackgroundColor))
         .fileImporter(
             isPresented: $showingFilePicker,
             allowedContentTypes: [],

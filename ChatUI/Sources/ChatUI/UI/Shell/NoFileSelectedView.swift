@@ -25,6 +25,6 @@ struct NoFileSelectedView: View {
                 .foregroundColor(DS.secondaryText)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(AppTheme.editorBackground)
+        .background(Color(nsColor: .textBackgroundColor))
     }
 }
