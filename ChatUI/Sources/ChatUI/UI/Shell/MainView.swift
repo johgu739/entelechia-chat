@@ -25,7 +25,6 @@ public struct MainWorkspaceView: View {
     let onWorkspaceIntent: (UIContracts.WorkspaceIntent) -> Void
     let onChatIntent: (UIContracts.ChatIntent) -> Void
     let isPathIncludedInContext: (URL) -> Bool
-    @Binding var inspectorTab: UIContracts.InspectorTab
     
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
     
@@ -39,8 +38,7 @@ public struct MainWorkspaceView: View {
         folderStatsState: (stats: UIContracts.FolderStats?, isLoading: Bool),
         onWorkspaceIntent: @escaping (UIContracts.WorkspaceIntent) -> Void,
         onChatIntent: @escaping (UIContracts.ChatIntent) -> Void,
-        isPathIncludedInContext: @escaping (URL) -> Bool,
-        inspectorTab: Binding<UIContracts.InspectorTab>
+        isPathIncludedInContext: @escaping (URL) -> Bool
     ) {
         self.workspaceState = workspaceState
         self.contextState = contextState
@@ -52,7 +50,6 @@ public struct MainWorkspaceView: View {
         self.onWorkspaceIntent = onWorkspaceIntent
         self.onChatIntent = onChatIntent
         self.isPathIncludedInContext = isPathIncludedInContext
-        _inspectorTab = inspectorTab
     }
     
     public var body: some View {
@@ -62,10 +59,11 @@ public struct MainWorkspaceView: View {
     private var navigationLayout: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
             navigatorColumn
-        } content: {
-            chatColumn
         } detail: {
-            inspectorColumn
+            NavigationStack {
+                chatContent
+            }
+            .navigationTitle(navigationTitle)
         }
     }
     
@@ -77,35 +75,8 @@ public struct MainWorkspaceView: View {
         )
     }
     
-    private var chatColumn: some View {
-        NavigationStack {
-            chatContent
-                .navigationTitle(navigationTitle)
-        }
-    }
-    
     private var navigationTitle: String {
         workspaceState.selectedNode?.name ?? "No Selection"
-    }
-    
-    private var inspectorColumn: some View {
-        ContextInspector(
-            workspaceState: workspaceState,
-            contextState: contextState,
-            filePreviewState: filePreviewState,
-            fileStatsState: fileStatsState,
-            folderStatsState: folderStatsState,
-            selectedInspectorTab: $inspectorTab,
-            onWorkspaceIntent: onWorkspaceIntent,
-            isPathIncludedInContext: isPathIncludedInContext
-        )
-    }
-    
-    @ViewBuilder
-    private var statusOverlay: some View {
-        // Status overlay - CodexStatusBanner needs refactoring to use ViewState
-        // For now, this is a placeholder
-        EmptyView()
     }
 
     @ViewBuilder
@@ -116,8 +87,7 @@ public struct MainWorkspaceView: View {
                 workspaceState: workspaceState,
                 contextState: contextState,
                 onChatIntent: onChatIntent,
-                onWorkspaceIntent: onWorkspaceIntent,
-                inspectorTab: $inspectorTab
+                onWorkspaceIntent: onWorkspaceIntent
             )
         } else {
             NoFileSelectedView()

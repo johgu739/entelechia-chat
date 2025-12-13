@@ -32,7 +32,6 @@ public struct ChatUIHost: View {
     @State private var presentationViewState: UIContracts.PresentationViewState = .empty
     @State private var chatViewState: UIContracts.ChatViewState = .empty
     @State private var bannerMessage: String? = nil
-    @State private var inspectorTab: UIContracts.InspectorTab = .files
     
     // MARK: - Reactive Update Mechanism
     
@@ -176,7 +175,6 @@ public struct ChatUIHost: View {
         contextViewState = workspaceCoordinator.deriveContextViewState(bannerMessage: bannerMessage)
         presentationViewState = workspaceCoordinator.derivePresentationViewState()
         chatViewState = conversationCoordinator.deriveChatViewState(text: chatViewState.text)
-        inspectorTab = workspaceCoordinator.inspectorTab()
     }
     
     // MARK: - Workspace Content
@@ -202,14 +200,7 @@ public struct ChatUIHost: View {
             },
             isPathIncludedInContext: { url in
                 workspaceCoordinator.isPathIncludedInContext(url)
-            },
-            inspectorTab: Binding(
-                get: { inspectorTab },
-                set: { newTab in
-                    inspectorTab = newTab
-                    workspaceCoordinator.setInspectorTab(newTab)
-                }
-            )
+            }
         )
     }
     

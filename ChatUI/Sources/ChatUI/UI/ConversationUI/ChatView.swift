@@ -21,7 +21,6 @@ struct ChatView: View {
     let contextState: UIContracts.ContextViewState
     let onChatIntent: (UIContracts.ChatIntent) -> Void
     let onWorkspaceIntent: (UIContracts.WorkspaceIntent) -> Void
-    @Binding var selectedInspectorTab: UIContracts.InspectorTab
     
     @State private var showMessageContextPopover = false
     @State private var contextPopoverData: UIContracts.UIContextBuildResult?
@@ -32,15 +31,13 @@ struct ChatView: View {
         workspaceState: UIContracts.WorkspaceUIViewState,
         contextState: UIContracts.ContextViewState,
         onChatIntent: @escaping (UIContracts.ChatIntent) -> Void,
-        onWorkspaceIntent: @escaping (UIContracts.WorkspaceIntent) -> Void,
-        inspectorTab: Binding<UIContracts.InspectorTab>
+        onWorkspaceIntent: @escaping (UIContracts.WorkspaceIntent) -> Void
     ) {
         self.chatState = chatState
         self.workspaceState = workspaceState
         self.contextState = contextState
         self.onChatIntent = onChatIntent
         self.onWorkspaceIntent = onWorkspaceIntent
-        _selectedInspectorTab = inspectorTab
     }
     
     var body: some View {
@@ -53,8 +50,6 @@ struct ChatView: View {
                 onReask: { reask($0) },
                 emptyView: AnyView(emptyState)
             )
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color(nsColor: .textBackgroundColor))
             .safeAreaInset(edge: .bottom) { footer }
         }
     }
@@ -63,7 +58,7 @@ struct ChatView: View {
         ChatFooter(
             contextSnapshot: contextState.lastContextSnapshot,
             activeScope: chatState.contextScope,
-            onViewDetails: { selectedInspectorTab = UIContracts.InspectorTab.context },
+            onViewDetails: { },
             inputBar: chatInputBar,
             contextPopover: contextPopoverData
         )
