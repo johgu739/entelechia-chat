@@ -41,27 +41,31 @@ final class WorkspaceViewContractTests: XCTestCase {
 
     func testXcodeNavigatorViewConstructsWithWorkspaceData() {
         // Test XcodeNavigatorView with populated workspace data
+        let fileUUID = UUID()
+        let fileID = UIContracts.FileID(fileUUID)
         let fileNode = UIContracts.FileNode(
-            id: FileID(),
+            id: fileUUID,
+            descriptorID: fileID,
             name: "test.swift",
-            path: "/test.swift",
-            type: .file,
-            children: []
+            path: URL(fileURLWithPath: "/test.swift"),
+            children: [],
+            icon: "doc.text",
+            isDirectory: false
         )
 
         let workspaceState = UIContracts.WorkspaceUIViewState(
             selectedNode: fileNode,
-            selectedDescriptorID: fileNode.id,
+            selectedDescriptorID: fileID,
             rootFileNode: fileNode,
             rootDirectory: URL(fileURLWithPath: "/"),
-            projectTodos: UIContracts.UIProjectTodos(todos: []),
+            projectTodos: .empty,
             todosErrorDescription: nil
         )
 
         let presentationState = UIContracts.PresentationViewState(
             activeNavigator: .project,
             filterText: "search",
-            expandedDescriptorIDs: [fileNode.id]
+            expandedDescriptorIDs: [fileID]
         )
 
         let view = XcodeNavigatorView(
@@ -72,7 +76,7 @@ final class WorkspaceViewContractTests: XCTestCase {
 
         XCTAssertNotNil(view, "XcodeNavigatorView should construct with workspace data")
         XCTAssertEqual(presentationState.filterText, "search", "Should have filter text")
-        XCTAssertTrue(presentationState.expandedDescriptorIDs.contains(fileNode.id), "Should have expanded descriptor")
+        XCTAssertTrue(presentationState.expandedDescriptorIDs.contains(fileID), "Should have expanded descriptor")
     }
 
     func testXcodeNavigatorViewConstructsWithDifferentNavigatorModes() {
@@ -102,21 +106,21 @@ final class WorkspaceViewContractTests: XCTestCase {
         XCTAssertNotNil(projectView, "Should construct with project navigator")
         XCTAssertEqual(projectPresentation.activeNavigator, .project, "Should be in project mode")
 
-        // Test find mode
-        let findPresentation = UIContracts.PresentationViewState(
-            activeNavigator: .find,
+        // Test search mode
+        let searchPresentation = UIContracts.PresentationViewState(
+            activeNavigator: .search,
             filterText: "",
             expandedDescriptorIDs: []
         )
 
-        let findView = XcodeNavigatorView(
+        let searchView = XcodeNavigatorView(
             workspaceState: workspaceState,
-            presentationState: findPresentation,
+            presentationState: searchPresentation,
             onWorkspaceIntent: { _ in }
         )
 
-        XCTAssertNotNil(findView, "Should construct with find navigator")
-        XCTAssertEqual(findPresentation.activeNavigator, .find, "Should be in find mode")
+        XCTAssertNotNil(searchView, "Should construct with search navigator")
+        XCTAssertEqual(searchPresentation.activeNavigator, .search, "Should be in search mode")
     }
 
     func testXcodeNavigatorViewConstructsWithErrorState() {
@@ -148,20 +152,14 @@ final class WorkspaceViewContractTests: XCTestCase {
 
     func testXcodeNavigatorViewConstructsWithTodos() {
         // Test XcodeNavigatorView with project todos
-        let todo = UIContracts.UITodo(
-            id: UUID(),
-            title: "Fix bug",
-            filePath: "/test.swift",
-            lineNumber: 42,
-            isCompleted: false
-        )
-
         let workspaceState = UIContracts.WorkspaceUIViewState(
             selectedNode: nil,
             selectedDescriptorID: nil,
             rootFileNode: nil,
             rootDirectory: nil,
-            projectTodos: UIContracts.UIProjectTodos(todos: [todo]),
+            projectTodos: UIContracts.ProjectTodos(
+                allTodos: ["Fix bug in /test.swift:42"]
+            ),
             todosErrorDescription: nil
         )
 
@@ -178,8 +176,8 @@ final class WorkspaceViewContractTests: XCTestCase {
         )
 
         XCTAssertNotNil(view, "XcodeNavigatorView should construct with todos")
-        XCTAssertEqual(workspaceState.projectTodos.todos.count, 1, "Should have one todo")
-        XCTAssertEqual(workspaceState.projectTodos.todos.first?.title, "Fix bug", "Should have correct todo title")
+        XCTAssertEqual(workspaceState.projectTodos.allTodos.count, 1, "Should have one todo")
+        XCTAssertEqual(workspaceState.projectTodos.allTodos.first, "Fix bug in /test.swift:42", "Should have correct todo")
     }
 
     // MARK: - Workspace Intent Handler Tests
@@ -216,42 +214,46 @@ final class WorkspaceViewContractTests: XCTestCase {
     func testWorkspaceViewStateWithNestedFileStructure() {
         // Test ViewState with nested file structure
         let childFile = UIContracts.FileNode(
-            id: FileID(),
+            id: UUID(),
             name: "child.swift",
-            path: "/src/child.swift",
-            type: .file,
-            children: []
+            path: URL(fileURLWithPath: "/src/child.swift"),
+            children: [],
+            icon: "doc.text",
+            isDirectory: false
         )
 
         let parentDir = UIContracts.FileNode(
-            id: FileID(),
+            id: UUID(),
             name: "src",
-            path: "/src",
-            type: .directory,
-            children: [childFile]
+            path: URL(fileURLWithPath: "/src"),
+            children: [childFile],
+            icon: "folder",
+            isDirectory: true
         )
 
         let rootDir = UIContracts.FileNode(
-            id: FileID(),
+            id: UUID(),
             name: "root",
-            path: "/",
-            type: .directory,
-            children: [parentDir]
+            path: URL(fileURLWithPath: "/"),
+            children: [parentDir],
+            icon: "folder",
+            isDirectory: true
         )
 
         let workspaceState = UIContracts.WorkspaceUIViewState(
             selectedNode: childFile,
-            selectedDescriptorID: childFile.id,
+            selectedDescriptorID: UIContracts.FileID(childFile.id),
             rootFileNode: rootDir,
             rootDirectory: URL(fileURLWithPath: "/"),
             projectTodos: .empty,
             todosErrorDescription: nil
         )
 
+        let parentDirID = UIContracts.FileID(parentDir.id)
         let presentationState = UIContracts.PresentationViewState(
             activeNavigator: .project,
             filterText: "",
-            expandedDescriptorIDs: [parentDir.id]
+            expandedDescriptorIDs: [parentDirID]
         )
 
         let view = XcodeNavigatorView(
@@ -261,8 +263,8 @@ final class WorkspaceViewContractTests: XCTestCase {
         )
 
         XCTAssertNotNil(view, "Should construct with nested file structure")
-        XCTAssertEqual(workspaceState.rootFileNode?.children.count, 1, "Root should have one child")
-        XCTAssertEqual(workspaceState.rootFileNode?.children.first?.children.count, 1, "Parent dir should have one child")
+        XCTAssertEqual(workspaceState.rootFileNode?.children?.count ?? 0, 1, "Root should have one child")
+        XCTAssertEqual(workspaceState.rootFileNode?.children?.first?.children?.count ?? 0, 1, "Parent dir should have one child")
         XCTAssertEqual(workspaceState.selectedNode?.name, "child.swift", "Should have correct selected file")
     }
 }

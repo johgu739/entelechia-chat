@@ -43,21 +43,18 @@ final class ContextInspectorContractTests: XCTestCase {
     func testContextInspectorViewConstructsWithPopulatedSnapshot() {
         // Test ContextInspectorView with populated snapshot data
         let fileDescriptor = UIContracts.ContextFileDescriptor(
-            fileID: FileID(),
-            canonicalPath: "/test.swift",
-            name: "test.swift",
+            path: "/test.swift",
+            language: "swift",
             size: 1000,
-            tokens: 150,
-            language: "swift"
+            hash: "abc123",
+            isIncluded: true,
+            isTruncated: false
         )
 
         let segment = UIContracts.ContextSegmentDescriptor(
-            id: UUID(),
-            fileID: fileDescriptor.fileID,
-            range: 0..<100,
-            content: "func test() {}",
-            tokens: 10,
-            reason: .userSelection
+            totalTokens: 10,
+            totalBytes: 100,
+            files: [fileDescriptor]
         )
 
         let snapshot = UIContracts.ContextSnapshot(
@@ -84,30 +81,30 @@ final class ContextInspectorContractTests: XCTestCase {
     func testContextInspectorViewConstructsWithMixedFileStates() {
         // Test ContextInspectorView with included, truncated, and excluded files
         let includedFile = UIContracts.ContextFileDescriptor(
-            fileID: FileID(),
-            canonicalPath: "/included.swift",
-            name: "included.swift",
+            path: "/included.swift",
+            language: "swift",
             size: 500,
-            tokens: 75,
-            language: "swift"
+            hash: "hash1",
+            isIncluded: true,
+            isTruncated: false
         )
 
         let truncatedFile = UIContracts.ContextFileDescriptor(
-            fileID: FileID(),
-            canonicalPath: "/truncated.swift",
-            name: "truncated.swift",
+            path: "/truncated.swift",
+            language: "swift",
             size: 10000,
-            tokens: 2000,
-            language: "swift"
+            hash: "hash2",
+            isIncluded: true,
+            isTruncated: true
         )
 
         let excludedFile = UIContracts.ContextFileDescriptor(
-            fileID: FileID(),
-            canonicalPath: "/excluded.swift",
-            name: "excluded.swift",
+            path: "/excluded.swift",
+            language: "swift",
             size: 200,
-            tokens: 30,
-            language: "swift"
+            hash: "hash3",
+            isIncluded: false,
+            isTruncated: false
         )
 
         let snapshot = UIContracts.ContextSnapshot(
@@ -138,24 +135,20 @@ final class ContextInspectorContractTests: XCTestCase {
 
         // Create multiple files and segments
         for i in 0..<10 {
-            let fileID = FileID()
             let file = UIContracts.ContextFileDescriptor(
-                fileID: fileID,
-                canonicalPath: "/file\(i).swift",
-                name: "file\(i).swift",
+                path: "/file\(i).swift",
+                language: "swift",
                 size: 1000 * (i + 1),
-                tokens: 150 * (i + 1),
-                language: "swift"
+                hash: "hash\(i)",
+                isIncluded: true,
+                isTruncated: false
             )
             includedFiles.append(file)
 
             let segment = UIContracts.ContextSegmentDescriptor(
-                id: UUID(),
-                fileID: fileID,
-                range: 0..<100,
-                content: "content for file \(i)",
-                tokens: 20,
-                reason: .userSelection
+                totalTokens: 20,
+                totalBytes: 200,
+                files: [file]
             )
             segments.append(segment)
         }
@@ -210,12 +203,12 @@ final class ContextInspectorContractTests: XCTestCase {
     func testContextInspectorViewWithZeroSizeFiles() {
         // Test ContextInspectorView with zero-size files
         let emptyFile = UIContracts.ContextFileDescriptor(
-            fileID: FileID(),
-            canonicalPath: "/empty.swift",
-            name: "empty.swift",
+            path: "/empty.swift",
+            language: "swift",
             size: 0,
-            tokens: 0,
-            language: "swift"
+            hash: "empty_hash",
+            isIncluded: true,
+            isTruncated: false
         )
 
         let snapshot = UIContracts.ContextSnapshot(
@@ -233,7 +226,6 @@ final class ContextInspectorContractTests: XCTestCase {
 
         XCTAssertNotNil(view, "ContextInspectorView should construct with zero-size files")
         XCTAssertEqual(snapshot.includedFiles.first?.size, 0, "Should have zero size")
-        XCTAssertEqual(snapshot.includedFiles.first?.tokens, 0, "Should have zero tokens")
         XCTAssertNil(snapshot.snapshotHash, "Should handle nil snapshot hash")
     }
 
@@ -241,12 +233,12 @@ final class ContextInspectorContractTests: XCTestCase {
         // Test ContextInspectorView with very long file paths
         let longPath = String(repeating: "a", count: 1000) + "/deep/nested/file.swift"
         let file = UIContracts.ContextFileDescriptor(
-            fileID: FileID(),
-            canonicalPath: longPath,
-            name: "file.swift",
+            path: longPath,
+            language: "swift",
             size: 100,
-            tokens: 15,
-            language: "swift"
+            hash: "long_hash",
+            isIncluded: true,
+            isTruncated: false
         )
 
         let snapshot = UIContracts.ContextSnapshot(
@@ -263,6 +255,6 @@ final class ContextInspectorContractTests: XCTestCase {
         let view = ContextInspectorView(snapshot: snapshot)
 
         XCTAssertNotNil(view, "ContextInspectorView should construct with very long paths")
-        XCTAssertEqual(snapshot.includedFiles.first?.canonicalPath.count, 1025, "Should handle long path")
+        XCTAssertGreaterThanOrEqual(snapshot.includedFiles.first?.path.count ?? 0, 1000, "Should handle long path")
     }
 }

@@ -420,3 +420,4 @@ func testContextErrorSubscriptionIsActive() {
 ---
 
 **Status**: 🔴 **CRITICAL TEST COVERAGE GAPS IDENTIFIED**
+

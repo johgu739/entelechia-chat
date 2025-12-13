@@ -68,7 +68,7 @@ final class ChatViewContractTests: XCTestCase {
             id: UUID(),
             role: .assistant,
             text: "Hello, world!",
-            timestamp: Date()
+                createdAt: Date()
         )
 
         let chatState = UIContracts.ChatViewState(
@@ -165,20 +165,24 @@ final class ChatViewContractTests: XCTestCase {
 
     func testChatViewConstructsWithWorkspaceData() {
         // Test ChatView with workspace data
+        let fileUUID = UUID()
+        let fileID = UIContracts.FileID(fileUUID)
         let fileNode = UIContracts.FileNode(
-            id: FileID(),
+            id: fileUUID,
+            descriptorID: fileID,
             name: "test.swift",
-            path: "/test.swift",
-            type: .file,
-            children: []
+            path: URL(fileURLWithPath: "/test.swift"),
+            children: [],
+            icon: "doc.text",
+            isDirectory: false
         )
 
         let workspaceState = UIContracts.WorkspaceUIViewState(
             selectedNode: fileNode,
-            selectedDescriptorID: fileNode.id,
+            selectedDescriptorID: fileID,
             rootFileNode: fileNode,
             rootDirectory: URL(fileURLWithPath: "/"),
-            projectTodos: UIContracts.UIProjectTodos(todos: []),
+            projectTodos: .empty,
             todosErrorDescription: nil
         )
 

@@ -7,7 +7,7 @@ public struct ContextSegmentDescriptor: Equatable, Identifiable, Sendable {
     public let files: [ContextFileDescriptor]
     
     public init(
-        id: UUID,
+        id: UUID = UUID(),
         totalTokens: Int,
         totalBytes: Int,
         files: [ContextFileDescriptor]

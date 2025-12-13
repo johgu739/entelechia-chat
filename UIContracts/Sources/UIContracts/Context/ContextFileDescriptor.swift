@@ -10,7 +10,7 @@ public struct ContextFileDescriptor: Equatable, Identifiable, Sendable {
     public let isTruncated: Bool
     
     public init(
-        id: UUID,
+        id: UUID = UUID(),
         path: String,
         language: String?,
         size: Int,

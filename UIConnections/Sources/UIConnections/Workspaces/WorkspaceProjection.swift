@@ -33,7 +33,7 @@ public final class WorkspaceProjection: ObservableObject {
             .flatMap { messages -> AnyPublisher<(UUID, String?), Never> in
                 // Emit each (id, text) tuple from the dictionary
                 let publishers = messages.map { id, text in
-                    Just((id, text)).eraseToAnyPublisher()
+                    Just((id, text as String?)).eraseToAnyPublisher()
                 }
                 guard !publishers.isEmpty else {
                     return Empty<(UUID, String?), Never>().eraseToAnyPublisher()

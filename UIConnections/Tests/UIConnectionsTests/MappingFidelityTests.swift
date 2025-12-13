@@ -451,3 +451,4 @@ final class MappingFidelityTests: XCTestCase {
         XCTAssertEqual(uiMessage1.attachments.count, uiMessage2.attachments.count)
     }
 }
+

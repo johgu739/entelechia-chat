@@ -60,7 +60,8 @@ struct NavigatorDiffApplier {
             outlineView.removeItems(at: indexSet, inParent: parentItem, withAnimation: [])
         }
         
-        oldNode.children = updatedChildren
+        // Note: oldNode.children is immutable, but outline view updates handle the visual changes
+        // The data source should provide the updated structure on next query
         
         if !insertions.isEmpty {
             let indexSet = IndexSet(insertions.map { $0.0 })

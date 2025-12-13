@@ -13,7 +13,7 @@ public final class WorkspaceStateObserver {
     private let projection: WorkspaceProjection
     private var updatesTask: Task<Void, Never>?
     
-    public init(
+    init(
         workspaceEngine: WorkspaceEngine,
         presentationModel: WorkspacePresentationModel,
         projection: WorkspaceProjection
@@ -36,17 +36,25 @@ public final class WorkspaceStateObserver {
         }
     }
     
-    private func applyUpdate(_ update: WorkspaceUpdate) {
+    private func applyUpdate(_ update: AppCoreEngine.WorkspaceUpdate) {
         // Project to projection model (domain-derived state)
         let previousRoot = projection.workspaceState.rootPath
-        let notice: WorkspaceErrorNotice? = {
+        let watcherError: String? = {
             guard let err = update.error else { return nil }
             switch err {
-            case .watcherUnavailable: return .watcherUnavailable
-            case .refreshFailed(let message): return .refreshFailed(message)
+            case .watcherUnavailable: return "Watcher unavailable"
+            case .refreshFailed(let message): return message
             }
         }()
-        let mapped = WorkspaceViewStateMapper.mapToUIContracts(update: update, watcherError: notice)
+        let snapshot = update.snapshot
+        let mapped = DomainToUIMappers.toWorkspaceViewState(
+            rootPath: snapshot.rootPath,
+            selectedDescriptorID: snapshot.selectedDescriptorID,
+            selectedPath: snapshot.selectedPath,
+            projection: update.projection,
+            contextInclusions: snapshot.contextInclusions,
+            watcherError: watcherError
+        )
         projection.workspaceState = mapped
         
         if previousRoot != mapped.rootPath {
@@ -55,8 +63,8 @@ public final class WorkspaceStateObserver {
             presentationModel.selectedDescriptorID = nil
         }
         
-        if let selectedDescriptorID = mapped.selectedDescriptorID {
-            presentationModel.selectedDescriptorID = AppCoreEngine.FileID(selectedDescriptorID.rawValue)
+        if let uuid = mapped.selectedDescriptorID {
+            presentationModel.selectedDescriptorID = UIContracts.FileID(uuid)
         } else {
             presentationModel.selectedDescriptorID = nil
         }
@@ -64,9 +72,13 @@ public final class WorkspaceStateObserver {
         // Use domain projection directly from update for FileNode creation
         // This is temporary - FileNode should be eliminated (violation A6)
         if let domainProjection = update.projection {
-            if let selectedDescriptorID = mapped.selectedDescriptorID,
-               let node = FileNode.fromProjection(domainProjection).findNode(withDescriptorID: AppCoreEngine.FileID(selectedDescriptorID.rawValue)) {
-                presentationModel.selectedNode = node
+            if let uuid = mapped.selectedDescriptorID {
+                let engineFileID = AppCoreEngine.FileID(uuid)
+                if let node = FileNode.fromProjection(domainProjection).findNode(withDescriptorID: engineFileID) {
+                    presentationModel.selectedNode = node
+                } else {
+                    updateSelectedNode()
+                }
             } else {
                 updateSelectedNode()
             }
@@ -81,7 +93,8 @@ public final class WorkspaceStateObserver {
             presentationModel.selectedNode = nil
             return
         }
-        presentationModel.selectedNode = presentationModel.rootFileNode?.findNode(withDescriptorID: descriptorID)
+        let engineFileID = AppCoreEngine.FileID(descriptorID.rawValue)
+        presentationModel.selectedNode = presentationModel.rootFileNode?.findNode(withDescriptorID: engineFileID)
     }
     
     func cancel() {

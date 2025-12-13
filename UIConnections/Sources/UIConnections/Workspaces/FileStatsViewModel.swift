@@ -62,3 +62,4 @@ public final class FileStatsViewModel: ObservableObject {
         isLoading = false
     }
 }
+

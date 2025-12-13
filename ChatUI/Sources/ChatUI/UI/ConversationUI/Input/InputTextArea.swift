@@ -51,9 +51,10 @@ struct InputTextArea: View {
                         measuredHeight = clamped
                     }
                 }
-                .onKeyPress(.return) { keyPress in
-                    // Check if Shift is held down
-                    if keyPress.modifiers.contains(.shift) {
+                .onKeyPress(.return) {
+                    // Check if Shift is held down using NSEvent
+                    let isShiftPressed = NSEvent.modifierFlags.contains(.shift)
+                    if isShiftPressed {
                         // Shift+Return: Allow newline (default behavior)
                         return .ignored
                     } else {

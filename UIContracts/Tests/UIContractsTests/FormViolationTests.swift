@@ -86,10 +86,13 @@ final class UIContractsFormViolationTests: XCTestCase {
     }
     
     /// Verify UIContracts types are Sendable.
+    /// Note: Sendable is a marker protocol - conformance is proven at compile time, not runtime.
+    /// This test verifies the types can be used in Sendable contexts.
     func testUIContractsTypesAreSendable() {
+        // Compile-time verification: if these compile, types are Sendable
         let conversation = UIConversation()
-        XCTAssertTrue(conversation is Sendable)
-        
+        let _: any Sendable = conversation // Compile-time proof of Sendable conformance
+
         let viewState = WorkspaceViewState(
             rootPath: nil,
             selectedDescriptorID: nil,
@@ -98,7 +101,10 @@ final class UIContractsFormViolationTests: XCTestCase {
             contextInclusions: [:],
             watcherError: nil
         )
-        XCTAssertTrue(viewState is Sendable)
+        let _: any Sendable = viewState // Compile-time proof of Sendable conformance
+
+        // If the above assignments compile, the types conform to Sendable
+        XCTAssertTrue(true, "UIContracts types conform to Sendable (verified at compile time)")
     }
 }
 

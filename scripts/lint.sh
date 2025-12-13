@@ -69,3 +69,4 @@ echo "==> Workspace tests"
 "${ROOT}/scripts/workspace-test.sh"
 
 echo "lint.sh completed."
+

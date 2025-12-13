@@ -293,3 +293,4 @@ final class DomainErrorToContractMappingTests: XCTestCase {
         XCTAssertEqual(uiResult.totalTokens, 1000)
     }
 }
+

@@ -578,3 +578,4 @@ After re-anchoring:
 **Critical Path**: Layer purity restoration must precede intent abstraction implementation. The current correction plan is invalid because it assumes ChatUI can hold ViewModels—this assumption violates the fundamental architectural invariant.
 
 
+

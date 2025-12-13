@@ -26,3 +26,4 @@ jobs:
 
       - name: Workspace tests
         run: ./scripts/workspace-test.sh
+

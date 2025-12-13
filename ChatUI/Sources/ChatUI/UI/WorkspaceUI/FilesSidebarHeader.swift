@@ -36,3 +36,4 @@ struct FilesSidebarHeader: View {
         .overlay(Divider(), alignment: .bottom)
     }
 }
+

@@ -50,3 +50,4 @@ public struct ClassifiedError: Sendable, Equatable {
     }
 }
 
+

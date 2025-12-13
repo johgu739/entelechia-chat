@@ -14,7 +14,7 @@
 import SwiftUI
 import UIContracts
 
-struct MainWorkspaceView: View {
+public struct MainWorkspaceView: View {
     let workspaceState: UIContracts.WorkspaceUIViewState
     let contextState: UIContracts.ContextViewState
     let presentationState: UIContracts.PresentationViewState
@@ -29,7 +29,7 @@ struct MainWorkspaceView: View {
     @State private var inspectorTab: UIContracts.InspectorTab = .files
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
     
-    init(
+    public init(
         workspaceState: UIContracts.WorkspaceUIViewState,
         contextState: UIContracts.ContextViewState,
         presentationState: UIContracts.PresentationViewState,
@@ -53,7 +53,7 @@ struct MainWorkspaceView: View {
         self.isPathIncludedInContext = isPathIncludedInContext
     }
     
-    var body: some View {
+    public var body: some View {
         navigationLayout
             .background(AppTheme.windowBackground)
     }
@@ -73,6 +73,7 @@ struct MainWorkspaceView: View {
     private var navigatorColumn: some View {
         XcodeNavigatorView(
             workspaceState: workspaceState,
+            presentationState: presentationState,
             onWorkspaceIntent: onWorkspaceIntent
         )
         .navigationSplitViewColumnWidth(

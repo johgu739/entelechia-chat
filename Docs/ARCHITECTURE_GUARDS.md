@@ -20,3 +20,4 @@ Compile-time guards that prevent form violations.
 
 - WorkspaceViewModel extensions cannot contain orchestration logic (sendMessage, askCodex, openWorkspace, selectPath, currentWorkspaceScope, buildContextSnapshot)
 
+

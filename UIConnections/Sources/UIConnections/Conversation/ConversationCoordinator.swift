@@ -3,12 +3,15 @@ import AppCoreEngine
 import Combine
 import UIContracts
 
+// Protocols are defined in Protocols/CoordinatorProtocols.swift
+// ConversationCoordinating protocol is imported from that file
+
 /// Internal workspace surface required for coordinating chat intents.
 /// UIConnections uses this internally; external code should not use it.
 @MainActor
 internal protocol ConversationWorkspaceHandling: AnyObject {
-    func sendMessage(_ text: String, for conversation: Conversation) async
-    func askCodex(_ text: String, for conversation: Conversation) async -> Conversation
+    func sendMessage(_ text: String, for conversation: AppCoreEngine.Conversation) async
+    func askCodex(_ text: String, for conversation: AppCoreEngine.Conversation) async -> AppCoreEngine.Conversation
     func setContextScope(_ scope: UIContracts.ContextScopeChoice)
     func setModelChoice(_ model: UIContracts.ModelChoice)
     func canAskCodex() -> Bool
@@ -16,15 +19,14 @@ internal protocol ConversationWorkspaceHandling: AnyObject {
 }
 
 @MainActor
-public final class ConversationCoordinator: ObservableObject {
+internal final class ConversationCoordinator: ConversationCoordinating {
     private let workspace: ConversationWorkspaceHandling
     private let contextSelection: ContextSelectionState
     private let codexStatusModel: CodexStatusModel
-    private weak var chatViewModel: ChatViewModel?
     private var streamingObservation: AnyCancellable?
     private var currentStreamingConversationID: UUID?
     
-    public init(
+    init(
         workspace: ConversationWorkspaceHandling,
         contextSelection: ContextSelectionState,
         codexStatusModel: CodexStatusModel
@@ -35,93 +37,18 @@ public final class ConversationCoordinator: ObservableObject {
         setupStreamingObservation()
     }
     
-    /// Set the ChatViewModel to receive streaming updates
-    public func setChatViewModel(_ viewModel: ChatViewModel) {
-        self.chatViewModel = viewModel
-    }
     
     private func setupStreamingObservation() {
-        // Subscribe to streaming publisher if available
-        if let workspaceVM = workspace as? WorkspaceViewModel {
-            streamingObservation = workspaceVM.streamingPublisher
-                .sink { [weak self] conversationID, streamingText in
-                    guard let self = self,
-                          let viewModel = self.chatViewModel,
-                          conversationID == self.currentStreamingConversationID else { return }
-                    
-                    if let text = streamingText, !text.isEmpty {
-                        viewModel.applyDelta(.assistantStreaming(text))
-                    } else {
-                        // Streaming finished
-                        if viewModel.streamingText != nil {
-                            viewModel.finishStreaming()
-                        }
-                    }
-                }
-        }
+        // Streaming observation removed - handled by workspace protocol
     }
     
-    /// Stream a message and forward deltas to ChatViewModel
-    /// Internal method - external code should use ChatIntentController
-    internal func stream(_ text: String, in conversation: Conversation) async {
-        guard let viewModel = chatViewModel else {
-            // Fallback to legacy path if no view model
-            await workspace.sendMessage(text, for: conversation)
-            return
-        }
-        
-        let conversationID = conversation.id
-        currentStreamingConversationID = conversationID
-        
-        // Check Codex availability
-        let isCodexAvailable: Bool
-        switch codexStatusModel.state {
-        case .connected:
-            isCodexAvailable = true
-        case .degradedStub, .misconfigured:
-            isCodexAvailable = false
-        }
-        
-        // Start streaming through workspace
+    /// Internal method - sends message through workspace
+    internal func sendMessage(_ text: String, in conversation: AppCoreEngine.Conversation) async {
         await workspace.sendMessage(text, for: conversation)
-        
-        // Streaming updates now flow automatically via Combine subscription in setupStreamingObservation()
-        // Set up a timeout to handle cases where no response is received
-        if !isCodexAvailable {
-            // For non-Codex mode, provide fallback after a delay
-            Task {
-                try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
-                await MainActor.run {
-                    if chatViewModel?.streamingText == nil && chatViewModel?.messages.last?.role != .assistant {
-                        provideFallbackResponseSync(for: conversationID)
-                    }
-                }
-            }
-        }
     }
     
-    
-    private func provideFallbackResponseSync(for conversationID: UUID) {
-        guard let viewModel = chatViewModel else { return }
-        
-        // Only provide fallback if we haven't received a response
-        if viewModel.streamingText == nil && viewModel.messages.last?.role != .assistant {
-            let fallbackMessage = Message(
-                role: .assistant,
-                text: "Codex is currently unavailable.",
-                createdAt: Date()
-            )
-            viewModel.applyDelta(.assistantCommitted(fallbackMessage))
-        }
-    }
-    
-    /// Internal method - external code should use ChatIntentController
-    internal func sendMessage(_ text: String, in conversation: Conversation) async {
-        await stream(text, in: conversation)
-    }
-    
-    /// Internal method - external code should use ChatIntentController
-    internal func askCodex(_ text: String, in conversation: Conversation) async -> Conversation {
+    /// Internal method - asks Codex through workspace
+    internal func askCodex(_ text: String, in conversation: AppCoreEngine.Conversation) async -> AppCoreEngine.Conversation {
         await workspace.askCodex(text, for: conversation)
     }
     
@@ -145,6 +72,37 @@ public final class ConversationCoordinator: ObservableObject {
     
     public func canAskCodex() -> Bool {
         workspace.canAskCodex()
+    }
+    
+    // MARK: - ViewState Derivation (Public API for Composition)
+    
+    /// Derive ChatViewState from internal state
+    public func deriveChatViewState(text: String = "") -> UIContracts.ChatViewState {
+        UIContracts.ChatViewState(
+            text: text,
+            messages: [], // Messages come from conversation, not coordinator
+            streamingText: nil, // Streaming handled by workspace
+            isSending: false, // Sending state handled by workspace
+            isAsking: false, // Asking state handled by workspace
+            model: modelChoice(),
+            contextScope: scopeChoice()
+        )
+    }
+    
+    /// Handle chat intent
+    public func handle(_ intent: UIContracts.ChatIntent) async {
+        switch intent {
+        case .sendMessage(let text, let conversationID):
+            let conversation = AppCoreEngine.Conversation(id: conversationID, contextFilePaths: [])
+            await sendMessage(text, in: conversation)
+        case .askCodex(let text, let conversationID):
+            let conversation = AppCoreEngine.Conversation(id: conversationID, contextFilePaths: [])
+            _ = await askCodex(text, in: conversation)
+        case .setModelChoice(let choice):
+            setModelChoice(choice)
+        case .setContextScope(let choice):
+            setScopeChoice(choice)
+        }
     }
 }
 

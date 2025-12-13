@@ -381,3 +381,4 @@ final class StateTransitionMappingTests: XCTestCase {
         XCTAssertEqual(viewState.rootPath, "/large/project")
     }
 }
+

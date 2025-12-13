@@ -38,13 +38,16 @@ final class NavigatorViewContractTests: XCTestCase {
 
     func testXcodeNavigatorViewConstructsWithSingleFile() {
         // Test XcodeNavigatorView with single file workspace
-        let fileID = FileID()
+        let fileUUID = UUID()
+        let fileID = UIContracts.FileID(fileUUID)
         let fileNode = UIContracts.FileNode(
-            id: fileID,
+            id: fileUUID,
+            descriptorID: fileID,
             name: "main.swift",
-            path: "/main.swift",
-            type: .file,
-            children: []
+            path: URL(fileURLWithPath: "/main.swift"),
+            children: [],
+            icon: "doc.text",
+            isDirectory: false
         )
 
         let workspaceState = UIContracts.WorkspaceUIViewState(
@@ -74,52 +77,65 @@ final class NavigatorViewContractTests: XCTestCase {
 
     func testXcodeNavigatorViewConstructsWithComplexHierarchy() {
         // Test XcodeNavigatorView with complex nested hierarchy
-        let createFileNode = { (name: String, path: String, type: UIContracts.FileNode.NodeType) -> UIContracts.FileNode in
-            UIContracts.FileNode(id: FileID(), name: name, path: path, type: type, children: [])
+        let createFileNode = { (name: String, path: String, isDirectory: Bool) -> UIContracts.FileNode in
+            UIContracts.FileNode(
+                id: UUID(),
+                name: name,
+                path: URL(fileURLWithPath: path),
+                children: [],
+                icon: isDirectory ? "folder" : "doc.text",
+                isDirectory: isDirectory
+            )
         }
 
-        let modelFile = createFileNode("Model.swift", "/Sources/Model.swift", .file)
-        let viewFile = createFileNode("View.swift", "/Sources/View.swift", .file)
-        let controllerFile = createFileNode("Controller.swift", "/Sources/Controller.swift", .file)
+        let modelFile = createFileNode("Model.swift", "/Sources/Model.swift", false)
+        let viewFile = createFileNode("View.swift", "/Sources/View.swift", false)
+        let controllerFile = createFileNode("Controller.swift", "/Sources/Controller.swift", false)
 
         let sourcesDir = UIContracts.FileNode(
-            id: FileID(),
+            id: UUID(),
             name: "Sources",
-            path: "/Sources",
-            type: .directory,
-            children: [modelFile, viewFile, controllerFile]
+            path: URL(fileURLWithPath: "/Sources"),
+            children: [modelFile, viewFile, controllerFile],
+            icon: "folder",
+            isDirectory: true
         )
 
-        let testFile = createFileNode("Tests.swift", "/Tests/Tests.swift", .file)
+        let testFile = createFileNode("Tests.swift", "/Tests/Tests.swift", false)
         let testsDir = UIContracts.FileNode(
-            id: FileID(),
+            id: UUID(),
             name: "Tests",
-            path: "/Tests",
-            type: .directory,
-            children: [testFile]
+            path: URL(fileURLWithPath: "/Tests"),
+            children: [testFile],
+            icon: "folder",
+            isDirectory: true
         )
 
         let rootDir = UIContracts.FileNode(
-            id: FileID(),
+            id: UUID(),
             name: "Project",
-            path: "/",
-            type: .directory,
-            children: [sourcesDir, testsDir]
+            path: URL(fileURLWithPath: "/"),
+            children: [sourcesDir, testsDir],
+            icon: "folder",
+            isDirectory: true
         )
 
+        let viewFileID = UIContracts.FileID(viewFile.id)
         let workspaceState = UIContracts.WorkspaceUIViewState(
             selectedNode: viewFile,
-            selectedDescriptorID: viewFile.id,
+            selectedDescriptorID: viewFileID,
             rootFileNode: rootDir,
             rootDirectory: URL(fileURLWithPath: "/"),
             projectTodos: .empty,
             todosErrorDescription: nil
         )
 
+        let sourcesDirID = UIContracts.FileID(sourcesDir.id)
+        let testsDirID = UIContracts.FileID(testsDir.id)
         let presentationState = UIContracts.PresentationViewState(
             activeNavigator: .project,
             filterText: "",
-            expandedDescriptorIDs: [sourcesDir.id, testsDir.id]
+            expandedDescriptorIDs: [sourcesDirID, testsDirID]
         )
 
         let view = XcodeNavigatorView(
@@ -129,8 +145,8 @@ final class NavigatorViewContractTests: XCTestCase {
         )
 
         XCTAssertNotNil(view, "XcodeNavigatorView should construct with complex hierarchy")
-        XCTAssertEqual(workspaceState.rootFileNode?.children.count, 2, "Root should have 2 children")
-        XCTAssertEqual(workspaceState.rootFileNode?.children.first?.children.count, 3, "Sources dir should have 3 children")
+        XCTAssertEqual(workspaceState.rootFileNode?.children?.count ?? 0, 2, "Root should have 2 children")
+        XCTAssertEqual(workspaceState.rootFileNode?.children?.first?.children?.count ?? 0, 3, "Sources dir should have 3 children")
         XCTAssertEqual(workspaceState.selectedNode?.name, "View.swift", "Should have View.swift selected")
     }
 
@@ -148,7 +164,7 @@ final class NavigatorViewContractTests: XCTestCase {
         )
 
         // Test different navigator modes
-        let modes: [UIContracts.NavigatorMode] = [.project, .find]
+        let modes: [UIContracts.NavigatorMode] = [.project, .search]
 
         for mode in modes {
             let presentationState = UIContracts.PresentationViewState(
@@ -205,9 +221,9 @@ final class NavigatorViewContractTests: XCTestCase {
 
     func testXcodeNavigatorViewWithExpandedDirectories() {
         // Test XcodeNavigatorView with expanded directory states
-        let dir1ID = FileID()
-        let dir2ID = FileID()
-        let dir3ID = FileID()
+        let dir1ID = UIContracts.FileID()
+        let dir2ID = UIContracts.FileID()
+        let dir3ID = UIContracts.FileID()
 
         let workspaceState = UIContracts.WorkspaceUIViewState(
             selectedNode: nil,
@@ -241,22 +257,28 @@ final class NavigatorViewContractTests: XCTestCase {
 
     func testXcodeNavigatorViewWithVariousSelections() {
         // Test XcodeNavigatorView with different selection states
-        let fileID = FileID()
+        let fileUUID = UUID()
+        let fileID = UIContracts.FileID(fileUUID)
         let fileNode = UIContracts.FileNode(
-            id: fileID,
+            id: fileUUID,
+            descriptorID: fileID,
             name: "selected.swift",
-            path: "/selected.swift",
-            type: .file,
-            children: []
+            path: URL(fileURLWithPath: "/selected.swift"),
+            children: [],
+            icon: "doc.text",
+            isDirectory: false
         )
 
-        let dirID = FileID()
+        let dirUUID = UUID()
+        let dirID = UIContracts.FileID(dirUUID)
         let dirNode = UIContracts.FileNode(
-            id: dirID,
+            id: dirUUID,
+            descriptorID: dirID,
             name: "selected_dir",
-            path: "/selected_dir",
-            type: .directory,
-            children: []
+            path: URL(fileURLWithPath: "/selected_dir"),
+            children: [],
+            icon: "folder",
+            isDirectory: true
         )
 
         // Test file selection
@@ -282,7 +304,7 @@ final class NavigatorViewContractTests: XCTestCase {
         )
 
         XCTAssertNotNil(fileView, "Should construct with file selection")
-        XCTAssertEqual(fileWorkspaceState.selectedNode?.type, .file, "Should have file selected")
+        XCTAssertFalse(fileWorkspaceState.selectedNode?.isDirectory ?? true, "Should have file selected")
 
         // Test directory selection
         let dirWorkspaceState = UIContracts.WorkspaceUIViewState(
@@ -307,7 +329,7 @@ final class NavigatorViewContractTests: XCTestCase {
         )
 
         XCTAssertNotNil(dirView, "Should construct with directory selection")
-        XCTAssertEqual(dirWorkspaceState.selectedNode?.type, .directory, "Should have directory selected")
+        XCTAssertTrue(dirWorkspaceState.selectedNode?.isDirectory ?? false, "Should have directory selected")
         XCTAssertTrue(dirPresentationState.expandedDescriptorIDs.contains(dirID), "Directory should be expanded")
     }
 

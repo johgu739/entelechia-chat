@@ -3,11 +3,12 @@ import AppCoreEngine
 import AppAdapters
 import UIConnections
 
+@MainActor
 public struct AppContainer {
     public struct Engines {
         public let workspace: WorkspaceEngine
         public let project: ProjectEngine
-        public let conversation: ConversationStreaming
+        public let conversation: ConversationEngineLive<AnyCodexClient, FileStoreConversationPersistence>
     }
 
     public let securityScope: SecurityScopeHandling
@@ -90,7 +91,7 @@ public struct AppContainer {
         self.engines = Engines(
             workspace: workspaceEngine,
             project: projectEngine,
-            conversation: ConversationEngineBox(engine: conversationEngine)
+            conversation: conversationEngine
         )
     }
 }

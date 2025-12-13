@@ -292,24 +292,20 @@ final class EdgeCaseRenderingTests: XCTestCase {
 
         // Create maximum number of files and segments
         for i in 0..<1000 {
-            let fileID = FileID()
             let file = UIContracts.ContextFileDescriptor(
-                fileID: fileID,
-                canonicalPath: "/file\(i).swift",
-                name: "file\(i).swift",
+                path: "/file\(i).swift",
+                language: "swift",
                 size: 1000,
-                tokens: 150,
-                language: "swift"
+                hash: "hash\(i)",
+                isIncluded: true,
+                isTruncated: false
             )
             includedFiles.append(file)
 
             let segment = UIContracts.ContextSegmentDescriptor(
-                id: UUID(),
-                fileID: fileID,
-                range: 0..<100,
-                content: "content for file \(i)",
-                tokens: 20,
-                reason: .userSelection
+                totalTokens: 20,
+                totalBytes: 200,
+                files: [file]
             )
             segments.append(segment)
         }
@@ -337,20 +333,22 @@ final class EdgeCaseRenderingTests: XCTestCase {
         func createDeepHierarchy(depth: Int, currentPath: String = "/") -> UIContracts.FileNode {
             if depth == 0 {
                 return UIContracts.FileNode(
-                    id: FileID(),
+                    id: UUID(),
                     name: "file.swift",
-                    path: currentPath + "file.swift",
-                    type: .file,
-                    children: []
+                    path: URL(fileURLWithPath: currentPath + "file.swift"),
+                    children: [],
+                    icon: "doc.text",
+                    isDirectory: false
                 )
             }
 
             let dir = UIContracts.FileNode(
-                id: FileID(),
+                id: UUID(),
                 name: "dir\(depth)",
-                path: currentPath + "dir\(depth)",
-                type: .directory,
-                children: [createDeepHierarchy(depth: depth - 1, currentPath: currentPath + "dir\(depth)/")]
+                path: URL(fileURLWithPath: currentPath + "dir\(depth)"),
+                children: [createDeepHierarchy(depth: depth - 1, currentPath: currentPath + "dir\(depth)/")],
+                icon: "folder",
+                isDirectory: true
             )
 
             return dir
@@ -391,7 +389,7 @@ final class EdgeCaseRenderingTests: XCTestCase {
             id: UUID(),
             role: .user,
             text: unicodeText,
-            timestamp: Date()
+                createdAt: Date()
         )
 
         let chatState = UIContracts.ChatViewState(
@@ -444,20 +442,22 @@ final class EdgeCaseRenderingTests: XCTestCase {
 
         let children = specialFiles.map { name in
             UIContracts.FileNode(
-                id: FileID(),
+                id: UUID(),
                 name: name,
-                path: "/" + name,
-                type: .file,
-                children: []
+                path: URL(fileURLWithPath: "/" + name),
+                children: [],
+                icon: "doc.text",
+                isDirectory: false
             )
         }
 
         let rootDir = UIContracts.FileNode(
-            id: FileID(),
+            id: UUID(),
             name: "root",
-            path: "/",
-            type: .directory,
-            children: children
+            path: URL(fileURLWithPath: "/"),
+            children: children,
+            icon: "folder",
+            isDirectory: true
         )
 
         let workspaceState = UIContracts.WorkspaceUIViewState(
@@ -482,7 +482,7 @@ final class EdgeCaseRenderingTests: XCTestCase {
         )
 
         XCTAssertNotNil(view, "XcodeNavigatorView should handle special file names")
-        XCTAssertEqual(workspaceState.rootFileNode?.children.count, 5, "Should handle all special file names")
+        XCTAssertEqual(workspaceState.rootFileNode?.children?.count ?? 0, 5, "Should handle all special file names")
     }
 
     // MARK: - Memory Boundary Tests
@@ -495,7 +495,7 @@ final class EdgeCaseRenderingTests: XCTestCase {
                 id: UUID(),
                 role: i % 2 == 0 ? .user : .assistant,
                 text: "Message \(i)",
-                timestamp: Date()
+                createdAt: Date()
             )
             largeMessages.append(message)
         }

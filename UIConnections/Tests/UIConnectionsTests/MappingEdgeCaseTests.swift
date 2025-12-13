@@ -476,3 +476,4 @@ final class MappingEdgeCaseTests: XCTestCase {
         XCTAssertEqual(uiMessage1.id, uiMessage2.id)
     }
 }
+

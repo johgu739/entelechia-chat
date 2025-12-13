@@ -57,3 +57,4 @@ ChatUI is a **pure projection layer**. It must not participate in cognition or c
 CI guardrails in `scripts/chatui-purity-guard.sh` enforce these invariants. The build will fail if violations are detected.
 
 
+

@@ -16,3 +16,4 @@ struct InspectorSection<Content: View>: View {
         .padding(.vertical, DS.s8)
     }
 }
+

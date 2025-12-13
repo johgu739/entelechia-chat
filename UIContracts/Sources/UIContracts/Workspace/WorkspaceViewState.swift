@@ -26,3 +26,4 @@ public struct WorkspaceViewState: Sendable, Equatable {
     }
 }
 
+

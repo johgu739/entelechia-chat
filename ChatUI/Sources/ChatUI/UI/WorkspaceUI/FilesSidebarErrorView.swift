@@ -24,3 +24,4 @@ struct FilesSidebarErrorView: View {
         .overlay(Divider(), alignment: .bottom)
     }
 }
+

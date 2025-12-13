@@ -4,11 +4,14 @@ import os.log
 import AppCoreEngine
 import UIContracts
 
+// Protocols are defined in Protocols/CoordinatorProtocols.swift
+// WorkspaceCoordinating protocol is imported from that file
+
 /// Coordinator for workspace orchestration.
 /// Power: Decisional (orchestrates workflows, makes decisions, coordinates engines)
 /// Owns async logic, context building, error handling, and decision-making.
 @MainActor
-public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
+internal final class WorkspaceCoordinator: ConversationWorkspaceHandling, WorkspaceCoordinating {
     // MARK: - Dependencies
     
     private let workspaceEngine: WorkspaceEngine
@@ -23,11 +26,11 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
     // MARK: - Private State
     
     private var workspaceSnapshot: WorkspaceSnapshot = .empty
-    private var codexContextByMessageID: [UUID: ContextBuildResult] = [:]
+    private var codexContextByMessageID: [UUID: UIContracts.UIContextBuildResult] = [:]
     
     // MARK: - Initialization
     
-    public init(
+    init(
         workspaceEngine: WorkspaceEngine,
         conversationEngine: ConversationStreaming,
         codexService: CodexQuerying,
@@ -47,7 +50,7 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
     
     // MARK: - ConversationWorkspaceHandling Protocol
     
-    public func sendMessage(_ text: String, for conversation: Conversation) async {
+    public func sendMessage(_ text: String, for conversation: AppCoreEngine.Conversation) async {
         let correlationID = UUID()
         TeleologicalTracer.shared.trace("WorkspaceCoordinator.sendMessage", power: .decisional, correlationID: correlationID)
         presentationModel.isLoading = true
@@ -65,7 +68,7 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
 
             var convo = conversation
             if let did = presentationModel.selectedDescriptorID {
-                convo.contextDescriptorIDs = [did]
+                convo.contextDescriptorIDs = [AppCoreEngine.FileID(did.rawValue)]
             }
             let contextRequest = buildContextRequest(for: convo)
             let (_, contextResult) = try await sendMessageWithContext(
@@ -81,7 +84,7 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
         }
     }
     
-    public func askCodex(_ text: String, for conversation: Conversation) async -> Conversation {
+    public func askCodex(_ text: String, for conversation: AppCoreEngine.Conversation) async -> AppCoreEngine.Conversation {
         let correlationID = UUID()
         TeleologicalTracer.shared.trace("WorkspaceCoordinator.askCodex", power: .decisional, correlationID: correlationID)
         presentationModel.isLoading = true
@@ -111,7 +114,7 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
                     }
                 }
                 var updated = conversation
-                let assistant = Message(role: .assistant, text: answer.text, createdAt: Date())
+                let assistant = AppCoreEngine.Message(role: .assistant, text: answer.text, createdAt: Date())
                 updated.messages.append(assistant)
                 codexContextByMessageID[assistant.id] = answer.context
                 projection.lastContextResult = answer.context
@@ -122,7 +125,7 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
                 return updated
             case .stub:
                 var updated = conversation
-                let assistant = Message(role: .assistant, text: "Stub: \(text)", createdAt: Date())
+                let assistant = AppCoreEngine.Message(role: .assistant, text: "Stub: \(text)", createdAt: Date())
                 updated.messages.append(assistant)
                 return updated
             }
@@ -140,7 +143,7 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
             || workspaceSnapshot.contextPreferences.lastFocusedFilePath != nil
     }
     
-    private func buildContextRequest(for conversation: Conversation) -> ConversationContextRequest {
+    private func buildContextRequest(for conversation: AppCoreEngine.Conversation) -> AppCoreEngine.ConversationContextRequest {
         ConversationContextRequest(
             snapshot: workspaceSnapshot,
             preferredDescriptorIDs: conversation.contextDescriptorIDs,
@@ -151,9 +154,9 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
     
     private func sendMessageWithContext(
         text: String,
-        conversation: Conversation,
-        contextRequest: ConversationContextRequest
-    ) async throws -> (Conversation, ContextBuildResult) {
+        conversation: AppCoreEngine.Conversation,
+        contextRequest: AppCoreEngine.ConversationContextRequest
+    ) async throws -> (AppCoreEngine.Conversation, AppCoreEngine.ContextBuildResult) {
         try await withTimeout(seconds: 60) { [self] in
             try await conversationEngine.sendMessage(
                 text,
@@ -164,7 +167,7 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
         }
     }
     
-    private func buildStreamHandler(for conversationID: UUID) -> ((ConversationDelta) -> Void)? {
+    private func buildStreamHandler(for conversationID: UUID) -> ((AppCoreEngine.ConversationDelta) -> Void)? {
         { [weak self] event in
             guard let self = self else { return }
             Task { @MainActor in
@@ -231,7 +234,7 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
     
     // MARK: - Context Snapshot Building
     
-    func buildContextSnapshot(from result: ContextBuildResult) -> UIContracts.ContextSnapshot {
+    func buildContextSnapshot(from result: AppCoreEngine.ContextBuildResult) -> UIContracts.ContextSnapshot {
         let encoder = WorkspaceContextEncoder()
         let encoded = encoder.encode(files: result.attachments)
         let encodedByPath = Dictionary(uniqueKeysWithValues: encoded.map { ($0.path, $0) })
@@ -267,30 +270,29 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
     }
     
     private func buildSegments(
-        from encodedSegments: [ContextBuildResult.EncodedSegment]
+        from encodedSegments: [AppCoreEngine.ContextSegment]
     ) -> [UIContracts.ContextSegmentDescriptor] {
         encodedSegments.map { segment in
-            let files = segment.files.map { file in
-                UIContracts.ContextFileDescriptor(
-                    path: file.path,
-                    language: file.language,
-                    size: file.size,
-                    hash: file.hash,
-                    isIncluded: true,
-                    isTruncated: false
-                )
-            }
-            return UIContracts.ContextSegmentDescriptor(
+            UIContracts.ContextSegmentDescriptor(
                 totalTokens: segment.totalTokens,
                 totalBytes: segment.totalBytes,
-                files: files
+                files: segment.files.map { file in
+                    UIContracts.ContextFileDescriptor(
+                        path: file.path,
+                        language: file.language,
+                        size: file.size,
+                        hash: file.hash,
+                        isIncluded: true,
+                        isTruncated: false
+                    )
+                }
             )
         }
     }
     
     private func buildFileDescriptors(
         from files: [LoadedFile],
-        encodedByPath: [String: WorkspaceContextEncoder.EncodedFile],
+        encodedByPath: [String: AppCoreEngine.EncodedContextFile],
         isIncluded: Bool,
         isTruncated: Bool
     ) -> [UIContracts.ContextFileDescriptor] {
@@ -309,8 +311,8 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
     }
     
     private func buildExcludedDescriptors(
-        from excludedFiles: [ContextExclusion],
-        encodedByPath: [String: WorkspaceContextEncoder.EncodedFile]
+        from excludedFiles: [AppCoreEngine.ContextExclusion],
+        encodedByPath: [String: AppCoreEngine.EncodedContextFile]
     ) -> [UIContracts.ContextFileDescriptor] {
         excludedFiles.sorted { $0.file.url.path < $1.file.url.path }.map { exclusion in
             let file = exclusion.file
@@ -366,14 +368,14 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
     
     // MARK: - Conversation Helpers
     
-    func conversation(for url: URL) async -> Conversation {
+    func conversation(for url: URL) async -> AppCoreEngine.Conversation {
         if let engineConvo = await conversationEngine.conversation(for: url) {
             return engineConvo
         }
-        return Conversation(contextFilePaths: [url.path])
+        return AppCoreEngine.Conversation(contextFilePaths: [url.path])
     }
     
-    func conversation(forDescriptorID descriptorID: FileID) async -> Conversation? {
+    func conversation(forDescriptorID descriptorID: AppCoreEngine.FileID) async -> AppCoreEngine.Conversation? {
         if let engineConvo = await conversationEngine.conversation(forDescriptorIDs: [descriptorID]) {
             return engineConvo
         }
@@ -391,7 +393,7 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
         }
     }
     
-    func ensureConversation(forDescriptorID descriptorID: FileID) async {
+    func ensureConversation(forDescriptorID descriptorID: AppCoreEngine.FileID) async {
         do {
             _ = try await conversationEngine.ensureConversation(forDescriptorIDs: [descriptorID]) { [weak self] id in
                 self?.descriptorPaths[id]
@@ -401,23 +403,24 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
         }
     }
     
-    func contextForMessage(_ id: UUID) -> ContextBuildResult? {
+    func contextForMessage(_ id: UUID) -> UIContracts.UIContextBuildResult? {
         codexContextByMessageID[id]
     }
     
     // MARK: - Helpers
     
-    private var descriptorPaths: [FileID: String] {
-        presentationModel.workspaceState.projection?.flattenedPaths ?? [:]
+    private var descriptorPaths: [AppCoreEngine.FileID: String] {
+        workspaceSnapshot.descriptorPaths
     }
     
-    func url(for descriptorID: FileID) -> URL? {
+    func url(for descriptorID: AppCoreEngine.FileID) -> URL? {
         descriptorPaths[descriptorID].map { URL(fileURLWithPath: $0) }
     }
     
     // MARK: - Workspace Operations
     
-    func openWorkspace(at url: URL) async {
+    /// Open workspace at the given URL (public API for composition)
+    public func openWorkspace(at url: URL) async {
         presentationModel.isLoading = true
         defer { presentationModel.isLoading = false }
         do {
@@ -459,7 +462,15 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
             do {
                 let todos = try projectTodosLoader.loadTodos(for: root)
                 await MainActor.run {
-                    presentationModel.projectTodos = todos
+                    let uiTodos = DomainToUIMappers.toUIProjectTodos(todos)
+                    presentationModel.projectTodos = UIContracts.ProjectTodos(
+                        generatedAt: uiTodos.generatedAt,
+                        missingHeaders: uiTodos.missingHeaders,
+                        missingFolderTelos: uiTodos.missingFolderTelos,
+                        filesWithIncompleteHeaders: uiTodos.filesWithIncompleteHeaders,
+                        foldersWithIncompleteTelos: uiTodos.foldersWithIncompleteTelos,
+                        allTodos: uiTodos.allTodos
+                    )
                     presentationModel.todosError = nil
                 }
             } catch {
@@ -485,7 +496,8 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
         }
     }
     
-    func isPathIncludedInContext(_ url: URL) -> Bool {
+    /// Check if path is included in context (public API for composition)
+    public func isPathIncludedInContext(_ url: URL) -> Bool {
         guard workspaceSnapshot.rootPath != nil else { return true }
         let path = url.path
         if let descriptorID = workspaceSnapshot.descriptorPaths.first(where: { $0.value == path })?.key,
@@ -502,16 +514,18 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
         return true
     }
     
-    func toggleExpanded(descriptorID: FileID) {
-        if presentationModel.expandedDescriptorIDs.contains(descriptorID) {
-            presentationModel.expandedDescriptorIDs.remove(descriptorID)
+    func toggleExpanded(descriptorID: AppCoreEngine.FileID) {
+        let uiFileID = UIContracts.FileID(descriptorID.rawValue)
+        if presentationModel.expandedDescriptorIDs.contains(uiFileID) {
+            presentationModel.expandedDescriptorIDs.remove(uiFileID)
         } else {
-            presentationModel.expandedDescriptorIDs.insert(descriptorID)
+            presentationModel.expandedDescriptorIDs.insert(uiFileID)
         }
     }
     
-    func isExpanded(descriptorID: FileID) -> Bool {
-        presentationModel.expandedDescriptorIDs.contains(descriptorID)
+    func isExpanded(descriptorID: AppCoreEngine.FileID) -> Bool {
+        let uiFileID = UIContracts.FileID(descriptorID.rawValue)
+        return presentationModel.expandedDescriptorIDs.contains(uiFileID)
     }
     
     func publishFileBrowserError(_ error: Error) {
@@ -527,5 +541,100 @@ public final class WorkspaceCoordinator: ConversationWorkspaceHandling {
     func getWorkspaceSnapshot() -> WorkspaceSnapshot {
         workspaceSnapshot
     }
+    
+    // MARK: - ViewState Derivation (Public API for Composition)
+    
+    /// Derive WorkspaceUIViewState from internal state
+    public func deriveWorkspaceUIViewState() -> UIContracts.WorkspaceUIViewState {
+        let rootDirectory = projection.workspaceState.rootPath.map { URL(fileURLWithPath: $0, isDirectory: true) }
+        return UIContracts.WorkspaceUIViewState(
+            selectedNode: presentationModel.selectedNode?.toUIContracts(),
+            selectedDescriptorID: presentationModel.selectedDescriptorID,
+            rootFileNode: presentationModel.rootFileNode?.toUIContracts(),
+            rootDirectory: rootDirectory,
+            projectTodos: presentationModel.projectTodos,
+            todosErrorDescription: presentationModel.todosError
+        )
+    }
+    
+    /// Derive ContextViewState from internal state
+    public func deriveContextViewState(bannerMessage: String?) -> UIContracts.ContextViewState {
+        UIContracts.ContextViewState(
+            lastContextSnapshot: projection.lastContextSnapshot,
+            lastContextResult: projection.lastContextResult,
+            streamingMessages: projection.streamingMessages,
+            bannerMessage: bannerMessage,
+            contextByMessageID: codexContextByMessageID
+        )
+    }
+    
+    /// Derive PresentationViewState from internal state
+    public func derivePresentationViewState() -> UIContracts.PresentationViewState {
+        UIContracts.PresentationViewState(
+            activeNavigator: presentationModel.activeNavigator,
+            filterText: presentationModel.filterText,
+            expandedDescriptorIDs: presentationModel.expandedDescriptorIDs
+        )
+    }
+    
+    /// Handle workspace intent
+    public func handle(_ intent: UIContracts.WorkspaceIntent) {
+        switch intent {
+        case .selectNode(let node):
+            if let descriptorID = node?.descriptorID {
+                Task {
+                    await selectPath(URL(fileURLWithPath: descriptorID.rawValue.uuidString))
+                }
+            } else {
+                Task {
+                    await selectPath(nil)
+                }
+            }
+        case .selectDescriptorID(let descriptorID):
+            let engineFileID = AppCoreEngine.FileID(descriptorID.rawValue)
+            Task {
+                await selectPath(url(for: engineFileID))
+            }
+        case .setContextInclusion(let include, let url):
+            // Context inclusion is handled by workspace engine
+            Task {
+                do {
+                    _ = try await workspaceEngine.setContextInclusion(path: url.path, included: include)
+                } catch {
+                    errorAuthority.publish(error, context: "Set Context Inclusion")
+                }
+            }
+        case .loadFilePreview(let url):
+            // File preview loading - not implemented in coordinator
+            break
+        case .loadFileStats(let url):
+            // File stats loading - not implemented in coordinator
+            break
+        case .loadFolderStats(let url):
+            // Folder stats loading - not implemented in coordinator
+            break
+        case .clearFilePreview:
+            // File preview clearing - not implemented in coordinator
+            break
+        case .clearFileStats:
+            // File stats clearing - not implemented in coordinator
+            break
+        case .clearFolderStats:
+            // Folder stats clearing - not implemented in coordinator
+            break
+        case .clearBanner:
+            // Banner clearing - handled by composition layer
+            break
+        case .toggleExpanded(let descriptorID):
+            toggleExpanded(descriptorID: AppCoreEngine.FileID(descriptorID.rawValue))
+        case .setActiveNavigator(let mode):
+            presentationModel.activeNavigator = mode
+        case .setFilterText(let text):
+            presentationModel.filterText = text
+        case .clearExpanded:
+            presentationModel.expandedDescriptorIDs.removeAll()
+        }
+    }
+    
 }
 

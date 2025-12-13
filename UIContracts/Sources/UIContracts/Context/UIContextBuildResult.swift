@@ -8,6 +8,7 @@ public struct UIContextBuildResult: Sendable, Equatable {
     public let totalBytes: Int
     public let totalTokens: Int
     public let encodedSegments: [UIContextSegment]
+    public let budget: ContextBudgetView
     
     public init(
         attachments: [UILoadedFile],
@@ -15,7 +16,8 @@ public struct UIContextBuildResult: Sendable, Equatable {
         excludedFiles: [UIContextExclusion],
         totalBytes: Int,
         totalTokens: Int,
-        encodedSegments: [UIContextSegment] = []
+        encodedSegments: [UIContextSegment] = [],
+        budget: ContextBudgetView
     ) {
         self.attachments = attachments
         self.truncatedFiles = truncatedFiles
@@ -23,6 +25,7 @@ public struct UIContextBuildResult: Sendable, Equatable {
         self.totalBytes = totalBytes
         self.totalTokens = totalTokens
         self.encodedSegments = encodedSegments
+        self.budget = budget
     }
 }
 

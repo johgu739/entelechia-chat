@@ -8,3 +8,4 @@ public enum ChatIntent: Sendable, Equatable {
     case setModelChoice(ModelChoice)
 }
 
+

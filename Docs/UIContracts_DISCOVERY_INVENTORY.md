@@ -226,3 +226,4 @@ UIConnections will provide mapping functions:
 - `AppCoreEngine.ContextExclusion` → `UIContracts.UIContextExclusion` (if needed)
 - `AppCoreEngine.ContextSegment` → `UIContracts.UIContextSegment` (if needed)
 
+

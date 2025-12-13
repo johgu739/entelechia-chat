@@ -20,10 +20,10 @@ public final class ErrorBindingCoordinator: ObservableObject {
             .store(in: &cancellables)
     }
     
-    /// Bind context error publisher to presentation view model.
+    /// Bind context error publisher to banner message handler.
     public func bindContextErrors(
         publisher: AnyPublisher<Error, Never>,
-        to presentationViewModel: ContextPresentationViewModel
+        onBannerMessage: @escaping (String) -> Void
     ) {
         publisher
             .receive(on: DispatchQueue.main)
@@ -33,8 +33,8 @@ public final class ErrorBindingCoordinator: ObservableObject {
                 }
                 return error.localizedDescription
             }
-            .sink { [weak presentationViewModel] message in
-                presentationViewModel?.bannerMessage = message
+            .sink { message in
+                onBannerMessage(message)
             }
             .store(in: &cancellables)
     }

@@ -14,6 +14,7 @@
 import Foundation
 import os.log
 import AppCoreEngine
+import UIContracts
 
 private typealias FileExclusion = AppCoreEngine.FileExclusion
 
@@ -49,12 +50,25 @@ internal enum FileNodeError: LocalizedError {
 /// UIConnections uses this internally; external code should use UIContracts.FileNode.
 /// This is a class with mutable children for internal coordination.
 internal final class FileNode: Identifiable {
+    /// Convert to UIContracts.FileNode
+    func toUIContracts() -> UIContracts.FileNode {
+        UIContracts.FileNode(
+            id: id,
+            descriptorID: descriptorID.map { fileID in UIContracts.FileID(fileID.rawValue) },
+            name: name,
+            path: path,
+            children: children?.map { $0.toUIContracts() },
+            icon: icon,
+            isParentDirectory: isParentDirectory,
+            isDirectory: isDirectory
+        )
+    }
     private static let logger = Logger(subsystem: "UIConnections", category: "FileNode")
 
     /// UI identity (used by SwiftUI lists/outline).
     public let id: UUID
     /// Engine-issued identity, if this node was built from engine descriptors.
-    public let descriptorID: FileID?
+    public let descriptorID: AppCoreEngine.FileID?
     public let name: String
     public let path: URL
     public var children: [FileNode]?
@@ -64,7 +78,7 @@ internal final class FileNode: Identifiable {
     
     public init(
         id: UUID? = nil,
-        descriptorID: FileID? = nil,
+        descriptorID: AppCoreEngine.FileID? = nil,
         name: String,
         path: URL,
         children: [FileNode]? = nil,
@@ -117,8 +131,7 @@ internal final class FileNode: Identifiable {
             isDirectory = resourceValues.isDirectory == true
         } catch {
             FileNode.logger.error(
-                "Could not read resource values for \(url.path, privacy: .private): " +
-                "\(error.localizedDescription, privacy: .public)"
+                "Could not read resource values for \(url.path, privacy: .private): \(error.localizedDescription, privacy: .public)"
             )
             isDirectory = false
         }
@@ -209,7 +222,7 @@ internal extension FileNode {
     }
 
     /// Recursively find a node by its engine descriptor ID.
-    func findNode(withDescriptorID descriptorID: FileID) -> FileNode? {
+    func findNode(withDescriptorID descriptorID: AppCoreEngine.FileID) -> FileNode? {
         if let current = self.descriptorID, current == descriptorID {
             return self
         }
@@ -245,7 +258,7 @@ internal extension Array where Element == FileNode {
     }
 
     /// Recursively find a node by its engine descriptor ID.
-    func node(withDescriptorID descriptorID: FileID) -> FileNode? {
+    func node(withDescriptorID descriptorID: AppCoreEngine.FileID) -> FileNode? {
         for node in self {
             if let found = node.findNode(withDescriptorID: descriptorID) {
                 return found

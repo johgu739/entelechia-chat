@@ -3,6 +3,8 @@ import UIContracts
 
 /// Immutable view state for context UI (pure form, no power).
 /// Derived from WorkspaceConversationBindingViewModel, never mutated directly.
+/// NOTE: This is a duplicate definition that should be removed. Use UIContracts.ContextViewState instead.
+@available(*, deprecated, message: "Use UIContracts.ContextViewState instead")
 public struct ContextViewState {
     public let lastContextSnapshot: UIContracts.ContextSnapshot?
     public let lastContextResult: UIContracts.UIContextBuildResult?

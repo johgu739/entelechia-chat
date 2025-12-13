@@ -1,5 +1,10 @@
 import Foundation
 import UIConnections
+import AppCoreEngine
+import AppAdapters
+
+/// Type alias for the conversation engine type used throughout AppComposition.
+public typealias ConversationEngineProviding = ConversationEngineLive<AnyCodexClient, FileStoreConversationPersistence>
 
 public protocol DependencyContainer {
     var securityScopeHandler: SecurityScopeHandling { get }
@@ -7,7 +12,7 @@ public protocol DependencyContainer {
     var alertCenter: AlertCenter { get }
     var workspaceEngine: WorkspaceEngine { get }
     var projectEngine: ProjectEngine { get }
-    var conversationEngine: ConversationStreaming { get }
+    var conversationEngine: ConversationEngineProviding { get }
     var projectTodosLoader: ProjectTodosLoading { get }
     var projectMetadataHandler: ProjectMetadataHandling { get }
     var codexService: CodexQueryService { get }
@@ -23,13 +28,16 @@ public struct DefaultContainer: DependencyContainer {
     public let alertCenter: AlertCenter
     public let workspaceEngine: WorkspaceEngine
     public let projectEngine: ProjectEngine
-    public let conversationEngine: ConversationStreaming
+    public let conversationEngine: ConversationEngineLive<AnyCodexClient, FileStoreConversationPersistence>
     public let projectTodosLoader: ProjectTodosLoading
     public let projectMetadataHandler: ProjectMetadataHandling
     public let codexService: CodexQueryService
     public let fileMutationService: FileMutationPlanning
     public let fileMutationAuthority: FileMutationAuthorizing
+    public let domainErrorAuthority: DomainErrorAuthority
+    public let errorRouter: UIPresentationErrorRouter
     
+    @MainActor
     public init() {
         let container = AppContainer()
         self.securityScopeHandler = container.securityScope
@@ -54,13 +62,16 @@ public struct TestContainer: DependencyContainer {
     public let alertCenter: AlertCenter
     public let workspaceEngine: WorkspaceEngine
     public let projectEngine: ProjectEngine
-    public let conversationEngine: ConversationStreaming
+    public let conversationEngine: ConversationEngineLive<AnyCodexClient, FileStoreConversationPersistence>
     public let projectTodosLoader: ProjectTodosLoading
     public let projectMetadataHandler: ProjectMetadataHandling
     public let codexService: CodexQueryService
     public let fileMutationService: FileMutationPlanning
     public let fileMutationAuthority: FileMutationAuthorizing
+    public let domainErrorAuthority: DomainErrorAuthority
+    public let errorRouter: UIPresentationErrorRouter
     
+    @MainActor
     public init(root: URL) {
         let container = AppContainer(baseURL: root, forTesting: true)
         self.securityScopeHandler = container.securityScope

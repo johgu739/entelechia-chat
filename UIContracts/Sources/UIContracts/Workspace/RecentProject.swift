@@ -11,3 +11,4 @@ public struct RecentProject: Equatable, Sendable {
     }
 }
 
+

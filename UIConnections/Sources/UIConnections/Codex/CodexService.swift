@@ -53,10 +53,10 @@ public final class CodexQueryService: @unchecked Sendable, CodexQuerying {
         let shaped = promptShaper.shape(question)
         let snapshot = await workspaceEngine.snapshot()
 
-        let descriptorIDs: [FileID]? = {
+        let descriptorIDs: [AppCoreEngine.FileID]? = {
             switch scope {
             case .descriptor(let uiFileID): 
-                return [AppCoreEngine.FileID(rawValue: uiFileID.rawValue)]
+                return [AppCoreEngine.FileID(uiFileID.rawValue)]
             case .path(let path):
                 if let id = snapshot.descriptorPaths.first(where: { $0.value == path })?.key {
                     return [id]
@@ -85,8 +85,8 @@ Context is provided in stable segments; respect ordering.
         let userPrompt = makeUserPrompt(question: shaped, segments: segments)
 
         let messages = [
-            Message(role: .system, text: systemPrompt, createdAt: Date()),
-            Message(role: .user, text: userPrompt, createdAt: Date())
+            AppCoreEngine.Message(role: .system, text: systemPrompt, createdAt: Date()),
+            AppCoreEngine.Message(role: .user, text: userPrompt, createdAt: Date())
         ]
 
         let text = try await streamWithRetry(
@@ -95,7 +95,7 @@ Context is provided in stable segments; respect ordering.
             onStream: onStream
         )
 
-        return CodexAnswer(text: text, context: contextResult)
+        return CodexAnswer(text: text, context: DomainToUIMappers.toUIContextBuildResult(contextResult))
     }
 
     private func makeUserPrompt(question: String, segments: [ContextSegment]) -> String {
@@ -113,7 +113,7 @@ Context is provided in stable segments; respect ordering.
     }
 
     private func streamWithRetry(
-        messages: [Message],
+        messages: [AppCoreEngine.Message],
         contextFiles: [LoadedFile],
         onStream: ((String) -> Void)?
     ) async throws -> String {
@@ -133,7 +133,7 @@ Context is provided in stable segments; respect ordering.
     }
 
     private func streamOnce(
-        messages: [Message],
+        messages: [AppCoreEngine.Message],
         contextFiles: [LoadedFile],
         onStream: ((String) -> Void)?
     ) async throws -> String {

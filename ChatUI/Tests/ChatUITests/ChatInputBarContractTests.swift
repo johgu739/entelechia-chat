@@ -297,3 +297,4 @@ final class ChatInputBarContractTests: XCTestCase {
         XCTAssertEqual(text.wrappedValue.count, longText.count, "Should preserve long text")
     }
 }
+

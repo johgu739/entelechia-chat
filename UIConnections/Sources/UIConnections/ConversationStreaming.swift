@@ -1,9 +1,9 @@
 import Foundation
 import AppCoreEngine
 
-/// Internal UI-facing, non-generic surface for conversation orchestration.
-/// UIConnections uses this internally; external code should use domain engines directly.
-internal protocol ConversationStreaming: Sendable {
+/// UI-facing, non-generic surface for conversation orchestration.
+/// Used by CodexQueryService and ConversationEngineBox to abstract over ConversationEngineLive.
+public protocol ConversationStreaming: Sendable {
     func conversation(for url: URL) async -> Conversation?
     func conversation(forDescriptorIDs ids: [FileID]) async -> Conversation?
     func ensureConversation(for url: URL) async throws -> Conversation

@@ -16,12 +16,12 @@ internal final class WorkspacePresentationModel: ObservableObject {
     @Published public var isLoading: Bool = false
     @Published public var filterText: String = ""
     @Published public var activeNavigator: NavigatorMode = .project
-    @Published public var expandedDescriptorIDs: Set<FileID> = []
-    @Published public var projectTodos: ProjectTodos = .empty
+    @Published public var expandedDescriptorIDs: Set<UIContracts.FileID> = []
+    @Published public var projectTodos: UIContracts.ProjectTodos = .empty
     @Published public var todosError: String?
     @Published public var activeScope: UIContracts.ContextScopeChoice = .selection
     @Published public var modelChoice: UIContracts.ModelChoice = .codex
-    @Published public var selectedDescriptorID: FileID?
+    @Published public var selectedDescriptorID: UIContracts.FileID?
     @Published public var watcherError: String?
     
     public init() {}

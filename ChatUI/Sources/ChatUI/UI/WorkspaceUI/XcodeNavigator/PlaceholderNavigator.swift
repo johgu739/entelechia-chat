@@ -12,3 +12,4 @@ struct PlaceholderNavigator: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
+

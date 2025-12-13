@@ -153,7 +153,7 @@ struct ContextInspector: View {
                     .lineLimit(2)
             }
             PropertyRow(label: "Type") {
-                Text(FileTypeClassifier.description(for: node.path))
+                Text(fileTypeDescription(for: node.path))
             }
             PropertyRow(label: "Size") {
                 AsyncFileStatsRowView(
@@ -262,5 +262,33 @@ struct ContextInspector: View {
         formatter.numberStyle = .decimal
         formatter.groupingSeparator = " "
         return formatter.string(from: NSNumber(value: number)) ?? "\(number)"
+    }
+    
+    // MARK: - Helper Functions
+    
+    private func fileTypeDescription(for url: URL) -> String {
+        let ext = url.pathExtension.lowercased()
+        let sourceExtensions: Set<String> = [
+            "swift", "m", "mm", "c", "cc", "cpp", "cxx", "h", "hpp", "hh",
+            "java", "kt", "kts", "ts", "tsx", "js", "jsx", "go", "rs",
+            "py", "rb", "php", "cs", "sql", "sh", "bash", "zsh", "fish"
+        ]
+        let textExtensions: Set<String> = [
+            "txt", "md", "markdown", "rst", "json", "yaml", "yml", "toml",
+            "xml", "plist", "csv", "log"
+        ]
+        
+        if sourceExtensions.contains(ext) { return "Source Code" }
+        if textExtensions.contains(ext) { return "Text" }
+        if ["jpg", "jpeg", "png", "gif", "bmp", "tiff", "svg"].contains(ext) { return "Image" }
+        if ext == "pdf" { return "PDF" }
+        return "File"
+    }
+    
+    private func inclusionBinding(for url: URL) -> Binding<Bool> {
+        Binding(
+            get: { isPathIncludedInContext(url) },
+            set: { onWorkspaceIntent(.setContextInclusion($0, url)) }
+        )
     }
 }

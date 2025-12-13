@@ -116,3 +116,4 @@ swift test --package-path UIConnections --filter WorkspaceViewModelLifecycleEnfo
 - No code refactoring was performed—only guards were added
 - The build will remain red until lifecycle refactoring is completed
 - Keyboard/animation/size publishers in `KeyboardAdaptiveInset.swift` are explicitly allowed
+

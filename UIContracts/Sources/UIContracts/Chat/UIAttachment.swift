@@ -6,3 +6,4 @@ public enum UIAttachment: Sendable, Equatable {
     case code(language: String, content: String)
 }
 
+

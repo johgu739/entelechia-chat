@@ -69,8 +69,7 @@ internal final class ProjectCoordinator: ProjectCoordinating {
             projectSession.open(url, name: domainRep.name, bookmarkData: bookmarkData)
         } catch {
             logger.error(
-                "Failed to open recent project \(project.representation.rootPath): " +
-                "\(error.localizedDescription)"
+                "Failed to open recent project \(project.representation.rootPath): \(error.localizedDescription)"
             )
             errorAuthority.publish(error, context: "Open recent project")
         }
@@ -106,34 +105,6 @@ internal struct RecentProject: Equatable, Sendable {
 
 // MARK: - Public Protocol
 
-/// Public protocol for project coordination operations.
-/// Exposes only UIContracts types, hiding internal implementation.
-@MainActor
-public protocol ProjectCoordinating: ObservableObject {
-    func openProject(url: URL, name: String)
-    func closeProject()
-    func openRecent(_ project: UIContracts.RecentProject)
-    var recentProjects: [UIContracts.RecentProject] { get }
-}
-
-// MARK: - Public Factory
-
-/// Public factory function to create ProjectCoordinator.
-/// Returns a ProjectCoordinating protocol that exposes only UIContracts types.
-@MainActor
-public func createProjectCoordinator(
-    projectEngine: ProjectEngine,
-    projectSession: ProjectSessioning,
-    errorAuthority: DomainErrorAuthority,
-    securityScopeHandler: SecurityScopeHandling,
-    projectMetadataHandler: ProjectMetadataHandling
-) -> ProjectCoordinating {
-    ProjectCoordinator(
-        projectEngine: projectEngine,
-        projectSession: projectSession,
-        errorAuthority: errorAuthority,
-        securityScopeHandler: securityScopeHandler,
-        projectMetadataHandler: projectMetadataHandler
-    )
-}
+// ProjectCoordinating protocol is defined in Protocols/CoordinatorProtocols.swift
+// createProjectCoordinator factory is defined in Factories/CoordinatorFactories.swift
 

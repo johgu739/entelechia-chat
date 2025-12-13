@@ -29,11 +29,11 @@ struct ContextBudgetDiagnosticsView: View {
             if !diagnostics.truncatedFiles.isEmpty {
                 InspectorDivider()
                 InspectorSection(title: "TRIMMED FILES") {
-                    ForEach(diagnostics.truncatedFiles) { file in
+                    ForEach(diagnostics.truncatedFiles, id: \.id) { file in
                         VStack(alignment: .leading, spacing: DS.s4) {
-                            Text(file.name)
+                            Text(URL(fileURLWithPath: file.path).lastPathComponent)
                                 .font(.system(size: 12, weight: .semibold))
-                            Text(file.contextNote ?? "Trimmed to respect per-file limits.")
+                            Text("Trimmed to respect per-file limits.")
                                 .font(.system(size: 11))
                                 .foregroundColor(.secondary)
                         }
@@ -45,11 +45,11 @@ struct ContextBudgetDiagnosticsView: View {
             if !diagnostics.excludedFiles.isEmpty {
                 InspectorDivider()
                 InspectorSection(title: "EXCLUDED FILES") {
-                    ForEach(diagnostics.excludedFiles) { exclusion in
+                    ForEach(diagnostics.excludedFiles, id: \.id) { exclusion in
                         VStack(alignment: .leading, spacing: DS.s4) {
-                            Text(exclusion.file.name)
+                            Text(URL(fileURLWithPath: exclusion.file.path).lastPathComponent)
                                 .font(.system(size: 12, weight: .semibold))
-                            Text(exclusionMessage(for: exclusion.reason))
+                            Text(exclusion.reason)
                                 .font(.system(size: 11))
                                 .foregroundColor(.orange)
                         }

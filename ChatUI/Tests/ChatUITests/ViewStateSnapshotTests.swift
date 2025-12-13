@@ -37,14 +37,14 @@ final class ViewStateSnapshotTests: XCTestCase {
             id: UUID(),
             role: .user,
             text: "Hello, assistant!",
-            timestamp: Date()
+            createdAt: Date()
         )
 
         let assistantMessage = UIContracts.UIMessage(
             id: UUID(),
             role: .assistant,
             text: "Hello! How can I help you?",
-            timestamp: Date()
+            createdAt: Date()
         )
 
         let state = UIContracts.ChatViewState(
@@ -121,27 +121,22 @@ final class ViewStateSnapshotTests: XCTestCase {
         XCTAssertNil(state.selectedDescriptorID, "Should have no selected descriptor ID")
         XCTAssertNil(state.rootFileNode, "Should have no root file node")
         XCTAssertNil(state.rootDirectory, "Should have no root directory")
-        XCTAssertEqual(state.projectTodos.todos.count, 0, "Should have no todos")
+        XCTAssertEqual(state.projectTodos.allTodos.count, 0, "Should have no todos")
         XCTAssertNil(state.todosErrorDescription, "Should have no error description")
     }
 
     func testWorkspaceUIViewStateWithDataSnapshot() {
         // Test WorkspaceUIViewState with populated data
-        let fileID = FileID()
+        let fileUUID = UUID()
+        let fileID = UIContracts.FileID(fileUUID)
         let fileNode = UIContracts.FileNode(
-            id: fileID,
+            id: fileUUID,
+            descriptorID: fileID,
             name: "test.swift",
-            path: "/test.swift",
-            type: .file,
-            children: []
-        )
-
-        let todo = UIContracts.UITodo(
-            id: UUID(),
-            title: "Fix bug",
-            filePath: "/test.swift",
-            lineNumber: 42,
-            isCompleted: false
+            path: URL(fileURLWithPath: "/test.swift"),
+            children: [],
+            icon: "doc.text",
+            isDirectory: false
         )
 
         let state = UIContracts.WorkspaceUIViewState(
@@ -149,15 +144,17 @@ final class ViewStateSnapshotTests: XCTestCase {
             selectedDescriptorID: fileID,
             rootFileNode: fileNode,
             rootDirectory: URL(fileURLWithPath: "/project"),
-            projectTodos: UIContracts.UIProjectTodos(todos: [todo]),
+            projectTodos: UIContracts.ProjectTodos(
+                allTodos: ["Fix bug in /test.swift:42"]
+            ),
             todosErrorDescription: "Connection failed"
         )
 
         XCTAssertEqual(state.selectedNode?.name, "test.swift", "Should have correct selected node")
         XCTAssertEqual(state.selectedDescriptorID, fileID, "Should have correct descriptor ID")
-        XCTAssertEqual(state.rootFileNode?.path, "/test.swift", "Should have correct root file node")
+        XCTAssertEqual(state.rootFileNode?.path.path, "/test.swift", "Should have correct root file node")
         XCTAssertEqual(state.rootDirectory?.path, "/project", "Should have correct root directory")
-        XCTAssertEqual(state.projectTodos.todos.count, 1, "Should have 1 todo")
+        XCTAssertEqual(state.projectTodos.allTodos.count, 1, "Should have 1 todo")
         XCTAssertEqual(state.todosErrorDescription, "Connection failed", "Should have error description")
     }
 
@@ -224,14 +221,20 @@ final class ViewStateSnapshotTests: XCTestCase {
             totalBytes: 5000
         )
 
-        let contextResult = UIContracts.ContextBuildResult(
+        let budget = UIContracts.ContextBudgetView(
+            maxPerFileBytes: 32000,
+            maxPerFileTokens: 8000,
+            maxTotalBytes: 220000,
+            maxTotalTokens: 60000
+        )
+        let contextResult = UIContracts.UIContextBuildResult(
             attachments: [],
             truncatedFiles: [],
             excludedFiles: [],
             totalBytes: 5000,
             totalTokens: 1000,
-            budget: UIContracts.ContextBudget(maxTokens: 8000, usedTokens: 1000),
-            encodedSegments: []
+            encodedSegments: [],
+            budget: budget
         )
 
         let streamingMessages = [
@@ -293,14 +296,14 @@ final class ViewStateSnapshotTests: XCTestCase {
         XCTAssertEqual(state1.filterText, "", "Should have empty filter")
         XCTAssertTrue(state1.expandedDescriptorIDs.isEmpty, "Should have no expanded IDs")
 
-        let fileID = FileID()
+        let fileID = UIContracts.FileID()
         let state2 = UIContracts.PresentationViewState(
-            activeNavigator: .find,
+            activeNavigator: .search,
             filterText: "search term",
             expandedDescriptorIDs: [fileID]
         )
 
-        XCTAssertEqual(state2.activeNavigator, .find, "Should have find navigator")
+        XCTAssertEqual(state2.activeNavigator, .search, "Should have search navigator")
         XCTAssertEqual(state2.filterText, "search term", "Should have filter text")
         XCTAssertEqual(state2.expandedDescriptorIDs.count, 1, "Should have 1 expanded ID")
         XCTAssertTrue(state2.expandedDescriptorIDs.contains(fileID), "Should contain the file ID")
@@ -321,7 +324,7 @@ final class ViewStateSnapshotTests: XCTestCase {
         )
 
         let state3 = UIContracts.PresentationViewState(
-            activeNavigator: .find,
+            activeNavigator: .search,
             filterText: "",
             expandedDescriptorIDs: []
         )

@@ -6,3 +6,4 @@ struct InspectorDivider: View {
             .padding(.vertical, DS.s4)
     }
 }
+

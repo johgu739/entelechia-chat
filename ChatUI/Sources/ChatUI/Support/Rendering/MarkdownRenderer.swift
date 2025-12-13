@@ -22,10 +22,18 @@ enum ContentBlockType {
 }
 
 /// A parsed content block (text or code).
-struct ContentBlock {
+struct ContentBlock: Identifiable {
+    let id: UUID
     let type: ContentBlockType
     let content: String
     let language: String?
+    
+    init(type: ContentBlockType, content: String, language: String?) {
+        self.id = UUID()
+        self.type = type
+        self.content = content
+        self.language = language
+    }
 }
 
 struct MarkdownRenderer {

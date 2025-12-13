@@ -6,11 +6,11 @@ import AppCoreEngine
 /// Handles workspace opening when project URL changes.
 @MainActor
 public final class WorkspaceActivityCoordinator: ObservableObject {
-    private let workspaceActivityViewModel: WorkspaceActivityViewModel
+    private let onOpenWorkspace: (URL) async -> Void
     private var cancellables: Set<AnyCancellable> = []
     
-    public init(workspaceActivityViewModel: WorkspaceActivityViewModel) {
-        self.workspaceActivityViewModel = workspaceActivityViewModel
+    public init(onOpenWorkspace: @escaping (URL) async -> Void) {
+        self.onOpenWorkspace = onOpenWorkspace
     }
     
     /// Observe project session and open workspace when project URL changes.
@@ -19,7 +19,7 @@ public final class WorkspaceActivityCoordinator: ObservableObject {
             .sink { [weak self] newURL in
                 if let url = newURL {
                     Task {
-                        await self?.workspaceActivityViewModel.openWorkspace(at: url)
+                        await self?.onOpenWorkspace(url)
                     }
                 }
             }
