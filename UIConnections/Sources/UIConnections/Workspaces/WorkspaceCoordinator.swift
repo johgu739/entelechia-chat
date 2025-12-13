@@ -21,6 +21,7 @@ internal final class WorkspaceCoordinator: ConversationWorkspaceHandling, Worksp
     private let presentationModel: WorkspacePresentationModel
     private let projection: WorkspaceProjection
     private let errorAuthority: DomainErrorAuthority
+    private let stateObserver: WorkspaceStateObserver
     private let logger = Logger(subsystem: "UIConnections", category: "WorkspaceCoordinator")
     
     // MARK: - Private State
@@ -37,7 +38,8 @@ internal final class WorkspaceCoordinator: ConversationWorkspaceHandling, Worksp
         projectTodosLoader: ProjectTodosLoading,
         presentationModel: WorkspacePresentationModel,
         projection: WorkspaceProjection,
-        errorAuthority: DomainErrorAuthority
+        errorAuthority: DomainErrorAuthority,
+        stateObserver: WorkspaceStateObserver
     ) {
         self.workspaceEngine = workspaceEngine
         self.conversationEngine = conversationEngine
@@ -46,6 +48,7 @@ internal final class WorkspaceCoordinator: ConversationWorkspaceHandling, Worksp
         self.presentationModel = presentationModel
         self.projection = projection
         self.errorAuthority = errorAuthority
+        self.stateObserver = stateObserver
     }
     
     // MARK: - ConversationWorkspaceHandling Protocol

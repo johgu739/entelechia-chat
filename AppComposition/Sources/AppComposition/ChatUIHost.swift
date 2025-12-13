@@ -33,6 +33,10 @@ public struct ChatUIHost: View {
     @State private var chatViewState: UIContracts.ChatViewState = .empty
     @State private var bannerMessage: String? = nil
     
+    // MARK: - Reactive Update Mechanism
+    
+    private let stateUpdatePublisher: PassthroughSubject<Void, Never>
+    
     // MARK: - Dependencies (Stored for coordinator creation)
     
     private let contextSelectionState: ContextSelectionState
@@ -69,13 +73,20 @@ public struct ChatUIHost: View {
             projectMetadataHandler: container.projectMetadataHandler
         )
         
-        // Create workspace coordinator using factory
+        // Create reactive update publisher
+        let stateUpdatePublisher = PassthroughSubject<Void, Never>()
+        self.stateUpdatePublisher = stateUpdatePublisher
+        
+        // Create workspace coordinator using factory with reactive update callback
         let workspaceCoord = UIConnections.createWorkspaceCoordinator(
             workspaceEngine: container.workspaceEngine,
             conversationEngine: container.conversationEngine,
             codexService: container.codexService,
             projectTodosLoader: container.projectTodosLoader,
-            errorAuthority: container.domainErrorAuthority
+            errorAuthority: container.domainErrorAuthority,
+            onStateUpdated: {
+                stateUpdatePublisher.send()
+            }
         )
         // Store as protocol type (not concrete)
         // Note: We can't use @StateObject with protocol types, so we'll need to handle this differently
@@ -134,6 +145,9 @@ public struct ChatUIHost: View {
             bannerMessage = message
             updateViewStates()
         }
+        .onReceive(stateUpdatePublisher) { _ in
+            updateViewStates()
+        }
         .onChange(of: projectSession.activeProjectURL) { _, newURL in
             if let url = newURL {
                 Task {
@@ -171,7 +185,6 @@ public struct ChatUIHost: View {
             folderStatsState: (stats: nil as UIContracts.FolderStats?, isLoading: false),
             onWorkspaceIntent: { (intent: UIContracts.WorkspaceIntent) in
                 workspaceCoordinator.handle(intent)
-                updateViewStates()
             },
             onChatIntent: { (intent: UIContracts.ChatIntent) in
                 Task {

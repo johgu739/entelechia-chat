@@ -17,7 +17,8 @@ public func createWorkspaceCoordinator<Client: CodexClient, Persistence: Convers
     conversationEngine: ConversationEngineLive<Client, Persistence>,
     codexService: CodexQuerying,
     projectTodosLoader: ProjectTodosLoading,
-    errorAuthority: DomainErrorAuthority
+    errorAuthority: DomainErrorAuthority,
+    onStateUpdated: (() -> Void)? = nil
 ) -> any WorkspaceCoordinating where Client.MessageType == AppCoreEngine.Message,
                                      Client.ContextFileType == AppCoreEngine.LoadedFile,
                                      Client.OutputPayload == AppCoreEngine.ModelResponse,
@@ -27,6 +28,13 @@ public func createWorkspaceCoordinator<Client: CodexClient, Persistence: Convers
     let projection = WorkspaceProjection()
     // Adapt domain engine to internal protocol
     let conversationAdapter = ConversationEngineAdapter(engine: conversationEngine)
+    // Create and start observer with reactive callback
+    let observer = WorkspaceStateObserver(
+        workspaceEngine: workspaceEngine,
+        presentationModel: presentationModel,
+        projection: projection,
+        onStateUpdated: onStateUpdated
+    )
     let coordinator = WorkspaceCoordinator(
         workspaceEngine: workspaceEngine,
         conversationEngine: conversationAdapter,
@@ -34,16 +42,9 @@ public func createWorkspaceCoordinator<Client: CodexClient, Persistence: Convers
         projectTodosLoader: projectTodosLoader,
         presentationModel: presentationModel,
         projection: projection,
-        errorAuthority: errorAuthority
+        errorAuthority: errorAuthority,
+        stateObserver: observer
     )
-    // Create and start observer
-    let observer = WorkspaceStateObserver(
-        workspaceEngine: workspaceEngine,
-        presentationModel: presentationModel,
-        projection: projection
-    )
-    // Observer is retained by coordinator's lifecycle
-    _ = observer
     return coordinator
 }
 
