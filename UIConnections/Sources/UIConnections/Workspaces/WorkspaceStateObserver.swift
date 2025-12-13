@@ -13,18 +13,21 @@ public final class WorkspaceStateObserver {
     private let projection: WorkspaceProjection
     private var updatesTask: Task<Void, Never>?
     private var onStateUpdated: (() -> Void)?
+    private var onDetailReplaced: ((UIContracts.FileID?) -> Void)?
     private var lastStructuralState: (rootPath: String?, descriptorCount: Int, descriptorPathCount: Int)?
     
     init(
         workspaceEngine: WorkspaceEngine,
         presentationModel: WorkspacePresentationModel,
         projection: WorkspaceProjection,
-        onStateUpdated: (() -> Void)? = nil
+        onStateUpdated: (() -> Void)? = nil,
+        onDetailReplaced: ((UIContracts.FileID?) -> Void)? = nil
     ) {
         self.workspaceEngine = workspaceEngine
         self.presentationModel = presentationModel
         self.projection = projection
         self.onStateUpdated = onStateUpdated
+        self.onDetailReplaced = onDetailReplaced
         subscribeToUpdates()
     }
     
@@ -83,14 +86,6 @@ public final class WorkspaceStateObserver {
         
         if previousRoot != mapped.rootPath {
             presentationModel.expandedDescriptorIDs.removeAll()
-            presentationModel.selectedNode = nil
-            presentationModel.selectedDescriptorID = nil
-        }
-        
-        if let uuid = mapped.selectedDescriptorID {
-            presentationModel.selectedDescriptorID = UIContracts.FileID(uuid)
-        } else {
-            presentationModel.selectedDescriptorID = nil
         }
         
         // INVARIANT 1: Single structural rebuild - FileNode.fromProjection called at most once per update
@@ -106,8 +101,12 @@ public final class WorkspaceStateObserver {
             precondition(!treeRebuilt, "Non-structural update must not rebuild tree")
         }
         
-        // Update selection against existing tree (structural or not)
-        updateSelectedNode()
+        // Replace detail state on selection change
+        let newSelection = mapped.selectedDescriptorID.map { UIContracts.FileID($0) }
+        let selectionChanged = previousSelection != mapped.selectedDescriptorID
+        if selectionChanged {
+            onDetailReplaced?(newSelection)
+        }
         
         presentationModel.watcherError = mapped.watcherError
         
@@ -161,14 +160,6 @@ public final class WorkspaceStateObserver {
         }
     }
     
-    private func updateSelectedNode() {
-        guard let descriptorID = presentationModel.selectedDescriptorID else {
-            presentationModel.selectedNode = nil
-            return
-        }
-        let engineFileID = AppCoreEngine.FileID(descriptorID.rawValue)
-        presentationModel.selectedNode = presentationModel.rootFileNode?.findNode(withDescriptorID: engineFileID)
-    }
     
     func cancel() {
         updatesTask?.cancel()

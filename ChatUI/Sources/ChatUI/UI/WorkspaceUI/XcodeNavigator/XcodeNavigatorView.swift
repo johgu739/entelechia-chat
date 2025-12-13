@@ -33,6 +33,7 @@ struct XcodeNavigatorView: View {
                     projectTodos: workspaceState.projectTodos,
                     onWorkspaceIntent: onWorkspaceIntent
                 )
+                .fixedSize(horizontal: false, vertical: true)
                 
                 // Main navigator content
                 NavigatorContent(
@@ -41,6 +42,7 @@ struct XcodeNavigatorView: View {
                     presentationState: presentationState,
                     onWorkspaceIntent: onWorkspaceIntent
                 )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 
                 if presentationState.activeNavigator == UIContracts.NavigatorMode.project {
                     Divider()
@@ -50,9 +52,11 @@ struct XcodeNavigatorView: View {
                         filterText: presentationState.filterText,
                         onWorkspaceIntent: onWorkspaceIntent
                     )
+                    .fixedSize(horizontal: false, vertical: true)
                 }
                 
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .background(Color.clear)
     }

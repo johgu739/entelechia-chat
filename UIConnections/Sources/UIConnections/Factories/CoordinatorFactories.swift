@@ -28,14 +28,7 @@ public func createWorkspaceCoordinator<Client: CodexClient, Persistence: Convers
     let projection = WorkspaceProjection()
     // Adapt domain engine to internal protocol
     let conversationAdapter = ConversationEngineAdapter(engine: conversationEngine)
-    // Create and start observer with reactive callback
-    // INVARIANT 4: Observer lifecycle - exactly one observer per coordinator
-    let observer = WorkspaceStateObserver(
-        workspaceEngine: workspaceEngine,
-        presentationModel: presentationModel,
-        projection: projection,
-        onStateUpdated: onStateUpdated
-    )
+    // Create coordinator first to get replaceDetailState method
     let coordinator = WorkspaceCoordinator(
         workspaceEngine: workspaceEngine,
         conversationEngine: conversationAdapter,
@@ -44,8 +37,21 @@ public func createWorkspaceCoordinator<Client: CodexClient, Persistence: Convers
         presentationModel: presentationModel,
         projection: projection,
         errorAuthority: errorAuthority,
-        stateObserver: observer
+        stateObserver: nil // Will be set after observer creation
     )
+    // Create and start observer with reactive callback
+    // INVARIANT 4: Observer lifecycle - exactly one observer per coordinator
+    let observer = WorkspaceStateObserver(
+        workspaceEngine: workspaceEngine,
+        presentationModel: presentationModel,
+        projection: projection,
+        onStateUpdated: onStateUpdated,
+        onDetailReplaced: { selection in
+            coordinator.replaceDetailState(for: selection)
+        }
+    )
+    // Set observer reference in coordinator (observer is retained by coordinator)
+    coordinator.setStateObserver(observer)
     // INVARIANT 4: Observer must be retained by coordinator (enforced by coordinator storing stateObserver)
     return coordinator
 }

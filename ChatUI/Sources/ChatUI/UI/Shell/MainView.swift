@@ -25,9 +25,10 @@ public struct MainWorkspaceView: View {
     let onWorkspaceIntent: (UIContracts.WorkspaceIntent) -> Void
     let onChatIntent: (UIContracts.ChatIntent) -> Void
     let isPathIncludedInContext: (URL) -> Bool
+    @Binding var inspectorTab: UIContracts.InspectorTab
     
-    @State private var inspectorTab: UIContracts.InspectorTab = .files
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
+    @State private var isInspectorVisible = true
     
     public init(
         workspaceState: UIContracts.WorkspaceUIViewState,
@@ -39,7 +40,8 @@ public struct MainWorkspaceView: View {
         folderStatsState: (stats: UIContracts.FolderStats?, isLoading: Bool),
         onWorkspaceIntent: @escaping (UIContracts.WorkspaceIntent) -> Void,
         onChatIntent: @escaping (UIContracts.ChatIntent) -> Void,
-        isPathIncludedInContext: @escaping (URL) -> Bool
+        isPathIncludedInContext: @escaping (URL) -> Bool,
+        inspectorTab: Binding<UIContracts.InspectorTab>
     ) {
         self.workspaceState = workspaceState
         self.contextState = contextState
@@ -51,6 +53,7 @@ public struct MainWorkspaceView: View {
         self.onWorkspaceIntent = onWorkspaceIntent
         self.onChatIntent = onChatIntent
         self.isPathIncludedInContext = isPathIncludedInContext
+        _inspectorTab = inspectorTab
     }
     
     public var body: some View {
@@ -63,13 +66,10 @@ public struct MainWorkspaceView: View {
     private var navigationLayout: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
             navigatorColumn
-        } content: {
-            chatColumn
         } detail: {
-            inspectorColumn
+            chatColumn
         }
         .overlay(statusOverlay, alignment: .top)
-        .toolbar { toolbarItems }
     }
     
     private var navigatorColumn: some View {
@@ -86,8 +86,17 @@ public struct MainWorkspaceView: View {
     }
     
     private var chatColumn: some View {
-        chatContent
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        NavigationStack {
+            chatContent
+                .navigationTitle(navigationTitle)
+                .inspector(isPresented: $isInspectorVisible) {
+                    inspectorColumn
+                }
+        }
+    }
+    
+    private var navigationTitle: String {
+        workspaceState.selectedNode?.name ?? "No Selection"
     }
     
     private var inspectorColumn: some View {
@@ -101,30 +110,6 @@ public struct MainWorkspaceView: View {
             onWorkspaceIntent: onWorkspaceIntent,
             isPathIncludedInContext: isPathIncludedInContext
         )
-            .navigationSplitViewColumnWidth(
-                min: DS.s20 * CGFloat(11),
-                ideal: DS.s20 * CGFloat(13),
-                max: DS.s20 * CGFloat(16)
-            )
-    }
-    
-    @ToolbarContentBuilder
-    private var toolbarItems: some ToolbarContent {
-        ToolbarItem(placement: .automatic) {
-            Button { toggleSidebar() } label: {
-                Image(systemName: "sidebar.leading")
-                    .foregroundColor(isSidebarVisible ? .primary : .secondary)
-            }
-            .help("Toggle File Explorer")
-        }
-        
-        ToolbarItem(placement: .automatic) {
-            Button { toggleInspector() } label: {
-                Image(systemName: "sidebar.trailing")
-                    .foregroundColor(isInspectorVisible ? .primary : .secondary)
-            }
-            .help("Toggle Inspector")
-        }
     }
     
     @ViewBuilder
@@ -132,30 +117,6 @@ public struct MainWorkspaceView: View {
         // Status overlay - CodexStatusBanner needs refactoring to use ViewState
         // For now, this is a placeholder
         EmptyView()
-    }
-    
-    private var isSidebarVisible: Bool {
-        columnVisibility == .all || columnVisibility == .doubleColumn
-    }
-    
-    private var isInspectorVisible: Bool {
-        columnVisibility == .all
-    }
-    
-    private func toggleSidebar() {
-        if columnVisibility == .all {
-            columnVisibility = .detailOnly
-        } else {
-            columnVisibility = .all
-        }
-    }
-    
-    private func toggleInspector() {
-        if columnVisibility == .all {
-            columnVisibility = .doubleColumn
-        } else {
-            columnVisibility = .all
-        }
     }
 
     @ViewBuilder
@@ -169,10 +130,8 @@ public struct MainWorkspaceView: View {
                 onWorkspaceIntent: onWorkspaceIntent,
                 inspectorTab: $inspectorTab
             )
-            .navigationTitle(selectedNode.name)
         } else {
             NoFileSelectedView()
-            .navigationTitle("No Selection")
         }
     }
 }

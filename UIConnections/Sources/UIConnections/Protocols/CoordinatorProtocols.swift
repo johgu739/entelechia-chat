@@ -15,6 +15,8 @@ public protocol WorkspaceCoordinating {
     func deriveWorkspaceUIViewState() -> UIContracts.WorkspaceUIViewState
     func deriveContextViewState(bannerMessage: String?) -> UIContracts.ContextViewState
     func derivePresentationViewState() -> UIContracts.PresentationViewState
+    func inspectorTab() -> UIContracts.InspectorTab
+    func setInspectorTab(_ tab: UIContracts.InspectorTab)
 }
 
 /// Public protocol for conversation coordination operations.

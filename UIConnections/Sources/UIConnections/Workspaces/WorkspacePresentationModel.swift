@@ -11,7 +11,6 @@ import UIContracts
 internal final class WorkspacePresentationModel: ObservableObject {
     // MARK: - Published UI State (Pure UI, No Domain Artifacts)
     
-    @Published public var selectedNode: FileNode?
     @Published public var rootFileNode: FileNode?
     @Published public var isLoading: Bool = false
     @Published public var filterText: String = ""
@@ -21,7 +20,6 @@ internal final class WorkspacePresentationModel: ObservableObject {
     @Published public var todosError: String?
     @Published public var activeScope: UIContracts.ContextScopeChoice = .selection
     @Published public var modelChoice: UIContracts.ModelChoice = .codex
-    @Published public var selectedDescriptorID: UIContracts.FileID?
     @Published public var watcherError: String?
     
     public init() {}

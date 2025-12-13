@@ -21,13 +21,32 @@ internal final class WorkspaceCoordinator: ConversationWorkspaceHandling, Worksp
     private let presentationModel: WorkspacePresentationModel
     private let projection: WorkspaceProjection
     private let errorAuthority: DomainErrorAuthority
-    private let stateObserver: WorkspaceStateObserver
+    private var stateObserver: WorkspaceStateObserver?
     private let logger = Logger(subsystem: "UIConnections", category: "WorkspaceCoordinator")
     
     // MARK: - Private State
     
     private var workspaceSnapshot: WorkspaceSnapshot = .empty
     private var codexContextByMessageID: [UUID: UIContracts.UIContextBuildResult] = [:]
+    
+    // MARK: - Detail State Store
+    
+    /// Store of DetailState instances keyed by descriptor ID.
+    /// One DetailState per descriptor, preserved across selection changes.
+    private var detailStore: [UIContracts.FileID: DetailState] = [:]
+    
+    /// Currently active detail identity (nil when no selection).
+    private var activeDetailID: UIContracts.FileID?
+    
+    /// Currently active detail state (derived from store).
+    /// Returns stored DetailState for activeDetailID, or .empty if no selection.
+    private var activeDetailState: DetailState {
+        guard let activeID = activeDetailID,
+              let stored = detailStore[activeID] else {
+            return .empty
+        }
+        return stored
+    }
     
     // MARK: - Initialization
     
@@ -39,7 +58,7 @@ internal final class WorkspaceCoordinator: ConversationWorkspaceHandling, Worksp
         presentationModel: WorkspacePresentationModel,
         projection: WorkspaceProjection,
         errorAuthority: DomainErrorAuthority,
-        stateObserver: WorkspaceStateObserver
+        stateObserver: WorkspaceStateObserver? = nil
     ) {
         // INVARIANT 4: Observer lifecycle - coordinator must retain exactly one observer
         self.workspaceEngine = workspaceEngine
@@ -51,6 +70,12 @@ internal final class WorkspaceCoordinator: ConversationWorkspaceHandling, Worksp
         self.errorAuthority = errorAuthority
         self.stateObserver = stateObserver
         // Observer is retained, ensuring single active observer per coordinator
+        // Observer may be set after initialization to break circular dependency
+    }
+    
+    /// Set the state observer (called after observer creation to break circular dependency)
+    func setStateObserver(_ observer: WorkspaceStateObserver) {
+        self.stateObserver = observer
     }
     
     // MARK: - ConversationWorkspaceHandling Protocol
@@ -59,10 +84,19 @@ internal final class WorkspaceCoordinator: ConversationWorkspaceHandling, Worksp
         let correlationID = UUID()
         TeleologicalTracer.shared.trace("WorkspaceCoordinator.sendMessage", power: .decisional, correlationID: correlationID)
         presentationModel.isLoading = true
-        projection.streamingMessages[conversation.id] = ""
+        guard let activeID = activeDetailID, var activeDetail = detailStore[activeID] else {
+            presentationModel.isLoading = false
+            handleContextLoadFailure(message: "Context load failed: no selection")
+            return
+        }
+        activeDetail.streamingMessages[conversation.id] = ""
+        detailStore[activeID] = activeDetail
         defer {
             presentationModel.isLoading = false
-            projection.streamingMessages[conversation.id] = nil
+            if var detail = detailStore[activeID] {
+                detail.streamingMessages[conversation.id] = nil
+                detailStore[activeID] = detail
+            }
         }
         
         do {
@@ -72,7 +106,7 @@ internal final class WorkspaceCoordinator: ConversationWorkspaceHandling, Worksp
             }
 
             var convo = conversation
-            if let did = presentationModel.selectedDescriptorID {
+            if let did = activeDetailState.selectedDescriptorID {
                 convo.contextDescriptorIDs = [AppCoreEngine.FileID(did.rawValue)]
             }
             let contextRequest = buildContextRequest(for: convo)
@@ -81,8 +115,9 @@ internal final class WorkspaceCoordinator: ConversationWorkspaceHandling, Worksp
                 conversation: convo,
                 contextRequest: contextRequest
             )
-            projection.lastContextResult = DomainToUIMappers.toUIContextBuildResult(contextResult)
-            projection.lastContextSnapshot = buildContextSnapshot(from: contextResult)
+            activeDetail.contextResult = DomainToUIMappers.toUIContextBuildResult(contextResult)
+            activeDetail.contextSnapshot = buildContextSnapshot(from: contextResult)
+            detailStore[activeID] = activeDetail
             
         } catch {
             handleSendMessageError(error)
@@ -93,10 +128,22 @@ internal final class WorkspaceCoordinator: ConversationWorkspaceHandling, Worksp
         let correlationID = UUID()
         TeleologicalTracer.shared.trace("WorkspaceCoordinator.askCodex", power: .decisional, correlationID: correlationID)
         presentationModel.isLoading = true
-        projection.streamingMessages[conversation.id] = ""
+        guard let activeID = activeDetailID, var activeDetail = detailStore[activeID] else {
+            presentationModel.isLoading = false
+            errorAuthority.publish(
+                EngineError.contextLoadFailed("No selection"),
+                context: "Codex Error"
+            )
+            return conversation
+        }
+        activeDetail.streamingMessages[conversation.id] = ""
+        detailStore[activeID] = activeDetail
         defer {
             presentationModel.isLoading = false
-            projection.streamingMessages[conversation.id] = nil
+            if var detail = detailStore[activeID] {
+                detail.streamingMessages[conversation.id] = nil
+                detailStore[activeID] = detail
+            }
         }
 
         guard let scope = currentWorkspaceScope() else {
@@ -115,18 +162,21 @@ internal final class WorkspaceCoordinator: ConversationWorkspaceHandling, Worksp
                     question: text
                 ) { [weak self] streaming in
                     Task { @MainActor in
-                        self?.projection.streamingMessages[conversation.id] = streaming
+                        guard let self = self, let activeID = self.activeDetailID, var detail = self.detailStore[activeID] else { return }
+                        detail.streamingMessages[conversation.id] = streaming
+                        self.detailStore[activeID] = detail
                     }
                 }
                 var updated = conversation
                 let assistant = AppCoreEngine.Message(role: .assistant, text: answer.text, createdAt: Date())
                 updated.messages.append(assistant)
                 codexContextByMessageID[assistant.id] = answer.context
-                projection.lastContextResult = answer.context
+                activeDetail.contextResult = answer.context
                 // CodexAnswer.context is already UIContracts.UIContextBuildResult, but buildContextSnapshot needs domain type
                 // We need to convert back temporarily - this is a design issue that should be fixed
                 // For now, we'll skip building snapshot from UIContracts type
-                // projection.lastContextSnapshot = buildContextSnapshot(from: answer.context)
+                // activeDetail.contextSnapshot = buildContextSnapshot(from: answer.context)
+                detailStore[activeID] = activeDetail
                 return updated
             case .stub:
                 var updated = conversation
@@ -149,10 +199,13 @@ internal final class WorkspaceCoordinator: ConversationWorkspaceHandling, Worksp
     }
     
     private func buildContextRequest(for conversation: AppCoreEngine.Conversation) -> AppCoreEngine.ConversationContextRequest {
-        ConversationContextRequest(
+        let selectedNode = activeDetailState.selectedDescriptorID.flatMap { descriptorID in
+            presentationModel.rootFileNode?.findNode(withDescriptorID: AppCoreEngine.FileID(descriptorID.rawValue))
+        }
+        return ConversationContextRequest(
             snapshot: workspaceSnapshot,
             preferredDescriptorIDs: conversation.contextDescriptorIDs,
-            fallbackContextURL: presentationModel.selectedNode?.path,
+            fallbackContextURL: selectedNode?.path,
             budget: nil
         )
     }
@@ -174,17 +227,19 @@ internal final class WorkspaceCoordinator: ConversationWorkspaceHandling, Worksp
     
     private func buildStreamHandler(for conversationID: UUID) -> ((AppCoreEngine.ConversationDelta) -> Void)? {
         { [weak self] event in
-            guard let self = self else { return }
+            guard let self = self, let activeID = self.activeDetailID else { return }
             Task { @MainActor in
+                guard var detail = self.detailStore[activeID] else { return }
                 switch event {
                 case .context(let context):
-                    self.projection.lastContextResult = DomainToUIMappers.toUIContextBuildResult(context)
-                    self.projection.lastContextSnapshot = self.buildContextSnapshot(from: context)
+                    detail.contextResult = DomainToUIMappers.toUIContextBuildResult(context)
+                    detail.contextSnapshot = self.buildContextSnapshot(from: context)
                 case .assistantStreaming(let aggregate):
-                    self.projection.streamingMessages[conversationID] = aggregate
+                    detail.streamingMessages[conversationID] = aggregate
                 case .assistantCommitted:
-                    self.projection.streamingMessages[conversationID] = nil
+                    detail.streamingMessages[conversationID] = nil
                 }
+                self.detailStore[activeID] = detail
             }
         }
     }
@@ -196,11 +251,12 @@ internal final class WorkspaceCoordinator: ConversationWorkspaceHandling, Worksp
         TeleologicalTracer.shared.trace("WorkspaceCoordinator.currentWorkspaceScope", power: .decisional, correlationID: correlationID)
         switch presentationModel.activeScope {
         case .selection:
-            if let descriptorID = presentationModel.selectedDescriptorID {
+            if let descriptorID = activeDetailState.selectedDescriptorID {
                 return .descriptor(UIContracts.FileID(descriptorID.rawValue))
             }
-            if let path = presentationModel.selectedNode?.path.path {
-                return .path(path)
+            if let descriptorID = activeDetailState.selectedDescriptorID,
+               let selectedNode = presentationModel.rootFileNode?.findNode(withDescriptorID: AppCoreEngine.FileID(descriptorID.rawValue)) {
+                return .path(selectedNode.path.path)
             }
             return nil
         case .workspace:
@@ -209,12 +265,12 @@ internal final class WorkspaceCoordinator: ConversationWorkspaceHandling, Worksp
             }
             return nil
         case .selectionAndSiblings:
-            if let descriptorID = presentationModel.selectedDescriptorID {
+            if let descriptorID = activeDetailState.selectedDescriptorID {
                 return .descriptor(UIContracts.FileID(descriptorID.rawValue))
             }
             return nil
         case .manual:
-            if let descriptorID = presentationModel.selectedDescriptorID {
+            if let descriptorID = activeDetailState.selectedDescriptorID {
                 return .descriptor(UIContracts.FileID(descriptorID.rawValue))
             }
             return nil
@@ -234,7 +290,7 @@ internal final class WorkspaceCoordinator: ConversationWorkspaceHandling, Worksp
     }
     
     public var streamingMessages: [UUID: String] {
-        projection.streamingMessages
+        activeDetailState.streamingMessages
     }
     
     // MARK: - Context Snapshot Building
@@ -339,12 +395,18 @@ internal final class WorkspaceCoordinator: ConversationWorkspaceHandling, Worksp
     private func handleContextLoadFailure(message: String) {
         let error = EngineError.contextLoadFailed(message)
         errorAuthority.publish(error, context: "Context load failure")
-        projection.lastContextResult = nil
+        if let activeID = activeDetailID, var detail = detailStore[activeID] {
+            detail.contextResult = nil
+            detailStore[activeID] = detail
+        }
     }
     
     private func handleSendMessageError(_ error: Error) {
         errorAuthority.publish(error, context: "Send message failure")
-        projection.lastContextResult = nil
+        if let activeID = activeDetailID, var detail = detailStore[activeID] {
+            detail.contextResult = nil
+            detailStore[activeID] = detail
+        }
     }
     
     // MARK: - Utility
@@ -552,9 +614,12 @@ internal final class WorkspaceCoordinator: ConversationWorkspaceHandling, Worksp
     /// Derive WorkspaceUIViewState from internal state
     public func deriveWorkspaceUIViewState() -> UIContracts.WorkspaceUIViewState {
         let rootDirectory = projection.workspaceState.rootPath.map { URL(fileURLWithPath: $0, isDirectory: true) }
+        let selectedNode = detailState.selectedDescriptorID.flatMap { descriptorID in
+            presentationModel.rootFileNode?.findNode(withDescriptorID: AppCoreEngine.FileID(descriptorID.rawValue))
+        }
         return UIContracts.WorkspaceUIViewState(
-            selectedNode: presentationModel.selectedNode?.toUIContracts(),
-            selectedDescriptorID: presentationModel.selectedDescriptorID,
+            selectedNode: selectedNode?.toUIContracts(),
+            selectedDescriptorID: detailState.selectedDescriptorID,
             rootFileNode: presentationModel.rootFileNode?.toUIContracts(),
             rootDirectory: rootDirectory,
             projectTodos: presentationModel.projectTodos,
@@ -565,12 +630,43 @@ internal final class WorkspaceCoordinator: ConversationWorkspaceHandling, Worksp
     /// Derive ContextViewState from internal state
     public func deriveContextViewState(bannerMessage: String?) -> UIContracts.ContextViewState {
         UIContracts.ContextViewState(
-            lastContextSnapshot: projection.lastContextSnapshot,
-            lastContextResult: projection.lastContextResult,
-            streamingMessages: projection.streamingMessages,
+            lastContextSnapshot: detailState.contextSnapshot,
+            lastContextResult: detailState.contextResult,
+            streamingMessages: detailState.streamingMessages,
             bannerMessage: bannerMessage,
             contextByMessageID: codexContextByMessageID
         )
+    }
+    
+    /// Activate detail state for selection (create if needed, preserve if exists).
+    /// Selection change switches active DetailState, does not destroy it.
+    func replaceDetailState(for selection: UIContracts.FileID?) {
+        if let selectionID = selection {
+            // Activate existing or create new DetailState for this identity
+            if detailStore[selectionID] == nil {
+                detailStore[selectionID] = DetailState(selectedDescriptorID: selectionID)
+            }
+            activeDetailID = selectionID
+        } else {
+            // Deselect: clear active ID, but preserve stored DetailStates
+            activeDetailID = nil
+        }
+    }
+    
+    /// Clear all detail states (called on project close).
+    func clearDetailStore() {
+        detailStore.removeAll()
+        activeDetailID = nil
+    }
+    
+    /// Get current inspector tab
+    public func inspectorTab() -> UIContracts.InspectorTab {
+        detailState.inspectorTab
+    }
+    
+    /// Set inspector tab
+    public func setInspectorTab(_ tab: UIContracts.InspectorTab) {
+        detailState.inspectorTab = tab
     }
     
     /// Derive PresentationViewState from internal state
