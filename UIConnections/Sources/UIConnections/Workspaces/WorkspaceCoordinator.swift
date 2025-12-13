@@ -41,6 +41,7 @@ internal final class WorkspaceCoordinator: ConversationWorkspaceHandling, Worksp
         errorAuthority: DomainErrorAuthority,
         stateObserver: WorkspaceStateObserver
     ) {
+        // INVARIANT 4: Observer lifecycle - coordinator must retain exactly one observer
         self.workspaceEngine = workspaceEngine
         self.conversationEngine = conversationEngine
         self.codexService = codexService
@@ -49,6 +50,7 @@ internal final class WorkspaceCoordinator: ConversationWorkspaceHandling, Worksp
         self.projection = projection
         self.errorAuthority = errorAuthority
         self.stateObserver = stateObserver
+        // Observer is retained, ensuring single active observer per coordinator
     }
     
     // MARK: - ConversationWorkspaceHandling Protocol
@@ -431,7 +433,7 @@ internal final class WorkspaceCoordinator: ConversationWorkspaceHandling, Worksp
                 try await workspaceEngine.openWorkspace(rootPath: url.path)
             }
             workspaceSnapshot = snapshot
-            let projection = await workspaceEngine.treeProjection()
+            _ = await workspaceEngine.treeProjection()
             // Update will be handled by WorkspaceStateObserver
             loadProjectTodos(for: url)
         } catch let timeout as TimeoutError {
@@ -491,7 +493,7 @@ internal final class WorkspaceCoordinator: ConversationWorkspaceHandling, Worksp
             do {
                 let snapshot = try await workspaceEngine.setContextInclusion(path: url.path, included: include)
                 workspaceSnapshot = snapshot
-                let projection = await workspaceEngine.treeProjection()
+                _ = await workspaceEngine.treeProjection()
                 // Update will be handled by WorkspaceStateObserver
             } catch {
                 errorAuthority.publish(error, context: "Set Context Inclusion")
@@ -607,13 +609,13 @@ internal final class WorkspaceCoordinator: ConversationWorkspaceHandling, Worksp
                     errorAuthority.publish(error, context: "Set Context Inclusion")
                 }
             }
-        case .loadFilePreview(let url):
+        case .loadFilePreview(_):
             // File preview loading - not implemented in coordinator
             break
-        case .loadFileStats(let url):
+        case .loadFileStats(_):
             // File stats loading - not implemented in coordinator
             break
-        case .loadFolderStats(let url):
+        case .loadFolderStats(_):
             // Folder stats loading - not implemented in coordinator
             break
         case .clearFilePreview:

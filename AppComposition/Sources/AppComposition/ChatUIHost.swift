@@ -164,7 +164,13 @@ public struct ChatUIHost: View {
     
     // MARK: - ViewState Derivation
     
+    // INVARIANT 2: Reactive view-state derivation
+    // This method must be called only after observer-applied state changes complete.
+    // No premature calls before async updates finish.
     private func updateViewStates() {
+        // INVARIANT 3: MainActor protection - view state derivation must be on MainActor
+        precondition(Thread.isMainThread, "updateViewStates must run on MainActor")
+        
         workspaceUIViewState = workspaceCoordinator.deriveWorkspaceUIViewState()
         contextViewState = workspaceCoordinator.deriveContextViewState(bannerMessage: bannerMessage)
         presentationViewState = workspaceCoordinator.derivePresentationViewState()

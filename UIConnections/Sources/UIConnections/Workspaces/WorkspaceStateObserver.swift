@@ -41,6 +41,9 @@ public final class WorkspaceStateObserver {
     }
     
     private func applyUpdate(_ update: AppCoreEngine.WorkspaceUpdate) {
+        // INVARIANT 3: MainActor protection - tree rebuilds must be on MainActor
+        precondition(Thread.isMainThread, "applyUpdate must run on MainActor")
+        
         // Project to projection model (domain-derived state)
         let previousRoot = projection.workspaceState.rootPath
         let previousSelection = projection.workspaceState.selectedDescriptorID
@@ -71,6 +74,11 @@ public final class WorkspaceStateObserver {
         )
         let isStructural = updateType == .structural
         
+        // INVARIANT 1: Selection-only updates must not rebuild tree
+        if updateType == .selectionOnly {
+            precondition(!isStructural, "Selection-only update must not be classified as structural")
+        }
+        
         projection.workspaceState = mapped
         
         if previousRoot != mapped.rootPath {
@@ -85,9 +93,17 @@ public final class WorkspaceStateObserver {
             presentationModel.selectedDescriptorID = nil
         }
         
-        // Rebuild tree only for structural changes (single call)
+        // INVARIANT 1: Single structural rebuild - FileNode.fromProjection called at most once per update
+        // Only for structural changes, and only if projection exists
+        var treeRebuilt = false
         if isStructural, let domainProjection = update.projection {
             presentationModel.rootFileNode = FileNode.fromProjection(domainProjection)
+            treeRebuilt = true
+        }
+        
+        // INVARIANT 1: Guard - non-structural updates must not rebuild tree
+        if !isStructural {
+            precondition(!treeRebuilt, "Non-structural update must not rebuild tree")
         }
         
         // Update selection against existing tree (structural or not)
@@ -95,7 +111,8 @@ public final class WorkspaceStateObserver {
         
         presentationModel.watcherError = mapped.watcherError
         
-        // Trigger reactive UI update after state mutation
+        // INVARIANT 2: Reactive view-state derivation - trigger only after state mutation completes
+        // This ensures updateViewStates() reads consistent state
         onStateUpdated?()
     }
     

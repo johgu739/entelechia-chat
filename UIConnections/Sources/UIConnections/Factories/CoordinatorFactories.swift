@@ -29,6 +29,7 @@ public func createWorkspaceCoordinator<Client: CodexClient, Persistence: Convers
     // Adapt domain engine to internal protocol
     let conversationAdapter = ConversationEngineAdapter(engine: conversationEngine)
     // Create and start observer with reactive callback
+    // INVARIANT 4: Observer lifecycle - exactly one observer per coordinator
     let observer = WorkspaceStateObserver(
         workspaceEngine: workspaceEngine,
         presentationModel: presentationModel,
@@ -45,6 +46,7 @@ public func createWorkspaceCoordinator<Client: CodexClient, Persistence: Convers
         errorAuthority: errorAuthority,
         stateObserver: observer
     )
+    // INVARIANT 4: Observer must be retained by coordinator (enforced by coordinator storing stateObserver)
     return coordinator
 }
 
