@@ -28,7 +28,6 @@ public struct MainWorkspaceView: View {
     @Binding var inspectorTab: UIContracts.InspectorTab
     
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
-    @State private var isInspectorVisible = true
     
     public init(
         workspaceState: UIContracts.WorkspaceUIViewState,
@@ -57,19 +56,17 @@ public struct MainWorkspaceView: View {
     }
     
     public var body: some View {
-        // Do not apply global material; it collapses surface hierarchy.
-        // Window chrome uses semantic color, sidebars use .sidebar material, editor uses textBackgroundColor.
         navigationLayout
-            .background(Color(nsColor: .windowBackgroundColor))
     }
     
     private var navigationLayout: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
             navigatorColumn
-        } detail: {
+        } content: {
             chatColumn
+        } detail: {
+            inspectorColumn
         }
-        .overlay(statusOverlay, alignment: .top)
     }
     
     private var navigatorColumn: some View {
@@ -78,20 +75,12 @@ public struct MainWorkspaceView: View {
             presentationState: presentationState,
             onWorkspaceIntent: onWorkspaceIntent
         )
-        .navigationSplitViewColumnWidth(
-            min: DS.s20 * CGFloat(10),
-            ideal: DS.s20 * CGFloat(12),
-            max: DS.s20 * CGFloat(16)
-        )
     }
     
     private var chatColumn: some View {
         NavigationStack {
             chatContent
                 .navigationTitle(navigationTitle)
-                .inspector(isPresented: $isInspectorVisible) {
-                    inspectorColumn
-                }
         }
     }
     

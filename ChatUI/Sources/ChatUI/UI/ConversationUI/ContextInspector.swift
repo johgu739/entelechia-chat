@@ -49,13 +49,6 @@ struct ContextInspector: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            ContextInspectorTabs(selectedInspectorTab: $selectedInspectorTab)
-                .overlay(Divider(), alignment: .bottom)
-            tabContent
-        }
-        .frame(minWidth: 220, maxWidth: 300)
-        .background(VisualEffectView(material: .sidebar, blendingMode: .withinWindow, state: .active))
-        .overlay(alignment: .top) {
             if let message = contextState.bannerMessage {
                 ContextErrorBanner(message: message) {
                     withAnimation { onWorkspaceIntent(.clearBanner) }
@@ -64,7 +57,11 @@ struct ContextInspector: View {
                 .padding(.horizontal, DS.s8)
                 .padding(.top, DS.s8)
             }
+            ContextInspectorTabs(selectedInspectorTab: $selectedInspectorTab)
+                .overlay(Divider(), alignment: .bottom)
+            tabContent
         }
+        .background(VisualEffectView(material: .sidebar, blendingMode: .withinWindow, state: .active))
         .onChange(of: workspaceState.selectedNode?.path) { _, newURL in
             if let url = newURL {
                 onWorkspaceIntent(.loadFilePreview(url))
@@ -115,7 +112,6 @@ struct ContextInspector: View {
                 }
             } else {
                 emptySelection
-                    .frame(maxHeight: .infinity)
             }
         }
     }
@@ -129,7 +125,6 @@ struct ContextInspector: View {
                 .font(.system(size: 12))
                 .foregroundColor(.secondary)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     private var emptySelection: some View {
